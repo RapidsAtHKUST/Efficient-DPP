@@ -1,33 +1,26 @@
-#include "utility.h"
-#include "kernels.h"
+//
+//  main.cpp
+//  gpuqp_cuda
+//
+//  Created by Bryan on 01/19/16.
+//  Copyright (c) 2015-2016 Bryan. All rights reserved.
+//
+#include "test.h"
+
 using namespace std;
 
 int main(int argc, char *argv[]) {
 	
-	Record *h_source, *h_res;
-
 	int r_len = atoi(argv[1]);
-	int max = 10000000;
+	Record *source = new Record[r_len];
+	recordRandom(source, r_len);
 
-	//allocate for the host memory
-	h_source = (Record*)malloc(sizeof(Record) * r_len);
-	h_res = (Record*)malloc(sizeof(Record) * r_len);
+	bool res = testMap(source, r_len);
 
-	srand(NULL);
-	for(int i = 0; i < r_len; i++) {
-		h_source[i].x = i;
-		h_source[i].y = rand() % max;
-	}
+	if (res) 	cout<<"Success!"<<endl;
+	else 		cout<<"Fail!"<<endl;
 
-	mapImpl(h_source, h_res, r_len);
-
-	for(int i = 0; i < r_len; i++) {
-		cout<<h_source[i].x<<' '<<h_source[i].y<<' '<<h_res[i].x<<' '<<h_res[i].y<<endl;
-	}
-
-	free(h_source);
-	free(h_res);
-
+	delete[] source;
 	return 0;
 
 }

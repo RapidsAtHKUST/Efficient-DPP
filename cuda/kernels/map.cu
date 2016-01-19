@@ -1,3 +1,10 @@
+//
+//  map.cu
+//  gpuqp_cuda
+//
+//  Created by Bryan on 01/19/16.
+//  Copyright (c) 2015-2016 Bryan. All rights reserved.
+//
 #include "kernels.h"
 
 __device__
@@ -21,11 +28,11 @@ void map(Record *d_source, Record *d_res, int r_len) {
 	}
 }
 
-void mapImpl(Record *h_source, Record *h_res, int r_len) {
+void mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize) {
 	Record *d_source, *d_res;
 
-	dim3 grid(256);
-	dim3 block(512);
+	dim3 grid(gridSize);
+	dim3 block(blockSize);
 	
 	//allocate for the device memory
 	checkCudaErrors(cudaMalloc(&d_source,sizeof(Record)*r_len));
