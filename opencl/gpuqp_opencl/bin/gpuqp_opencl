@@ -1,0 +1,144 @@
+#!/bin/bash
+
+# getopt preprocessing
+TEMP=`getopt -o hrn:o --long help,random,rec_dir:,arr_dir: -- "$@"`
+
+# set will reorder the sequence of the parameters
+eval set -- "$TEMP"
+
+GPUQP_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+
+# parameters
+IS_RANDOM_GENERATED=true			# whether to use random data
+IS_OUTPUT=false						# whether to output the file
+IS_INPUT=false						# whether to input the data file
+DATASIZE=16000000					# default data size if 16,000,000
+
+# data directory
+INPUT_REC_DIR=
+INPUT_ARR_DIR=
+OUTPUT_REC_DIR=
+OUTPUT_ARR_DIR=
+
+CURRENT_DIR="$(pwd)"
+
+# process the parameters
+while true ; do
+	case "$1" in
+		-h|--help)
+			echo "Options:";
+			echo " -h, --help					show usage guide";
+			echo " -r, --random					use random generated data(default)";
+			echo " -o						use random generated data and output the data to the data directory";
+			echo " -n						set the data size";
+			echo " --rec_dir=/your/record/data_dir		read record data from data dir(then it will use the fixed data)";
+			echo " --arr_dir=/your/array/data_dir		read array data from data dir(then it will use the fixed data)";
+		shift
+		;;	
+		
+		-r|--random)
+			RANDOM_GENERATED=true
+		shift
+		;;	
+
+		-o)
+			if [ $IS_INPUT == true ]
+			then
+				echo "Can not input data and output data at the same time."
+				exit 1
+			fi
+
+			RANDOM_GENERATED=true
+			IS_OUTPUT=true
+
+		shift
+		;;
+
+		-n)
+			case "$2" in
+				"") echo "You need to specify the data size. Please input -h for more information"; exit 1;;
+				*) DATASIZE=$2; shift 2;;
+			esac
+		;;	
+
+		--rec_dir)
+			case "$2" in
+				"") echo "You need to specify the data directory. Please input -h for more information"; exit 1;;
+				*) 
+					if [ $IS_OUTPUT == true ]
+					then
+						echo "Can not output data and input data at the same time."
+						exit 1
+					fi
+
+					IS_INPUT=true
+					IS_RANDOM_GENERATED=false
+					INPUT_REC_DIR="$CURRENT_DIR/$2" 
+					shift 2;;
+			esac 
+		;;
+
+		--arr_dir)
+			case "$2" in
+				"") echo "You need to specify the data directory. Please input -h for more information"; exit 1;;
+				*) 
+					if [ $IS_OUTPUT == true ]
+					then
+						echo "Can not output data and input data at the same time."
+						exit 1
+					fi
+					IS_INPUT=true
+					IS_RANDOM_GENERATED=false
+					INPUT_ARR_DIR="$CURRENT_DIR/$2"
+					shift 2;;
+			esac 
+		;;
+		
+		# the end of the parameter list
+		--) shift ; break ;;
+		*) echo $1; exit 1 ;;
+																																												esac
+done
+
+#output the parameters for checking
+echo ""
+echo "Starting to launch gpuqp.."
+
+if [ $IS_OUTPUT == true ]
+then
+	OUTPUT_REC_DIR="record_${DATASIZE}_`date +%Y%m%d%k%M%S`.data"
+	OUTPUT_ARR_DIR="array_${DATASIZE}_`date +%Y%m%d%k%M%S`.data"
+
+	echo "Need to output data : true"
+	echo "Output data size : $DATASIZE"
+	echo "Data generated randomly : $IS_RANDOM_GENERATED"
+	echo "Output record data directory : $OUTPUT_REC_DIR"
+	echo "Output array data directory : $OUTPUT_ARR_DIR"
+	eval "$GPUQP_HOME/bin/executor $DATASIZE $IS_RANDOM_GENERATED $IS_OUTPUT $IS_INPUT $OUTPUT_REC_DIR $OUTPUT_ARR_DIR"
+elif [ $IS_INPUT == true ]
+then
+	if [ -z "$INPUT_REC_DIR" ]
+	then
+		echo "Record directory is empty"
+		exit 1
+	fi
+
+	if [ -z "$INPUT_ARR_DIR" ]
+	then
+		echo "Array directory is empty"
+		exit 1
+	fi
+
+	echo "Need to input data : true"
+	echo "Input record data directory : $INPUT_REC_DIR"
+	echo "Input array data directory : $INPUT_ARR_DIR"	
+	echo "Data generated randomly : $IS_RANDOM_GENERATED"
+	eval "$GPUQP_HOME/bin/executor $DATASIZE $IS_RANDOM_GENERATED $IS_OUTPUT $IS_INPUT $INPUT_REC_DIR $INPUT_ARR_DIR"
+else
+	echo "Data size: $DATASIZE"
+	echo "Data generated randomly : $IS_RANDOM_GENERATED"
+	echo "Need to output data : false"
+	echo "Need to input data : false"
+	eval "$GPUQP_HOME/bin/executor $DATASIZE $IS_RANDOM_GENERATED $IS_OUTPUT $IS_INPUT"
+fi
+

@@ -8,7 +8,6 @@ INCDIR := $(HOME_PATH)/inc
 BINDIR := $(HOME_PATH)/bin
 OBJDIR := $(HOME_PATH)/obj
 MAINDIR := $(HOME_PATH)/src/Main
-DATADIR := $(HOME_PATH)/data/
 
 CC := g++ 
 CPPFLAGS := -g  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DDATADIR=\"$(DATADIR)\"
