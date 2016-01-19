@@ -1,0 +1,5 @@
+# ignore the .data files and object files
+*.data
+*.o
+
+
