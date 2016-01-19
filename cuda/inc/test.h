@@ -8,10 +8,10 @@
 #ifndef __TEST_H__
 #define __TEST_H__
 
-#include "utility.h"
 #include "kernels.h"
 
-bool testMap(Record *source, int r_len, int blockSize, int gridSize);
-
+bool testMap(Record *source, int r_len, double& time, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+bool testGather(Record *source, int r_len, int *loc,double& time, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+bool testScatter(Record *source, int r_len, int *loc,double& time, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 
 #endif

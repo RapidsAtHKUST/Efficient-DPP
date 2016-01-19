@@ -1,6 +1,6 @@
 #include "test.h"
 
-bool testMap(Record *source, int r_len, double& time, int blockSize, int gridSize) {
+bool testScatter(Record *source, int r_len, int *loc,double& time, int blockSize, int gridSize) {
 	
 	bool res = true;
 
@@ -13,15 +13,15 @@ bool testMap(Record *source, int r_len, double& time, int blockSize, int gridSiz
 		h_source[i].y = source[i].y;
 	}
 
-	mapImpl(h_source, h_res, r_len, blockSize, gridSize, time);
+	scatterImpl(h_source, h_res, r_len, loc,  blockSize, gridSize, time);
 
 	//checking 
 	for(int i = 0; i < r_len; i++) {
-		if (h_source[i].x != h_res[i].x ||
-			floorOfPower2_CPU(h_source[i].y) != h_res[i].y) {
-				res = false;
-				break;
-			}
+		if (h_res[loc[i]].x != h_source[i].x ||
+			h_res[loc[i]].y != h_source[i].y) {
+			res = false;
+			break;
+		}
 	}
 
 	delete[] h_source;

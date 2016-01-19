@@ -28,7 +28,7 @@ void map(Record *d_source, Record *d_res, int r_len) {
 	}
 }
 
-void mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize) {
+void mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize, double& time) {
 	Record *d_source, *d_res;
 
 	dim3 grid(gridSize);
@@ -40,10 +40,16 @@ void mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int grid
 
 	cudaMemcpy(d_source, h_source, sizeof(Record) * r_len, cudaMemcpyHostToDevice);
 
+	struct timeval start, end;
+
+	gettimeofday(&start, NULL);
 	cudaDeviceSynchronize();
 	map<<<grid, block>>>(d_source, d_res, r_len);
 	cudaDeviceSynchronize();
+	gettimeofday(&end, NULL);
 
+	time = diffTime(end, start);
+	
 	cudaMemcpy(h_res, d_res, sizeof(Record)*r_len, cudaMemcpyDeviceToHost);	
 
 	//cout<<"ints:"<<endl;

@@ -1,5 +1,5 @@
 //
-//  gather.cu
+//  scatter.cu
 //  gpuqp_cuda
 //
 //  Created by Bryan on 01/19/16.
@@ -8,7 +8,7 @@
 #include "kernels.h"
 
 __global__
-void gather(const Record *d_source,
+void scatter(const Record *d_source,
 			Record *d_res,
 			const int r_len,
 			const int *loc)
@@ -17,13 +17,14 @@ void gather(const Record *d_source,
 	int threadNum = blockDim.x * gridDim.x;
 
 	while (threadId < r_len) {
-		d_res[threadId].x = d_source[loc[threadId]].x;
-		d_res[threadId].y = d_source[loc[threadId]].y;
+		d_res[loc[threadId]].x = d_source[threadId].x;
+		d_res[loc[threadId]].y = d_source[threadId].y;
 		threadId += threadNum;
 	}
 }
 
-void gatherImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize, double& time) {
+void scatterImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize, double& time) {
+	
 	Record *d_source, *d_res;
 	int *d_loc;
 
@@ -40,9 +41,9 @@ void gatherImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int block
 
 	struct timeval start, end;
 
-	gettimeofday(&start, NULL);
+	gettimeofday(&start, NULL);	
 	cudaDeviceSynchronize();
-	gather<<<grid, block>>>(d_source, d_res, r_len, d_loc);
+	scatter<<<grid, block>>>(d_source, d_res, r_len, d_loc);
 	cudaDeviceSynchronize();
 	gettimeofday(&end, NULL);
 

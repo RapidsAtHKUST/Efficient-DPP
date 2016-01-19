@@ -78,8 +78,8 @@ int main(int argc, const char * argv[]) {
     
     //test primitives
     testMap(fixedRecords, recordLength, info, totalTime);
-//    testGather(fixedRecords, recordLength, info, totalTime);
-//    testScatter(fixedRecords, recordLength, info, totalTime);
+	testGather(fixedRecords, recordLength, info, totalTime);
+	testScatter(fixedRecords, recordLength, info, totalTime);
 //    testScan(fixedArray, arrayLength, info, totalTime, 0);             //0: inclusive
 //    testScan(fixedArray, arrayLength, info, totalTime, 1);             //1: exclusive
 //    testSplit(fixedRecords, recordLength, info, 20, totalTime);           //fanout: 20
