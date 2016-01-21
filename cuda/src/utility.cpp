@@ -147,36 +147,36 @@ void printbinary(const unsigned int val, int dis) {
 //     out.close();
 // }
 
-// void readFixedRecords(Record* fixedRecords, char *file, int& recordLength) {
+void readFixedRecords(Record* fixedRecords, char *file, int& recordLength) {
     
-//     std::ifstream in(file,std::ios::binary);
+    std::ifstream in(file,std::ios::binary);
     
-//     if (!in.good()) {
-//         std::cerr<<"Data file not found."<<std::endl;
-//         exit(1);
-//     }
+    if (!in.good()) {
+        std::cerr<<"Data file not found."<<std::endl;
+        exit(1);
+    }
     
-//     in>>recordLength;
+    in>>recordLength;
 
-//     for(int i = 0; i < recordLength; i++) {
-//         in>>fixedRecords[i].x>>fixedRecords[i].y;
-//     }
-// }
+    for(int i = 0; i < recordLength; i++) {
+        in>>fixedRecords[i].x>>fixedRecords[i].y;
+    }
+}
 
-// void readFixedArray(int* fixedArray, char *file, int & arrayLength) {
-//     std::ifstream in(file, std::ios::binary);
+void readFixedArray(int* fixedArray, char *file, int & arrayLength) {
+    std::ifstream in(file, std::ios::binary);
     
-//     if (!in.good()) {
-//         std::cout<<"Data file not found."<<std::endl;
-//         exit(1);
-//     }
+    if (!in.good()) {
+        std::cout<<"Data file not found."<<std::endl;
+        exit(1);
+    }
     
-//     in>>arrayLength;
+    in>>arrayLength;
     
-//     for(int i = 0; i < arrayLength; i++) {
-//         in>>fixedArray[i];
-//     }
-// }
+    for(int i = 0; i < arrayLength; i++) {
+        in>>fixedArray[i];
+    }
+}
 
 double diffTime(struct timeval end, struct timeval start) {
 	return 1000 * (end.tv_sec - start.tv_sec) + 0.001 * (end.tv_usec - start.tv_usec);

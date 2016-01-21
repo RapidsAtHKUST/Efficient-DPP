@@ -1,7 +1,7 @@
 #This is the make file for gpuqp_cuda
 #created by Bryan Lai from HKUST
 
-HOME_PATH = $(shell pwd)
+HOME_PATH = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 
 SRCDIR := $(HOME_PATH)/src
 INCDIR := $(HOME_PATH)/inc
@@ -25,12 +25,12 @@ INCLUDE := 	-I$(INCDIR) \
            	-I/usr/local/cuda/include
 LINK := -L /usr/local/cuda/lib64 -lcudart -lcuda
 
-CPP_SRC :=  $(filter-out ._%,$(notdir $(shell find src -name *.cpp)))
-CU_SRC :=  $(filter-out ._%,$(notdir $(shell find kernels -name *.cu)))
+CPP_SRC :=  $(filter-out ._%,$(notdir $(shell find $(SRCDIR) -name *.cpp)))
+CU_SRC :=  $(filter-out ._%,$(notdir $(shell find $(KERNELDIR) -name *.cu)))
 CPP_OBJ := $(CPP_SRC:%.cpp=$(OBJDIR)/%.o)
 CU_OBJ := $(CU_SRC:%.cu=$(OBJDIR)/%.o)
 
-PROGRAM := gpuqp_cuda
+PROGRAM := executor
 
 vpath %.cpp $(SRCDIR) 
 vpath %.cu $(KERNELDIR)

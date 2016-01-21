@@ -27,12 +27,11 @@
 
 #ifndef PROJECT_ROOT
 #define PROJECT_ROOT                        "/Users/Bryan/gpuqp_opencl/gpuqp_opencl/"
-#define DATADIR                             "/Users/Bryan/gpuqp_opencl/gpuqp_opencl/data/"
 #endif
 
-
 //data information
-#define MAX_DATA_SIZE 16000000              
+#define MAX_DATA_SIZE                       (16000000)
+#define MAX_NUM                             (INT_MAX/2)
 
 //Error information
 #define ERR_HOST_ALLOCATION                 "Failed to allocate the host memory."
@@ -72,38 +71,32 @@
 #define MAX_LOCAL_MEM_SIZE (47 * 1000)              //local memory size of 47KB
 
 //auxiliary setting
-#define SHUFFLE_TIME(TIME)  (TIME/2)
+#define SHUFFLE_TIME(TIME)  (TIME*1.5)
 
 //the fixed records & int array read from the external file
 
 double diffTime(struct timeval end, struct timeval start) ;
 
-void recordRandom(Record *records, int length, int max = INT_MAX);
+void recordRandom(Record *records, int length, int max = MAX_NUM);
 void recordRandom_Only(Record *records, int length,  int times);
-void recordSorted(Record *records, int length, int max = INT_MAX);
+void recordSorted(Record *records, int length, int max = MAX_NUM);
 void recordSorted_Only(Record *records, int length);
 
 void intRandom(int *intArr, int length, int max);
 void intRandom_Only(int *intArr, int length,  int times);
+void intSorted(int *intArr, int length, int max);
+void intSorted_Only(int *intArr, int length, int times);
 
-double calCPUTime(clock_t start, clock_t end);
 void checkErr(cl_int status, const char* name);
 void printbinary(const unsigned int val, int dis) ;
-
-int compInt ( const void * p, const void * q);
-int compRecordAsc ( const void * a, const void * b);
-int compRecordDec ( const void * a, const void * b);
-
-//generate the fixed record & int array and write to the external memory.
-void generateFixedRecords(Record* fixedRecords, int length, bool write, char *file);
-void generateFixedArray(int *fixedArray, int length, bool write, char *file);
 
 //read from the external memory
 void readFixedRecords(Record* fixedRecords, char *file, int& recordLength);
 void readFixedArray(int* fixedArray, char *file, int & arrayLength);
 
-//parameters processing
-void processBool(const char *arg, bool& var);
+int compRecordAsc ( const void * a, const void * b);
+int compRecordDec ( const void * a, const void * b);
+int compInt ( const void * p, const void * q);
 
 //result checking ancillary functions
 int floorOfPower2(int a);
