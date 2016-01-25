@@ -18,8 +18,10 @@ double scan(cl_mem &cl_arr, int num,int isExclusive, PlatInfo info, int localSiz
     double totalTime = 0;
     
     int firstLevelBlockNum = ceil((double)num / (localSize*2));
+    std::cout<<firstLevelBlockNum<<std::endl;
     int secondLevelBlockNum = ceil((double)firstLevelBlockNum / (localSize*2));
-
+    std::cout<<secondLevelBlockNum<<std::endl;
+    
     //set the local and global size
     size_t local[1] = {(size_t)localSize};
     size_t firstGlobal[1] = {(size_t)localSize * (size_t)firstLevelBlockNum};
@@ -106,7 +108,7 @@ double scan(cl_mem &cl_arr, int num,int isExclusive, PlatInfo info, int localSiz
     printExecutingKernel(psKernel);
 #endif
     gettimeofday(&start, NULL);
-    status = clEnqueueNDRangeKernel(info.currentQueue, psKernel, 1, 0, thirdGlobal, local, 0, NULL, NULL);
+    status = clEnqueueNDRangeKernel(info.currentQueue, psKernel, 1, 0, thirdGlobal, local, 0, NULL, NULL);      //here grid size is actually 1!!
     status = clFinish(info.currentQueue);
     gettimeofday(&end, NULL);
     checkErr(status, ERR_EXEC_KERNEL);

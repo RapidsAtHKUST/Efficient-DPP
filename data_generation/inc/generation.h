@@ -42,6 +42,11 @@ void intSorted_Only(int *intArr, int length, int times);
 void writeRecords(Record* records, int length, char *file);
 void writeArray(int *intArr, int length, char *file);
 
+
+int compRecordAsc ( const void * a, const void * b);
+int compRecordDec ( const void * a, const void * b);
+int compInt ( const void * p, const void * q);
+
 bool processBool(const char *arg);
 
 #endif

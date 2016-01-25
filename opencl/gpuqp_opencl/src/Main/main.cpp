@@ -61,9 +61,11 @@ int main(int argc, const char * argv[]) {
         strcat(input_rec_dir, argv[1]);
         strcat(input_arr_dir, argv[2]);
         strcat(input_loc_dir, argv[3]);
+        std::cout<<"Start reading data..."<<std::endl;
         readFixedRecords(fixedRecords, input_rec_dir, dataSize);
         readFixedArray(fixedArray, input_arr_dir, dataSize);
         readFixedArray(fixedLoc, input_loc_dir, dataSize);
+        std::cout<<"Finish reading data..."<<std::endl;
     }
     else {
         dataSize = atoi(argv[1]);
@@ -73,11 +75,11 @@ int main(int argc, const char * argv[]) {
     }
     
     //test primitives
-    testMap(fixedRecords, dataSize, info, totalTime);
-	testGather(fixedRecords, dataSize, info, totalTime);
-	testScatter(fixedRecords, dataSize, info, totalTime);
-//    testScan(fixedArray, dataSize, info, totalTime, 0);             //0: inclusive
-//    testScan(fixedArray, dataSize, info, totalTime, 1);             //1: exclusive
+//    testMap(fixedRecords, dataSize, info, totalTime);
+//	testGather(fixedRecords, dataSize, info, totalTime);
+//	testScatter(fixedRecords, dataSize, info, totalTime);
+    testScan(fixedArray, dataSize, info, totalTime, 0);             //0: inclusive
+    testScan(fixedArray, dataSize, info, totalTime, 1);             //1: exclusive
 //    testSplit(fixedRecords, dataSize, info, 20, totalTime);           //fanout: 20
 //    testRadixSort(fixedRecords, dataSize, info, totalTime);
 //    testBitonitSort(fixedRecords, dataSize, info, 1, totalTime);      //1:  ascendingls

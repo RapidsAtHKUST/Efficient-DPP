@@ -41,7 +41,6 @@ void gatherImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int block
 	struct timeval start, end;
 
 	gettimeofday(&start, NULL);
-	cudaDeviceSynchronize();
 	gather<<<grid, block>>>(d_source, d_res, r_len, d_loc);
 	cudaDeviceSynchronize();
 	gettimeofday(&end, NULL);

@@ -14,4 +14,7 @@ extern "C" void mapImpl(Record *h_source, Record *h_res, int r_len, int blockSiz
 extern "C" void gatherImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize, double& time);
 
 extern "C" void scatterImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize, double& time);
+extern "C" void scanImpl(int *h_source, int r_len, int blockSize, int gridSize, double &time, int isExclusive);
+
 #endif
+

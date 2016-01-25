@@ -98,6 +98,6 @@ then
 else
 	echo "Fast run..."
 	echo "Data size: $DATASIZE"
-	eval "$CUDA_COMPARE_HOME/bin/executor $DATASIZE"
+	eval "nvprof $CUDA_COMPARE_HOME/bin/executor $DATASIZE"
 fi
 

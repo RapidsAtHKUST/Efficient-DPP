@@ -104,7 +104,7 @@ void printbinary(const unsigned int val, int dis) {
 }
 
 // void generateFixedRecords(Record* fixedRecords, int length, bool write, char *file) {
-//     recordRandom(fixedRecords, length, 10000000);
+//     recordRandom(fixedRecords, length, MAX_NUM);
 //     if (!write) return;
     
 //     char fileAddr[300] = DATADIR;

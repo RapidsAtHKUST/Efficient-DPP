@@ -43,9 +43,11 @@ int main(int argc, char *argv[]) {
         strcat(input_rec_dir, argv[1]);
         strcat(input_arr_dir, argv[2]);
         strcat(input_loc_dir, argv[3]);
+        std::cout<<"Start reading data..."<<std::endl;
         readFixedRecords(fixedRecords, input_rec_dir, dataSize);
         readFixedArray(fixedArray, input_arr_dir, dataSize);
         readFixedArray(fixedLoc, input_loc_dir, dataSize);
+        std::cout<<"Finish reading data..."<<std::endl;
     }
     else {
         dataSize = atoi(argv[1]);
@@ -54,48 +56,29 @@ int main(int argc, char *argv[]) {
         intRandom_Only(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
     }
 
-	Record *source = fixedRecords;
-	// recordRandom(source, r_len);
+	double myTime = 0.0f;
 
-	int *loc = fixedLoc;
-	// intRandom_Only(loc, r_len,10000);
+	// bool res = testMap(fixedRecords, dataSize, time);
+	// cout<<"map: ";
+	// if (res) 	cout<<"Success!"<<'\t';
+	// else 		cout<<"Fail!"<<'\t';
+	// cout<<"Time: "<<time<<" ms"<<endl;
 
-	double time = 0.0f;
+	// res = testGather(fixedRecords, dataSize, fixedLoc, time);
+	// cout<<"gather: ";
+	// if (res) 	cout<<"Success!"<<'\t';
+	// else 		cout<<"Fail!"<<'\t';
+	// cout<<"Time: "<<time<<" ms"<<endl;
 
-// cout<<"Records:"<<endl;
-// for(int i = 0; i < recordLength; i++) {
-// 	cout<<fixedRecords[i].x <<' '<<fixedRecords[i].y<<endl;
-// }
+	// res = testScatter(fixedRecords, dataSize, fixedLoc,time);
+	// cout<<"scatter: ";
+	// if (res) 	cout<<"Success!"<<'\t';
+	// else 		cout<<"Fail!"<<'\t';
+	// cout<<"Time: "<<time<<" ms"<<endl;
 
-// cout<<"Locs:"<<endl;
-// for(int i = 0; i < recordLength; i++) {
-// 	cout<<fixedLoc[i]<<endl;
-// }
-// exit(0);
-
-	int r_len = arrayLength;
-
-	bool res = testMap(source, r_len, time);
-	cout<<"map: ";
-	if (res) 	cout<<"Success!"<<'\t';
-	else 		cout<<"Fail!"<<'\t';
-	cout<<"Time: "<<time<<" ms"<<endl;
-
-	res = testGather(source, r_len, loc, time);
-	cout<<"gather: ";
-	if (res) 	cout<<"Success!"<<'\t';
-	else 		cout<<"Fail!"<<'\t';
-	cout<<"Time: "<<time<<" ms"<<endl;
-
-	res = testScatter(source, r_len, loc,time);
-	cout<<"scatter: ";
-	if (res) 	cout<<"Success!"<<'\t';
-	else 		cout<<"Fail!"<<'\t';
-	cout<<"Time: "<<time<<" ms"<<endl;
-
-	// delete[] source;
-	// delete[] loc;
-
+	testScan(fixedArray, dataSize, myTime,1);
+	cout<<"My Scan Time:"<<myTime<<" ms."<<endl;
+	
 	return 0;
 
 }
