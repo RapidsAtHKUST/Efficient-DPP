@@ -1,4 +1,4 @@
-#define BITS 8              //sort 8 bits in a pass
+#define BITS 4              //sort 8 bits in a pass
 #define RADIX (1<<BITS)
 #include "dataDefinition.h"
 

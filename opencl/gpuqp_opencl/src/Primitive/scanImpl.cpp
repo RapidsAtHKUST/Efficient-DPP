@@ -18,9 +18,7 @@ double scan(cl_mem &cl_arr, int num,int isExclusive, PlatInfo info, int localSiz
     double totalTime = 0;
     
     int firstLevelBlockNum = ceil((double)num / (localSize*2));
-    std::cout<<firstLevelBlockNum<<std::endl;
     int secondLevelBlockNum = ceil((double)firstLevelBlockNum / (localSize*2));
-    std::cout<<secondLevelBlockNum<<std::endl;
     
     //set the local and global size
     size_t local[1] = {(size_t)localSize};

@@ -367,7 +367,7 @@ bool testRadixSort(Record *fixedSource, int length, PlatInfo info, double& total
     
     bool res = true;
     FUNC_BEGIN;
-    SHOW_PARALLEL(47, "not fixed.");
+    SHOW_PARALLEL(256, 512);
     SHOW_DATA_NUM(length);
     
     Record *h_source = new Record[length];
@@ -395,8 +395,9 @@ bool testRadixSort(Record *fixedSource, int length, PlatInfo info, double& total
     checkErr(status, ERR_WRITE_BUFFER);
     
     //call gather
+
     totalTime = radixSort(d_source, length, info);
-    
+
     //memory written back
     status = clEnqueueReadBuffer(info.currentQueue, d_source, CL_TRUE, 0, sizeof(Record)*length, h_source, 0, 0, 0);
     checkErr(status, ERR_READ_BUFFER);

@@ -14,13 +14,13 @@ double radixSort(cl_mem& d_source, int length, PlatInfo info) {
     
     double totalTime = 0;
     
-    int blockSize = 47;             //local memory size: 47KB
-    int gridSize = 64;
+    int blockSize = 256;             //local memory size: 47KB
+    int gridSize = 512;
     
     cl_int status;
     int argsNum = 0;
 
-    int bits = 8;                   //each pass sort 8 bits
+    int bits = 4;                   //each pass sort 8 bits
     int radix = (1<<bits);
     
     uint hisSize = blockSize * gridSize * radix;

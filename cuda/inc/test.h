@@ -15,5 +15,6 @@ bool testGather(Record *source, int r_len, int *loc,double& time, int blockSize=
 bool testScatter(Record *source, int r_len, int *loc,double& time, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 bool testScan(int *source, int r_len, double& time,  int isExclusive, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 bool testSplit(Record *source, int r_len, double& totalTime,  int fanout, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+bool testRadixSort(Record *source, int r_len, double& totalTime, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 
 #endif

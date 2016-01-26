@@ -58,36 +58,45 @@ int main(int argc, char *argv[]) {
 
 	double totalTime = 0.0f;
 
-	bool res = testMap(fixedRecords, dataSize, totalTime);
-	cout<<"map: ";
+	// bool res = testMap(fixedRecords, dataSize, totalTime);
+	// cout<<"map: ";
+	// if (res) 	cout<<"Success!"<<'\t';
+	// else 		cout<<"Fail!"<<'\t';
+	// cout<<"Time: "<<totalTime<<" ms"<<endl;
+
+	// res = testGather(fixedRecords, dataSize, fixedLoc, totalTime);
+	// cout<<"gather: ";
+	// if (res) 	cout<<"Success!"<<'\t';
+	// else 		cout<<"Fail!"<<'\t';
+	// cout<<"Time: "<<totalTime<<" ms"<<endl;
+
+	// res = testScatter(fixedRecords, dataSize, fixedLoc,totalTime);
+	// cout<<"scatter: ";
+	// if (res) 	cout<<"Success!"<<'\t';
+	// else 		cout<<"Fail!"<<'\t';
+	// cout<<"Time: "<<totalTime<<" ms"<<endl;
+
+	// testScan(fixedArray, dataSize, totalTime,0);
+	// cout<<"My Scan Time:"<<totalTime<<" ms."<<endl;
+
+	// int fanout = 20;
+	// Record *records = new Record[dataSize];
+	// recordRandom(records, dataSize, fanout);
+	// cout<<"split: ";
+	// res = testSplit(records, dataSize, totalTime, fanout);		//fanout = 20
+	// if (res) 	cout<<"Success!"<<'\t';
+	// else 		cout<<"Fail!"<<'\t';
+	// cout<<"Time: "<<totalTime<<" ms"<<endl;
+	// delete[] records;
+
+	// Record *records = new Record[dataSize];
+	// cout<<"input:"<<endl;
+
+	cout<<"radixSort: ";
+	bool res = testRadixSort(fixedRecords, dataSize, totalTime);
 	if (res) 	cout<<"Success!"<<'\t';
 	else 		cout<<"Fail!"<<'\t';
 	cout<<"Time: "<<totalTime<<" ms"<<endl;
-
-	res = testGather(fixedRecords, dataSize, fixedLoc, totalTime);
-	cout<<"gather: ";
-	if (res) 	cout<<"Success!"<<'\t';
-	else 		cout<<"Fail!"<<'\t';
-	cout<<"Time: "<<totalTime<<" ms"<<endl;
-
-	res = testScatter(fixedRecords, dataSize, fixedLoc,totalTime);
-	cout<<"scatter: ";
-	if (res) 	cout<<"Success!"<<'\t';
-	else 		cout<<"Fail!"<<'\t';
-	cout<<"Time: "<<totalTime<<" ms"<<endl;
-
-	testScan(fixedArray, dataSize, totalTime,0);
-	cout<<"My Scan Time:"<<totalTime<<" ms."<<endl;
-
-	int fanout = 20;
-	Record *records = new Record[dataSize];
-	recordRandom(records, dataSize, fanout);
-	cout<<"split: ";
-	res = testSplit(records, dataSize, totalTime, fanout);		//fanout = 20
-	if (res) 	cout<<"Success!"<<'\t';
-	else 		cout<<"Fail!"<<'\t';
-	cout<<"Time: "<<totalTime<<" ms"<<endl;
-	delete[] records;
 	
 	return 0;
 
