@@ -1,9 +1,8 @@
 #include "test.h"
 
-
 using namespace std;
 
-bool testScan(int *source, int r_len, double& time, int isExclusive,  int blockSize, int gridSize) {
+bool testScan(int *source, int r_len, double& totalTime, int isExclusive,  int blockSize, int gridSize) {
 	
 	bool res = true;
 	
@@ -17,7 +16,7 @@ bool testScan(int *source, int r_len, double& time, int isExclusive,  int blockS
 	}
 	std::cout<<std::endl;
 	
-	scanImpl(h_source_gpu, r_len, blockSize, gridSize, time, isExclusive);
+	totalTime = scanImpl(h_source_gpu, r_len, blockSize, gridSize, isExclusive);
 
 	// checking 
 

@@ -22,23 +22,11 @@ void scatter(const Record *d_source,
 		threadId += threadNum;
 	}
 }
-
-void scatterImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize, double& time) {
-	
-	Record *d_source, *d_res;
-	int *d_loc;
-
+double scatterDevice(Record *d_source, Record *d_res, int r_len,int *d_loc, int blockSize, int gridSize) {
 	dim3 grid(gridSize);
 	dim3 block(blockSize);
-	
-	//allocate for the device memory
-	checkCudaErrors(cudaMalloc(&d_source,sizeof(Record)*r_len));
-	checkCudaErrors(cudaMalloc(&d_res,sizeof(Record)*r_len));
-	checkCudaErrors(cudaMalloc(&d_loc,sizeof(int)*r_len));
 
-	cudaMemcpy(d_source, h_source, sizeof(Record) * r_len, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_loc, h_loc, sizeof(int) * r_len, cudaMemcpyHostToDevice);
-
+	double totalTime = 0.0f;
 	struct timeval start, end;
 
 	gettimeofday(&start, NULL);	
@@ -47,11 +35,32 @@ void scatterImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int bloc
 	cudaDeviceSynchronize();
 	gettimeofday(&end, NULL);
 
-	time = diffTime(end, start);
+	totalTime = diffTime(end, start);
+
+	return totalTime;
+}
+
+double scatterImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize) {
+	
+	Record *d_source, *d_res;
+	int *d_loc;
+	double totalTime = 0.0f;
+
+	//allocate for the device memory
+	checkCudaErrors(cudaMalloc(&d_source,sizeof(Record)*r_len));
+	checkCudaErrors(cudaMalloc(&d_res,sizeof(Record)*r_len));
+	checkCudaErrors(cudaMalloc(&d_loc,sizeof(int)*r_len));
+
+	cudaMemcpy(d_source, h_source, sizeof(Record) * r_len, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_loc, h_loc, sizeof(int) * r_len, cudaMemcpyHostToDevice);
+
+	totalTime = scatterDevice(d_source, d_res, r_len, d_loc, blockSize, gridSize);
 	
 	cudaMemcpy(h_res, d_res, sizeof(Record)*r_len, cudaMemcpyDeviceToHost);	
 	
 	checkCudaErrors(cudaFree(d_res));
 	checkCudaErrors(cudaFree(d_source));
 	checkCudaErrors(cudaFree(d_loc));
+
+	return totalTime;
 }

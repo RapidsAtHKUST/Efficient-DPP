@@ -191,13 +191,8 @@ void addBlock(int* records,
     if (2*globalId + 1 < length)    records[2*globalId + 1] = temp[2*localId+1];
 }
 
-void scanImpl(int *h_source, int r_len, 
-			  int blockSize, int gridSize, double &time, int isExclusive)
-{
-	int *d_source;
-    int *d_source_thrust, *d_dest_thrust;
-    int *h_source_thrust = new int[r_len];
-
+double scanDevice(int *d_source, int r_len, int blockSize, int gridSize, int isExclusive) {
+    
     int tempSize = blockSize * 2;
     int tempBitSize = tempSize * sizeof(int);
 
@@ -210,14 +205,7 @@ void scanImpl(int *h_source, int r_len,
     dim3 secondGrid(secondLevelBlockNum);
     dim3 thirdGrid(1);
 
-    checkCudaErrors(cudaMalloc(&d_source,sizeof(int)*r_len));
-    cudaMalloc(&d_source_thrust, sizeof(int)*r_len);
-    cudaMalloc(&d_dest_thrust, sizeof(int)*r_len);
-
-    cudaMemcpy(d_source, h_source, sizeof(int) * r_len, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_source_thrust, h_source, sizeof(int)*r_len, cudaMemcpyHostToDevice);
-
-    time = 0;
+    double totalTime = 0.0f;
     
     struct timeval start, end;
     
@@ -236,14 +224,38 @@ void scanImpl(int *h_source, int r_len,
     cudaDeviceSynchronize();
     gettimeofday(&end,NULL);
 
-    time = diffTime(end,start);
+    totalTime = diffTime(end,start);
 
+    return totalTime;
+}
+
+double scanImpl(int *h_source, int r_len, 
+			  int blockSize, int gridSize, int isExclusive)
+{
+    double totalTime = 0.0f;
+
+    int *d_source;
+    checkCudaErrors(cudaMalloc(&d_source,sizeof(int)*r_len));
+
+    int *h_source_thrust = new int[r_len];          //host memory
+    for(int i = 0; i < r_len; i++) h_source_thrust[i] = h_source[i];
+
+    cudaMemcpy(d_source, h_source, sizeof(int) * r_len, cudaMemcpyHostToDevice);
+    totalTime = scanDevice(d_source, r_len, blockSize, gridSize, isExclusive);
     cudaMemcpy(h_source, d_source, sizeof(int) * r_len, cudaMemcpyDeviceToHost);
 
     //thrust::scan test
+    int *d_source_thrust, *d_dest_thrust;           //device memory
+    
+    cudaMalloc(&d_source_thrust, sizeof(int)*r_len);
+    cudaMalloc(&d_dest_thrust, sizeof(int)*r_len);
+    cudaMemcpy(d_source_thrust, h_source_thrust, sizeof(int)*r_len, cudaMemcpyHostToDevice);
+
     thrust::device_ptr<int> ptr_d_source_thrust(d_source_thrust);
     thrust::device_ptr<int> ptr_d_dest_thrust(d_dest_thrust);
 
+    struct timeval start, end;
+    
     if (isExclusive) {
         gettimeofday(&start, NULL);
         thrust::exclusive_scan(ptr_d_source_thrust, ptr_d_source_thrust + r_len, ptr_d_dest_thrust);
@@ -262,10 +274,15 @@ void scanImpl(int *h_source, int r_len,
     //checking with thrust
     bool thrustRes = true;
     for(int i = 0; i < r_len; i++) {
-        if (h_source[i] != h_source_thrust[i])  thrustRes = false;
+        if (h_source[i] != h_source_thrust[i])  {
+            thrustRes = false;
+            cout<<i<<' '<<h_source[i]<<' '<<h_source_thrust[i]<<endl;
+        }
     }
 
     if (thrustRes)      cout<<"Same as thrust!"<<endl;
     else                cout<<"Different with thrust!"<<endl;
     cout<<"Thrust time: "<<thrustTime<<" ms."<<endl;
+
+	return totalTime;
 }

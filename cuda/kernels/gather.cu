@@ -23,13 +23,28 @@ void gather(const Record *d_source,
 	}
 }
 
-void gatherImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize, double& time) {
-	Record *d_source, *d_res;
-	int *d_loc;
-
+double gatherDevice(Record *d_source, Record *d_res, int r_len,int *d_loc, int blockSize, int gridSize) {
 	dim3 grid(gridSize);
 	dim3 block(blockSize);
-	
+
+	double totalTime = 0.0f;
+	struct timeval start, end;
+
+	gettimeofday(&start, NULL);
+	gather<<<grid, block>>>(d_source, d_res, r_len, d_loc);
+	cudaDeviceSynchronize();
+	gettimeofday(&end, NULL);
+
+	totalTime = diffTime(end, start);
+
+	return totalTime;
+}
+
+double gatherImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize) {
+	Record *d_source, *d_res;
+	int *d_loc;
+	double totalTime = 0.0f;
+
 	//allocate for the device memory
 	checkCudaErrors(cudaMalloc(&d_source,sizeof(Record)*r_len));
 	checkCudaErrors(cudaMalloc(&d_res,sizeof(Record)*r_len));
@@ -38,18 +53,13 @@ void gatherImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int block
 	cudaMemcpy(d_source, h_source, sizeof(Record) * r_len, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_loc, h_loc, sizeof(int) * r_len, cudaMemcpyHostToDevice);
 
-	struct timeval start, end;
-
-	gettimeofday(&start, NULL);
-	gather<<<grid, block>>>(d_source, d_res, r_len, d_loc);
-	cudaDeviceSynchronize();
-	gettimeofday(&end, NULL);
-
-	time = diffTime(end, start);
+	totalTime = gatherDevice(d_source, d_res, r_len, d_loc, blockSize, gridSize);
 	
 	cudaMemcpy(h_res, d_res, sizeof(Record)*r_len, cudaMemcpyDeviceToHost);	
 	
 	checkCudaErrors(cudaFree(d_res));
 	checkCudaErrors(cudaFree(d_source));
 	checkCudaErrors(cudaFree(d_loc));
+
+	return totalTime;
 }

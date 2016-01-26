@@ -56,28 +56,38 @@ int main(int argc, char *argv[]) {
         intRandom_Only(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
     }
 
-	double myTime = 0.0f;
+	double totalTime = 0.0f;
 
-	// bool res = testMap(fixedRecords, dataSize, time);
-	// cout<<"map: ";
-	// if (res) 	cout<<"Success!"<<'\t';
-	// else 		cout<<"Fail!"<<'\t';
-	// cout<<"Time: "<<time<<" ms"<<endl;
+	bool res = testMap(fixedRecords, dataSize, totalTime);
+	cout<<"map: ";
+	if (res) 	cout<<"Success!"<<'\t';
+	else 		cout<<"Fail!"<<'\t';
+	cout<<"Time: "<<totalTime<<" ms"<<endl;
 
-	// res = testGather(fixedRecords, dataSize, fixedLoc, time);
-	// cout<<"gather: ";
-	// if (res) 	cout<<"Success!"<<'\t';
-	// else 		cout<<"Fail!"<<'\t';
-	// cout<<"Time: "<<time<<" ms"<<endl;
+	res = testGather(fixedRecords, dataSize, fixedLoc, totalTime);
+	cout<<"gather: ";
+	if (res) 	cout<<"Success!"<<'\t';
+	else 		cout<<"Fail!"<<'\t';
+	cout<<"Time: "<<totalTime<<" ms"<<endl;
 
-	// res = testScatter(fixedRecords, dataSize, fixedLoc,time);
-	// cout<<"scatter: ";
-	// if (res) 	cout<<"Success!"<<'\t';
-	// else 		cout<<"Fail!"<<'\t';
-	// cout<<"Time: "<<time<<" ms"<<endl;
+	res = testScatter(fixedRecords, dataSize, fixedLoc,totalTime);
+	cout<<"scatter: ";
+	if (res) 	cout<<"Success!"<<'\t';
+	else 		cout<<"Fail!"<<'\t';
+	cout<<"Time: "<<totalTime<<" ms"<<endl;
 
-	testScan(fixedArray, dataSize, myTime,1);
-	cout<<"My Scan Time:"<<myTime<<" ms."<<endl;
+	testScan(fixedArray, dataSize, totalTime,0);
+	cout<<"My Scan Time:"<<totalTime<<" ms."<<endl;
+
+	int fanout = 20;
+	Record *records = new Record[dataSize];
+	recordRandom(records, dataSize, fanout);
+	cout<<"split: ";
+	res = testSplit(records, dataSize, totalTime, fanout);		//fanout = 20
+	if (res) 	cout<<"Success!"<<'\t';
+	else 		cout<<"Fail!"<<'\t';
+	cout<<"Time: "<<totalTime<<" ms"<<endl;
+	delete[] records;
 	
 	return 0;
 

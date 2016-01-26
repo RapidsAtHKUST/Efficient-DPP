@@ -1,6 +1,6 @@
 #include "test.h"
 
-bool testMap(Record *source, int r_len, double& time, int blockSize, int gridSize) {
+bool testMap(Record *source, int r_len, double& totalTime, int blockSize, int gridSize) {
 	
 	bool res = true;
 
@@ -13,7 +13,7 @@ bool testMap(Record *source, int r_len, double& time, int blockSize, int gridSiz
 		h_source[i].y = source[i].y;
 	}
 
-	mapImpl(h_source, h_res, r_len, blockSize, gridSize, time);
+	totalTime = mapImpl(h_source, h_res, r_len, blockSize, gridSize);
 
 	//checking 
 	for(int i = 0; i < r_len; i++) {

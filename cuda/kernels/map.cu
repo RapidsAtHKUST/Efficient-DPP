@@ -28,18 +28,12 @@ void map(Record *d_source, Record *d_res, int r_len) {
 	}
 }
 
-void mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize, double& time) {
-	Record *d_source, *d_res;
+double mapDevice(Record *d_source, Record *d_res, int r_len, int blockSize, int gridSize) {
 
 	dim3 grid(gridSize);
 	dim3 block(blockSize);
-	
-	//allocate for the device memory
-	checkCudaErrors(cudaMalloc(&d_source,sizeof(Record)*r_len));
-	checkCudaErrors(cudaMalloc(&d_res,sizeof(Record)*r_len));
 
-	cudaMemcpy(d_source, h_source, sizeof(Record) * r_len, cudaMemcpyHostToDevice);
-
+	double totalTime = 0.0f;
 	struct timeval start, end;
 
 	gettimeofday(&start, NULL);
@@ -48,17 +42,30 @@ void mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int grid
 	cudaDeviceSynchronize();
 	gettimeofday(&end, NULL);
 
-	time = diffTime(end, start);
-	
-	cudaMemcpy(h_res, d_res, sizeof(Record)*r_len, cudaMemcpyDeviceToHost);	
+	totalTime = diffTime(end, start);
 
-	//cout<<"ints:"<<endl;
-	//for(int i = 0; i < r_len; i++) {
-	//	cout<<h_source[i].x<<' '<<h_source[i].y<<'\t'<<h_res[i].x <<' '<<h_res[i].y<<endl;
-	//}
+	return totalTime;
+}
+
+
+double mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize) {
+
+	double totalTime = 0.0f;
+	
+	Record *d_source, *d_res;
+	
+	//allocate for the device memory
+	checkCudaErrors(cudaMalloc(&d_source,sizeof(Record)*r_len));
+	checkCudaErrors(cudaMalloc(&d_res,sizeof(Record)*r_len));
+
+	cudaMemcpy(d_source, h_source, sizeof(Record) * r_len, cudaMemcpyHostToDevice);
+	totalTime = mapDevice(d_source, d_res, r_len, blockSize, gridSize);
+	cudaMemcpy(h_res, d_res, sizeof(Record)*r_len, cudaMemcpyDeviceToHost);	
 	
 	checkCudaErrors(cudaFree(d_res));
 	checkCudaErrors(cudaFree(d_source));
+
+	return totalTime;
 }
 
 

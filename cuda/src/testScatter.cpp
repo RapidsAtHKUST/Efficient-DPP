@@ -1,6 +1,6 @@
 #include "test.h"
 
-bool testScatter(Record *source, int r_len, int *loc,double& time, int blockSize, int gridSize) {
+bool testScatter(Record *source, int r_len, int *loc,double& totalTime, int blockSize, int gridSize) {
 	
 	bool res = true;
 
@@ -13,7 +13,7 @@ bool testScatter(Record *source, int r_len, int *loc,double& time, int blockSize
 		h_source[i].y = source[i].y;
 	}
 
-	scatterImpl(h_source, h_res, r_len, loc,  blockSize, gridSize, time);
+	totalTime = scatterImpl(h_source, h_res, r_len, loc,  blockSize, gridSize);
 
 	//checking 
 	for(int i = 0; i < r_len; i++) {

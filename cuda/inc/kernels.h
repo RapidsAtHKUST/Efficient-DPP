@@ -10,11 +10,17 @@
 
 #include "utility.h"
 
-extern "C" void mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize, double& time) ;
-extern "C" void gatherImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize, double& time);
+extern "C" double mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize) ;
+extern "C" double gatherImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize);
+extern "C" double scatterImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize);
+extern "C" double scanImpl(int *h_source, int r_len, int blockSize, int gridSize, int isExclusive);
+extern "C" double splitImpl(Record *h_source, Record *h_dest, int r_len, int fanout, int blockSize, int gridSize);
 
-extern "C" void scatterImpl(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize, double& time);
-extern "C" void scanImpl(int *h_source, int r_len, int blockSize, int gridSize, double &time, int isExclusive);
+extern "C" double mapDevice(Record *d_source, Record *d_res, int r_len, int blockSize, int gridSize);
+extern "C" double gatherDevice(Record *d_source, Record *d_res, int r_len,int *d_loc, int blockSize, int gridSize);
+extern "C" double scatterDevice(Record *d_source, Record *d_res, int r_len,int *d_loc, int blockSize, int gridSize);
+extern "C" double scanDevice(int *d_source, int r_len, int blockSize, int gridSize, int isExclusive);
+extern "C" double splitDevice(Record *d_source, Record *d_dest, int* d_his, int r_len, int fanout, int blockSize, int gridSize);
 
 #endif
 
