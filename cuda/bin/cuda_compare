@@ -94,7 +94,7 @@ then
 	echo "Input record data directory : $INPUT_REC_DIR"
 	echo "Input array data directory : $INPUT_ARR_DIR"	
 	echo "Input location data directory : $INPUT_LOC_DIR"	
-	eval "$CUDA_COMPARE_HOME/bin/executor $INPUT_REC_DIR $INPUT_ARR_DIR $INPUT_LOC_DIR"
+	eval "nvprof $CUDA_COMPARE_HOME/bin/executor $INPUT_REC_DIR $INPUT_ARR_DIR $INPUT_LOC_DIR"
 else
 	echo "Fast run..."
 	echo "Data size: $DATASIZE"

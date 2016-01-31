@@ -17,6 +17,7 @@ extern "C" double scatterImpl(Record *h_source, Record *h_res, int r_len,int *h_
 extern "C" double scanImpl(int *h_source, int r_len, int blockSize, int gridSize, int isExclusive);
 extern "C" double splitImpl(Record *h_source, Record *h_dest, int r_len, int fanout, int blockSize, int gridSize);
 extern "C" double radixSortImpl(Record *h_source, int r_len, int blockSize, int gridSize);
+extern "C" double bitonicSortImpl(Record *h_source, int r_len, int dir, int blockSize, int gridSize);
 
 //directly functioning on the device memory
 extern "C" double mapDevice(Record *d_source, Record *d_res, int r_len, int blockSize, int gridSize);
@@ -25,5 +26,8 @@ extern "C" double scatterDevice(Record *d_source, Record *d_res, int r_len,int *
 extern "C" double scanDevice(int *d_source, int r_len, int blockSize, int gridSize, int isExclusive);
 extern "C" double splitDevice(Record *d_source, Record *d_dest, int* d_his, int r_len, int fanout, int blockSize, int gridSize);
 extern "C" double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize);
+extern "C" double bitonicSortDevice(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
+extern "C" double bitonicSortDevice_op(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
+
 #endif
 

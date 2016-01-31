@@ -17,8 +17,9 @@ void scatter(const Record *d_source,
 	int threadNum = blockDim.x * gridDim.x;
 
 	while (threadId < r_len) {
-		d_res[loc[threadId]].x = d_source[threadId].x;
-		d_res[loc[threadId]].y = d_source[threadId].y;
+		// int loc_temp = loc[threadId];
+		d_res[loc[threadId]] = d_source[threadId];
+		// d_res[loc[threadId]].y = d_source[threadId].y;
 		threadId += threadNum;
 	}
 }

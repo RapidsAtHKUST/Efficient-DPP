@@ -74,6 +74,7 @@ double splitDevice(Record *d_source, Record *d_dest, int* d_his, int r_len, int 
 	createHist<<<grid, block, sizeof(int)*fanout*blockSize>>>(d_source,r_len,d_his,fanout);
 	scanDevice(d_his,hisLength, blockSize, gridSize, 1);
 	splitWithHist<<<grid, block, sizeof(int)*fanout*blockSize>>>(d_source, d_his, r_len, d_dest, fanout);
+	cudaDeviceSynchronize();
 	gettimeofday(&end, NULL);
 
 	totalTime = diffTime(end, start);

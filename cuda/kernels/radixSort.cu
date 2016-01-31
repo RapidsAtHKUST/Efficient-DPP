@@ -109,6 +109,7 @@ double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize)
 		scatterDevice(d_source,d_temp, r_len, loc, 1024,32768);
 		cudaMemcpy(d_source, d_temp, sizeof(Record)*r_len, cudaMemcpyDeviceToDevice);
 	}
+	cudaDeviceSynchronize();
 	gettimeofday(&end,NULL);
 	totalTime = diffTime(end, start);
 
@@ -122,6 +123,16 @@ double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize)
 double radixSortImpl(Record *h_source, int r_len, int blockSize, int gridSize) {
 	double totalTime = 0.0f;
 	Record *d_source;
+	
+	//thrust test
+	int *keys = new int[r_len];
+	int *values = new int[r_len];
+
+	for(int i = 0; i < r_len; i++) {
+		keys[i] = h_source[i].x;
+		values[i] = h_source[i].y;
+	}
+
 	checkCudaErrors(cudaMalloc(&d_source, sizeof(Record)*r_len));
 	cudaMemcpy(d_source, h_source, sizeof(Record)*r_len, cudaMemcpyHostToDevice);
 
@@ -131,5 +142,20 @@ double radixSortImpl(Record *h_source, int r_len, int blockSize, int gridSize) {
 
 	checkCudaErrors(cudaFree(d_source));
 
+
+	// struct timeval start, end;
+
+	// gettimeofday(&start, NULL);
+	// thrust::sorting::stable_radix_sort_by_key(values, values+r_len, keys);
+	// gettimeofday(&end, NULL);
+
+	// for(int i = 0; i < r_len; i++) {
+	// 	cout<<h_source[i].x<<' '<<h_source[i].y<<'\t'<<keys[i]<<' '<<values[i]<<endl;
+	// }
+	// double thrustTime = diff(end,start);
+	// cout<<"Thrust time for radixsort: "<<thrustTime<<" ms."<<endl;
+
+	delete[] keys;
+	delete[] values;
 	return totalTime;
 }

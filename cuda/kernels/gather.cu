@@ -17,8 +17,11 @@ void gather(const Record *d_source,
 	int threadNum = blockDim.x * gridDim.x;
 
 	while (threadId < r_len) {
-		d_res[threadId].x = d_source[loc[threadId]].x;
-		d_res[threadId].y = d_source[loc[threadId]].y;
+		//this is awesomely faster if loc[threadId] is stored in local register
+		d_res[threadId] = d_source[loc[threadId]];
+
+		// d_res[threadId].x = d_source[loc[threadId]].x;
+		// d_res[threadId].y = d_source[loc[threadId]].y;
 		threadId += threadNum;
 	}
 }
