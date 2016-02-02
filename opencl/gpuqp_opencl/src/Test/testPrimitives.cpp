@@ -472,6 +472,10 @@ bool testBitonitSort(Record *fixedSource, int length, PlatInfo info, int dir, do
     
     gettimeofday(&end, NULL);
     
+//    cout<<"Output:"<<endl;
+//    for(int i = 0; i < length; i++) {
+//        cout<<h_source[i].x<<' '<<h_source[i].y<<endl;
+//    }
     //check
     SHOW_CHECKING;
     if (dir == 0) qsort(cpuInput, length, sizeof(Record), compRecordDec);

@@ -22,7 +22,7 @@
 #include <cuda_runtime.h>
 
 #define SHUFFLE_TIME(TIME)  		(TIME*2)
-#define MAX_DATA_SIZE				(16000000)
+#define MAX_DATA_SIZE				(160000000)
 #define MAX_NUM 					(INT_MAX/2)
 
 typedef int2 Record;

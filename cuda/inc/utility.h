@@ -22,7 +22,7 @@
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
 
-#define MAX_DATA_SIZE 			(16000000)
+#define MAX_DATA_SIZE 			(160000000)
 #define MAX_NUM					(INT_MAX/2)
 #define BLOCKSIZE 					(512)
 #define GRIDSIZE					(1024)

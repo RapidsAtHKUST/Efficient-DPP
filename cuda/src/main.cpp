@@ -17,9 +17,9 @@ char input_loc_dir[500];
 bool is_input;
 int dataSize;
 
-Record fixedRecords[MAX_DATA_SIZE];
-int fixedArray[MAX_DATA_SIZE];
-int fixedLoc[MAX_DATA_SIZE];
+Record *fixedRecords;
+int *fixedArray;
+int *fixedLoc;
 
 int recordLength;
 int arrayLength;
@@ -51,6 +51,11 @@ int main(int argc, char *argv[]) {
     }
     else {
         dataSize = atoi(argv[1]);
+        
+        fixedRecords = new Record[dataSize];
+        fixedArray = new int[dataSize];
+        fixedLoc = new int[dataSize];
+
         recordRandom(fixedRecords, dataSize);
         intRandom(fixedArray, dataSize, MAX_NUM);
         intRandom_Only(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
@@ -69,15 +74,28 @@ int main(int argc, char *argv[]) {
 
 	//total time for each primitive
 	double gatherTotal = 0.0f;
+	double gather_mul_total = 0.0f;
+
+	double mapTotal = 0.0f;
 	double scatterTotal = 0.0f;
 	double splitTotal = 0.0f;
 
 	for(int i = 0; i < experiNum; i++) {
+		// res = testMap(fixedRecords, dataSize, totalTime);
+		// cout<<"map["<<i<<"] finished"<<endl;
+		// if (!res) 	exit(1);
+		// mapTotal += totalTime;
+
 		// res = testGather(fixedRecords, dataSize, fixedLoc, totalTime);
 		// cout<<"gather["<<i<<"] finished"<<endl;
 		// if (!res) 	exit(1);
 		// gatherTotal += totalTime;
 
+		// res = testGather_mul(fixedRecords, dataSize, fixedLoc, totalTime);
+		// cout<<"gather_mul["<<i<<"] finished"<<endl;
+		// if (!res) 	exit(1);
+		// gather_mul_total += totalTime;		
+		
 		// res = testScatter(fixedRecords, dataSize, fixedLoc,totalTime);
 		// cout<<"scatter["<<i<<"] finished"<<endl;
 		// if (!res) 	exit(1);
@@ -102,7 +120,10 @@ int main(int argc, char *argv[]) {
 		else			cout<<"Failed!"<<endl;
 		cout<<"bisort time: "<<totalTime<<" ms."<<endl;
 	}
+	// cout<<"map avg time: "<<mapTotal/experiNum<<" ms."<<endl;
 	// cout<<"gather avg time: "<<gatherTotal/experiNum<<" ms."<<endl;
+	// cout<<"gather_mul avg time: "<<gather_mul_total/experiNum<<" ms."<<endl;
+
 	// cout<<"scatter avg time: "<<scatterTotal/experiNum<<" ms."<<endl;
 
 	// cout<<"split avg time: "<<splitTotal/experiNum<<" ms."<<endl;
@@ -122,6 +143,10 @@ int main(int argc, char *argv[]) {
 	// else 		cout<<"Fail!"<<'\t';
 	// cout<<"Time: "<<totalTime<<" ms"<<endl;
 	
+	delete[] fixedRecords;
+	delete[] fixedArray;
+	delete[] fixedLoc;
+
 	return 0;
 
 }

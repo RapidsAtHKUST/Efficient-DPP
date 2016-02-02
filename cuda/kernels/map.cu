@@ -7,6 +7,7 @@
 //
 #include "kernels.h"
 
+//mapping function 1:
 __device__
 int floorOfPower2(int a) {
 	int base = 1;
@@ -22,8 +23,9 @@ void map(Record *d_source, Record *d_res, int r_len) {
 	int threadNum = gridDim.x * blockDim.x;
 	
 	while (threadId < r_len) {
-		d_res[threadId].x = d_source[threadId].x;
-		d_res[threadId].y = floorOfPower2(d_source[threadId].y);
+		// d_res[threadId].x = d_source[threadId].x;
+		// d_res[threadId].y = floorOfPower2(d_source[threadId].y);
+		d_res[threadId] = d_source[threadId];
 		threadId += threadNum;
 	}
 }
@@ -37,7 +39,6 @@ double mapDevice(Record *d_source, Record *d_res, int r_len, int blockSize, int 
 	struct timeval start, end;
 
 	gettimeofday(&start, NULL);
-	cudaDeviceSynchronize();
 	map<<<grid, block>>>(d_source, d_res, r_len);
 	cudaDeviceSynchronize();
 	gettimeofday(&end, NULL);

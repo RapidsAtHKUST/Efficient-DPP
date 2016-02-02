@@ -158,6 +158,8 @@ void readFixedRecords(Record* fixedRecords, char *file, int& recordLength) {
     
     in>>recordLength;
 
+    fixedRecords = new Record[recordLength];
+
     for(int i = 0; i < recordLength; i++) {
         in>>fixedRecords[i].x>>fixedRecords[i].y;
     }
@@ -172,6 +174,8 @@ void readFixedArray(int* fixedArray, char *file, int & arrayLength) {
     }
     
     in>>arrayLength;
+    
+    fixedArray = new int[arrayLength];
     
     for(int i = 0; i < arrayLength; i++) {
         in>>fixedArray[i];

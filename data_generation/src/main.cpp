@@ -14,9 +14,9 @@ char rec_dir[500];
 char arr_dir[500];
 char loc_dir[500];
 
-Record fixedRecords[MAX_DATA_SIZE];
-int fixedArray[MAX_DATA_SIZE];
-int fixedLoc[MAX_DATA_SIZE];
+Record *fixedRecords;
+int *fixedArray;
+int *fixedLoc;
 
 void generateData(int dataSize, bool sorted, bool distinct) {
 	if (sorted) {
@@ -60,6 +60,10 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	} 
 
+	fixedRecords = new Record[dataSize];
+	fixedArray = new int[dataSize];
+	fixedLoc = new int[dataSize];
+
 	sorted = processBool(argv[5]);
 	distinct = processBool(argv[6]);
 
@@ -73,5 +77,9 @@ int main(int argc, char* argv[]) {
 	writeArray(fixedArray, dataSize, arr_dir);
 	writeArray(fixedLoc, dataSize, loc_dir);
 
+	delete[] fixedRecords;
+	delete[] fixedArray;
+	delete[] fixedLoc;
+	
 	return 0;
 }

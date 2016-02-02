@@ -13,7 +13,7 @@ NVCC := nvcc
 CC := gcc
 
 CC_FLAGS := -g  -DPROJECT_ROOT=\"$(HOME_PATH)\"
-NVCC_FLAGS := -g
+NVCC_FLAGS := -g -Xptxas -dlcm=ca
 
 PRINT ?= 0
 ifeq ($(PRINT), 1)

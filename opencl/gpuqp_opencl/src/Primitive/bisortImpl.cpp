@@ -54,7 +54,8 @@ double bisort(cl_mem &d_source, int length, int dir, PlatInfo info, int localSiz
     
     //set kernel arguments
     status |= clSetKernelArg(bisortKernel, 0, sizeof(cl_mem), &d_temp);
-    status |= clSetKernelArg(bisortKernel, 3, sizeof(int), &dir);
+    status |= clSetKernelArg(bisortKernel, 1, sizeof(int), &ceil);
+//    status |= clSetKernelArg(bisortKernel, 3, sizeof(int), &dir);
     checkErr(status, ERR_SET_ARGUMENTS);
     
     //set work group and NDRange sizes
@@ -64,20 +65,17 @@ double bisort(cl_mem &d_source, int length, int dir, PlatInfo info, int localSiz
     struct timeval start, end;
     
     //bitonic sort
-    for(int i = 2; i <= ceil ; i <<= 1) {
-        for(int j = i ; j > 1; j>>= 1) {
-            int group = ceil/j;
-            int flip = (j==i?1:-1);
+    for(int base = 2; base <= ceil ; base <<= 1) {
+        for(int interval = base>>1 ; interval > 0; interval>>= 1) {
             
-            status |= clSetKernelArg(bisortKernel, 1, sizeof(int), &group);
-            status |= clSetKernelArg(bisortKernel, 2, sizeof(int), &j);
-            status |= clSetKernelArg(bisortKernel, 4, sizeof(int), &flip);
+            status |= clSetKernelArg(bisortKernel, 2, sizeof(int), &base);
+            status |= clSetKernelArg(bisortKernel, 3, sizeof(int), &interval);
             checkErr(status, ERR_SET_ARGUMENTS);
             
 #ifdef PRINT_KERNEL
             printExecutingKernel(bisortKernel);
 #endif
-            gettimeofday(&start, NULL);
+           gettimeofday(&start, NULL);
             status = clEnqueueNDRangeKernel(info.currentQueue, bisortKernel, 1, 0, global, local, 0, 0, 0);
             status = clFinish(info.currentQueue);
             gettimeofday(&end, NULL);

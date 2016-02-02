@@ -19,6 +19,9 @@ extern "C" double splitImpl(Record *h_source, Record *h_dest, int r_len, int fan
 extern "C" double radixSortImpl(Record *h_source, int r_len, int blockSize, int gridSize);
 extern "C" double bitonicSortImpl(Record *h_source, int r_len, int dir, int blockSize, int gridSize);
 
+//for multi-path testing
+extern "C" double gatherImpl_mul(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize);
+
 //directly functioning on the device memory
 extern "C" double mapDevice(Record *d_source, Record *d_res, int r_len, int blockSize, int gridSize);
 extern "C" double gatherDevice(Record *d_source, Record *d_res, int r_len,int *d_loc, int blockSize, int gridSize);

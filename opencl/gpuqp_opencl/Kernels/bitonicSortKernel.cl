@@ -3,31 +3,27 @@
 
 #include "dataDefinition.h"
 
-kernel void bitonicSort (global Record* reSource,
-                         const int group,
-                         const int length,
-                         const int dir,
-                         const int flip)
+kernel void bitonicSort (global Record* d_source,
+                         const int r_len,
+                         const int base,
+                         const int interval)
 {
-    int groupId = get_group_id(0);
-    int groupNum = get_num_groups(0);
-    int localId = get_local_id(0);
-    int localSize = get_local_size(0);
+    int globalId = get_global_id(0);
+    int globalSize = get_global_size(0);
     
-    for(int gpos = groupId; gpos < group; gpos += groupNum) {
-        for(int pos = localId; pos < length/2; pos += localSize) {
-            int begin = gpos * length;
-            int delta;
-            if (flip == 1)      delta = length - 1;
-            else                delta = length/2;
-
-            int a = begin + pos;
-            int b = begin + delta - flip * pos;
-
-            if ( dir == (reSource[a].y > reSource[b].y)) {
-                Record temp = reSource[a];
-                reSource[a] = reSource[b];
-                reSource[b] = temp;
+    for(int pos = globalId; pos < r_len; pos += globalSize) {
+        int compareIndex = pos^interval;
+        if (compareIndex > pos) {
+            Record thisRecord = d_source[pos];
+            Record compareRecord = d_source[compareIndex];
+            
+            if ( (pos & base) == 0 && thisRecord.y > compareRecord.y) {
+                d_source[pos] = compareRecord;
+                d_source[compareIndex] = thisRecord;
+            }
+            else if ((pos & base) != 0 && thisRecord.y < compareRecord.y) {
+                d_source[pos] = compareRecord;
+                d_source[compareIndex] = thisRecord;
             }
         }
     }
