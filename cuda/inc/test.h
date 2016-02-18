@@ -21,4 +21,5 @@ bool testSplit(Record *source, int r_len, double& totalTime,  int fanout, int bl
 bool testRadixSort(Record *source, int r_len, double& totalTime, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 bool testBisort(Record *source, int r_len, double& totalTime,int dir, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 
+bool testRadixSort_int(int *source, int r_len, double& totalTime, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 #endif

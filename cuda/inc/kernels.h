@@ -19,6 +19,7 @@ extern "C" double splitImpl(Record *h_source, Record *h_dest, int r_len, int fan
 extern "C" double radixSortImpl(Record *h_source, int r_len, int blockSize, int gridSize);
 extern "C" double bitonicSortImpl(Record *h_source, int r_len, int dir, int blockSize, int gridSize);
 
+extern "C" double radixSortImpl_int(int *h_source, int r_len, int blockSize, int gridSize);
 //for multi-path testing
 extern "C" double gatherImpl_mul(Record *h_source, Record *h_res, int r_len,int *h_loc, int blockSize, int gridSize);
 
@@ -31,6 +32,10 @@ extern "C" double splitDevice(Record *d_source, Record *d_dest, int* d_his, int 
 extern "C" double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize);
 extern "C" double bitonicSortDevice(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
 extern "C" double bitonicSortDevice_op(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
+
+extern "C" double scatterDevice_int(int *d_source, int *d_res, int r_len,int *d_loc, int blockSize, int gridSize);
+
+extern  "C" void scan_warp_test();
 
 #endif
 

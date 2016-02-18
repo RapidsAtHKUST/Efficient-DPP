@@ -79,6 +79,7 @@ int main(int argc, char *argv[]) {
 	double mapTotal = 0.0f;
 	double scatterTotal = 0.0f;
 	double splitTotal = 0.0f;
+	double scanTotal = 0.0f;
 
 	for(int i = 0; i < experiNum; i++) {
 		// res = testMap(fixedRecords, dataSize, totalTime);
@@ -115,10 +116,22 @@ int main(int argc, char *argv[]) {
 		// 	cout<<fixedRecords[i].x<<' '<<fixedRecords[i].y<<endl;
 		// }
 		
-		res = testBisort(fixedRecords, dataSize, totalTime, 1);
-		if (res)		cout<<"success!"<<endl;
-		else			cout<<"Failed!"<<endl;
-		cout<<"bisort time: "<<totalTime<<" ms."<<endl;
+		res = testScan(fixedArray, dataSize, totalTime, 1);
+		scan_warp_test();
+		cout<<"scan["<<i<<"] finished"<<endl;
+		if (!res) 	exit(1);
+		scanTotal += totalTime;
+
+		// res = testBisort(fixedRecords, dataSize, totalTime, 1);
+		// if (res)		cout<<"success!"<<endl;
+		// else			cout<<"Failed!"<<endl;
+		// cout<<"bisort time: "<<totalTime<<" ms."<<endl;
+
+		// cout<<"radixSort: ";
+		// res = testRadixSort_int(fixedArray, dataSize, totalTime);
+		// if (res) 	cout<<"Success!"<<'\t';
+		// else 		cout<<"Fail!"<<'\t';
+		// cout<<"Time: "<<totalTime<<" ms"<<endl;
 	}
 	// cout<<"map avg time: "<<mapTotal/experiNum<<" ms."<<endl;
 	// cout<<"gather avg time: "<<gatherTotal/experiNum<<" ms."<<endl;
@@ -128,7 +141,8 @@ int main(int argc, char *argv[]) {
 
 	// cout<<"split avg time: "<<splitTotal/experiNum<<" ms."<<endl;
 	// testScan(fixedArray, dataSize, totalTime,1);
-	// cout<<"My Scan Time:"<<totalTime<<" ms."<<endl;
+
+	cout<<"My Scan Time:"<<scanTotal/experiNum<<" ms."<<endl;
 
 	
 	
@@ -137,11 +151,7 @@ int main(int argc, char *argv[]) {
 	// cout<<"Time: "<<totalTime<<" ms"<<endl;
 	// delete[] records;
 
-	// cout<<"radixSort: ";
-	// res = testRadixSort(fixedRecords, dataSize, totalTime);
-	// if (res) 	cout<<"Success!"<<'\t';
-	// else 		cout<<"Fail!"<<'\t';
-	// cout<<"Time: "<<totalTime<<" ms"<<endl;
+	
 	
 	delete[] fixedRecords;
 	delete[] fixedArray;
