@@ -203,7 +203,7 @@ void addBlock(int* records,
 #define WARPSIZE    (1<<BITS)
 #define MASK        ((1<<BITS)-1)
 
-#define ELEMENT_PER_THREAD (8)
+#define ELEMENT_PER_THREAD (2)
 #define MAX_BLOCKSIZE   (1024)      //a block can have at most 1024 threads
 
 //scan_warp: d_source is always been inclusively scanned, the return number is the right output
@@ -349,18 +349,33 @@ void scan_global(int *d_source, int length, int isExclusive, int blockSize)
         scan_block<<<grid1, block>>>(d_source, length, isExclusive, true, firstBlockSum);
         scan_block<<<1, block>>>(firstBlockSum, firstLevelBlockNum, 0, false, NULL);
         scan_addBlock<<<grid1, block>>>(d_source, length, firstBlockSum);
+        checkCudaErrors(cudaFree(firstBlockSum));
     }
     else {                              //length <= element_per_block^3, 3 levels are enough
-        //to to:
+        dim3 grid1(firstLevelBlockNum);
+        dim3 grid2(secondLevelBlockNum);
+
+        int *firstBlockSum, *secondBlockSum;
+        checkCudaErrors(cudaMalloc(&firstBlockSum, sizeof(int)*firstLevelBlockNum));
+        checkCudaErrors(cudaMalloc(&secondBlockSum, sizeof(int)*secondLevelBlockNum));
+
+        scan_block<<<grid1, block>>>(d_source, length, isExclusive, true, firstBlockSum);
+        scan_block<<<grid2, block>>>(firstBlockSum, firstLevelBlockNum, 0, true, secondBlockSum);
+        scan_block<<<1, block>>>(secondBlockSum, secondLevelBlockNum, 0, false, NULL);
+        scan_addBlock<<<grid2, block>>>(firstBlockSum, firstLevelBlockNum, secondBlockSum);
+        scan_addBlock<<<grid1, block>>>(d_source, length, firstBlockSum);
+
+        checkCudaErrors(cudaFree(firstBlockSum));
+        checkCudaErrors(cudaFree(secondBlockSum));
     }
 }
 
 //testing function for warp-wise scan
 void scan_warp_test() {
-    int totalLoop = 2;
+    int totalLoop = 1;
     double totalTime = 0.0f;
     bool res = true;
-    int isExclusive = 0;
+    int isExclusive = 1;
 
     int len = 16000000;
     cout<<"Data size: "<<len<<endl;
@@ -396,7 +411,7 @@ void scan_warp_test() {
         cudaMemcpy(d_source, h_source, sizeof(int) * len, cudaMemcpyHostToDevice);
 
         cudaEventRecord(start);
-        scan_global(d_source,len,isExclusive,1024);
+        scan_global(d_source,len,isExclusive,512);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 
@@ -405,7 +420,8 @@ void scan_warp_test() {
         cudaEventElapsedTime(&myTime,start, end);
 
         //get rid of the first loop: time is not accurate in the first run
-        if (loop > 0)   totalTime += myTime;
+        // if (loop > 0)   
+            totalTime += myTime;
 
         cudaMemcpy(h_dest, d_source, sizeof(int) * len, cudaMemcpyDeviceToHost);
 
@@ -445,7 +461,7 @@ void scan_warp_test() {
     delete[] h_source_com;
     checkCudaErrors(cudaFree(d_source));
 
-    cout<<"Avg time: "<<totalTime/(totalLoop-1)<<" ms."<<endl;
+    cout<<"Avg time: "<<totalTime/totalLoop<<" ms."<<endl;
 }
 
 

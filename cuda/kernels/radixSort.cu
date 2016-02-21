@@ -171,6 +171,7 @@ double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize)
 
 	gettimeofday(&start,NULL);
 	for(int shiftBits = 0; shiftBits < sizeof(int)*8; shiftBits += BITS) {
+
 		countHis<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source, r_len, his, shiftBits);
 		scanDevice(his, globalSize*RADIX, 1024, 1024,1);
 		writeHis<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source,r_len,his,loc,shiftBits);
@@ -190,7 +191,7 @@ double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize)
 
 double radixSortDevice_int(int *d_source, int r_len, int blockSize, int gridSize) {
 	blockSize = 512;
-	gridSize = 256;
+	gridSize = 2048;
 
 	double totalTime = 0.0f;
 	int globalSize = blockSize * gridSize;
@@ -213,7 +214,10 @@ double radixSortDevice_int(int *d_source, int r_len, int blockSize, int gridSize
 	thrust::device_ptr<int> dev_res_his(res_his);
 
 	gettimeofday(&start,NULL);
+
+	std::cout<<"shared momery size:"<<sizeof(int)*RADIX*blockSize<<std::endl;
 	for(int shiftBits = 0; shiftBits < sizeof(int)*8; shiftBits += BITS) {
+
 		countHis_int<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source, r_len, his, shiftBits);
 		scanDevice(his, globalSize*RADIX, 1024, 1024,1);
 		writeHis_int<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source,r_len,his,loc,shiftBits);

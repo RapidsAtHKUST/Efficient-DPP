@@ -33,6 +33,8 @@ extern "C" double radixSortDevice(Record *d_source, int r_len, int blockSize, in
 extern "C" double bitonicSortDevice(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
 extern "C" double bitonicSortDevice_op(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
 
+//currently used fastest scan
+extern "C" void scan_global(int *d_source, int length, int isExclusive, int blockSize);
 extern "C" double scatterDevice_int(int *d_source, int *d_res, int r_len,int *d_loc, int blockSize, int gridSize);
 
 extern  "C" void scan_warp_test();
