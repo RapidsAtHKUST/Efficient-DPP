@@ -298,30 +298,16 @@ void scan_block(int *d_source, const uint length, int isExclusive, bool isWriteS
 __global__
 void scan_addBlock(int* d_source, uint length, int* blockSum)
 {
-    __shared__ int temp[MAX_BLOCKSIZE * ELEMENT_PER_THREAD];
     int localId = threadIdx.x;
     int blockId = blockIdx.x;
     int blockSize = blockDim.x;
     
-    //memory copy
     int startIdx = blockId * blockSize * ELEMENT_PER_THREAD;
+    int thisBlockSum = 0;
+    if (blockId > 0)    thisBlockSum = blockSum[blockId-1];
+
     for(int i = localId; i < ELEMENT_PER_THREAD * blockSize ; i += blockSize) {
-        temp[i] = d_source[startIdx + i];
-    }
-    __syncthreads();
-    
-    //add block sum
-    if (blockId > 0) {
-        int thisBlockSum = blockSum[blockId-1];
-        for(int i = localId * ELEMENT_PER_THREAD; i < (localId + 1) * ELEMENT_PER_THREAD ; i++) {
-            temp[i] += thisBlockSum;
-        }
-        // if (localId == 0) printf("haha:%d\n", temp[0]);
-    }
-    __syncthreads();
-    
-    for(int i = localId; i < ELEMENT_PER_THREAD * blockSize ; i += blockSize) {
-        d_source[startIdx + i] = temp[i];
+        d_source[startIdx + i] += thisBlockSum;
     }
 }
 
@@ -330,9 +316,9 @@ void scan_global(int *d_source, int length, int isExclusive, int blockSize)
 {
     int element_per_block = blockSize * ELEMENT_PER_THREAD;
     //decide how many levels should we handle(at most 3 levels: 8192^3)
-    int firstLevelBlockNum = ceil((double)length / element_per_block);
-    int secondLevelBlockNum = ceil((double)firstLevelBlockNum / element_per_block);
-    int thirdLevelBlockNum = ceil((double)secondLevelBlockNum / element_per_block);
+    int firstLevelBlockNum = (length + element_per_block - 1 )/ element_per_block;
+    int secondLevelBlockNum = (firstLevelBlockNum + element_per_block - 1) / element_per_block;
+    int thirdLevelBlockNum = (secondLevelBlockNum + element_per_block - 1) / element_per_block;
 
     //length should be less than element_per_block^3
     assert(thirdLevelBlockNum == 1);    
@@ -372,7 +358,7 @@ void scan_global(int *d_source, int length, int isExclusive, int blockSize)
 
 //testing function for warp-wise scan
 void scan_warp_test() {
-    int totalLoop = 1;
+    int totalLoop = 10;
     double totalTime = 0.0f;
     bool res = true;
     int isExclusive = 1;
@@ -411,7 +397,7 @@ void scan_warp_test() {
         cudaMemcpy(d_source, h_source, sizeof(int) * len, cudaMemcpyHostToDevice);
 
         cudaEventRecord(start);
-        scan_global(d_source,len,isExclusive,512);
+        scan_global(d_source,len,isExclusive,1024);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 
@@ -420,7 +406,7 @@ void scan_warp_test() {
         cudaEventElapsedTime(&myTime,start, end);
 
         //get rid of the first loop: time is not accurate in the first run
-        // if (loop > 0)   
+        if (loop > 0)   
             totalTime += myTime;
 
         cudaMemcpy(h_dest, d_source, sizeof(int) * len, cudaMemcpyDeviceToHost);
@@ -461,7 +447,7 @@ void scan_warp_test() {
     delete[] h_source_com;
     checkCudaErrors(cudaFree(d_source));
 
-    cout<<"Avg time: "<<totalTime/totalLoop<<" ms."<<endl;
+    cout<<"Avg time: "<<totalTime/(totalLoop-1)<<" ms."<<endl;
 }
 
 
