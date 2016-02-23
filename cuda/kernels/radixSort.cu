@@ -21,7 +21,7 @@ void countHis(const Record* source,
     int globalId = threadIdx.x + blockDim.x * blockIdx.x;
     int globalSize = blockDim.x * gridDim.x;
     
-    int elePerThread = ceil(1.0*length / globalSize);
+    int elePerThread = (length + globalSize - 1) / globalSize;
     int offset = localId * RADIX;
     int mask = RADIX - 1;
     
@@ -58,7 +58,7 @@ void writeHis(const Record* source,
     int globalId = threadIdx.x + blockDim.x * blockIdx.x;
     int globalSize = blockDim.x * gridDim.x;
     
-    int elePerThread = ceil(1.0 *length / globalSize);     // length for each thread to proceed
+    int elePerThread = (length + globalSize - 1) / globalSize;     // length for each thread to proceed
     int offset = localId * RADIX;
     int mask = RADIX - 1;
     
@@ -89,7 +89,7 @@ void countHis_int(const int* source,
     int globalId = threadIdx.x + blockDim.x * blockIdx.x;
     int globalSize = blockDim.x * gridDim.x;
     
-    int elePerThread = ceil(1.0*length / globalSize);
+    int elePerThread = (length + globalSize - 1) / globalSize;
     int offset = localId * RADIX;
     int mask = RADIX - 1;
     
@@ -126,7 +126,7 @@ void writeHis_int(const int* source,
     int globalId = threadIdx.x + blockDim.x * blockIdx.x;
     int globalSize = blockDim.x * gridDim.x;
     
-    int elePerThread = ceil(1.0 *length / globalSize);     // length for each thread to proceed
+    int elePerThread = (length + globalSize - 1) / globalSize;     // length for each thread to proceed
     int offset = localId * RADIX;
     int mask = RADIX - 1;
     
@@ -222,7 +222,9 @@ double radixSortDevice_int(int *d_source, int r_len, int blockSize, int gridSize
 		scanDevice(his, globalSize*RADIX, 1024, 1024,1);
 		writeHis_int<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source,r_len,his,loc,shiftBits);
 		scatterDevice_int(d_source,d_temp, r_len, loc, 1024,32768);
-		cudaMemcpy(d_source, d_temp, sizeof(int)*r_len, cudaMemcpyDeviceToDevice);
+		int *swapPointer = d_temp;
+		d_temp = d_source;
+		d_source = swapPointer;
 	}
 	cudaDeviceSynchronize();
 	gettimeofday(&end,NULL);

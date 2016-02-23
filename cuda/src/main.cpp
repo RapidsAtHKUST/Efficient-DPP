@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 	// else 		cout<<"Fail!"<<'\t';
 	// cout<<"Time: "<<totalTime<<" ms"<<endl;
 
-	int experiNum = 1;
+	int experiNum = 10;
 
 	//total time for each primitive
 	double gatherTotal = 0.0f;
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
 		// 	cout<<fixedRecords[i].x<<' '<<fixedRecords[i].y<<endl;
 		// }
 		
-		 res = testScan(fixedArray, dataSize, totalTime, 1);
+		 // res = testScan(fixedArray, dataSize, totalTime, 1);
 		
 		// cout<<"scan["<<i<<"] finished"<<endl;
 		// if (!res) 	exit(1);
@@ -130,19 +130,19 @@ int main(int argc, char *argv[]) {
 		// else			cout<<"Failed!"<<endl;
 		// cout<<"bisort time: "<<totalTime<<" ms."<<endl;
 
-//		cout<<"radixSort: ";
-//		int gridSize = 512;
-//		int blockSize =1024;
-//		cout<<"using:"<<gridSize<<" blocks"<<endl;
-//		res = testRadixSort_int(fixedArray, dataSize, totalTime,blockSize,gridSize);
-//		if (res) 	cout<<"Success!"<<'\t';
-//		else 		cout<<"Fail!"<<'\t';
-		// if (i != 0)
-//			radixSortTotal += totalTime;
+		cout<<"radixSort: ";
+		int gridSize = 512;
+		int blockSize =1024;
+		cout<<"using:"<<gridSize<<" blocks"<<endl;
+		res = testRadixSort_int(fixedArray, dataSize, totalTime,blockSize,gridSize);
+		if (res) 	cout<<"Success!"<<'\t';
+		else 		cout<<"Fail!"<<'\t';
+		if (i != 0)
+			radixSortTotal += totalTime;
 		// cout<<"Time: "<<totalTime<<" ms"<<endl;
 	}
 
-	 scan_warp_test();
+	 // scan_warp_test();
 
 	// cout<<"map avg time: "<<mapTotal/experiNum<<" ms."<<endl;
 	// cout<<"gather avg time: "<<gatherTotal/experiNum<<" ms."<<endl;
@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 	// testScan(fixedArray, dataSize, totalTime,1);
 
 	// cout<<"My Scan Time:"<<scanTotal/experiNum<<" ms."<<endl;
-//	cout<<"Radix sort Time:"<<radixSortTotal/(experiNum)<<" ms."<<endl;
+	cout<<"Radix sort Time:"<<radixSortTotal/(experiNum-1)<<" ms."<<endl;
 
 	
 	
