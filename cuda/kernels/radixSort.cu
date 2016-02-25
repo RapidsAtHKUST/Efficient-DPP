@@ -145,6 +145,337 @@ void writeHis_int(const int* source,
     }
 }
 
+
+
+
+/*
+ *							Fast radix sort
+ *
+ *			1. each block count histograms and reduce
+ *			2. grid-wise exclusive scan on the histrograms
+ *			3. each block does scatter according to the histograms
+ *
+ **/
+#define REDUCE_ELE_PER_THREAD 		64
+#define REDUCE_BLOCK_SIZE			128
+
+#define SCATTER_ELE_PER_THREAD		32
+#define SCATTER_TILE_THREAD_NUM		16			//SCATTER_TILE_THREAD_NUM threads cooperate in a tile
+//in one loop a batch of data is processed at the same time
+#define SCATTER_ELE_PER_BATCH		(SCATTER_ELE_PER_THREAD * SCATTER_TILE_THREAD_NUM)
+#define SCATTER_BLOCK_SIZE			1024
+ //num of TILES to process for each scatter block
+#define SCATTER_TILES_PER_BLOCK				(SCATTER_BLOCK_SIZE / SCATTER_TILE_THREAD_NUM)
+
+__global__
+void radix_reduce(	const int* d_source,
+              		const int total,		//total element length
+              		const int blockLen,		//len of elements each block should process
+			  		int* histogram,        //size: globalSize * RADIX
+              		const int shiftBits)
+{
+	extern __shared__ int hist[];		
+
+    int localId = threadIdx.x;
+    int blockId = blockIdx.x;
+    int blockSize = blockDim.x;
+    int gridSize = gridDim.x;
+
+    int begin = blockId * blockLen;
+    int end = (blockId+1) * blockLen >= total ? total : (blockId+1) * blockLen;
+    int mask = RADIX - 1;
+
+    //initialization: temp size is blockSize * RADIX
+    for(int i = 0; i < RADIX; i++) {
+        hist[i * blockSize + localId ] = 0;
+    }
+    __syncthreads();
+
+	for(uint i = begin + localId; i < end; i+= blockSize) {
+		int current = d_source[i];
+		current = (current >> shiftBits) & mask;
+		hist[current * blockSize + localId] ++;
+	}    
+    __syncthreads();
+
+	//reduce
+    const uint ratio = blockSize / RADIX;
+    const uint digit = localId / ratio;
+    const uint c = localId & ( ratio - 1 );
+
+    uint sum = 0;
+    for(int i = 0; i < RADIX; i++) 	sum += hist[digit * blockSize + i * ratio + c];
+    __syncthreads();
+
+
+	hist[digit * blockSize + c] = sum;
+	__syncthreads();
+
+#pragma unroll
+	for(uint scale = ratio / 2; scale >= 1; scale >>= 1) {
+		if ( c < scale ) {
+			sum += hist[digit * blockSize + c + scale];
+			hist[digit * blockSize + c] = sum;
+		}
+		__syncthreads();
+	}
+
+	//memory write
+	if (localId < RADIX)	histogram[localId * gridSize + blockId] = hist[localId * blockSize];
+}
+
+//data structures for storing information for each batch in a tile
+typedef struct {
+	uchar digits[SCATTER_ELE_PER_BATCH];		//store the digits 
+	uchar localHis[SCATTER_TILE_THREAD_NUM * RADIX];	//store the digit counts for a batch
+	uchar shuffle[SCATTER_ELE_PER_BATCH];		//the positions that each elements in the batch should be scattered to
+	uint bias[RADIX];							//the global offsets of the radixes in this batch
+	int keys[SCATTER_ELE_PER_BATCH];			//store the keys
+} ScatterData;
+
+__global__
+void radix_scatter( const int *d_in,
+					int *d_out,
+					int total,
+					int tileLen,				//length for each tile(block in reduce)
+					int tileNum,				//number of tiles (blocks in reduce)
+					int *histogram,
+					const int shiftBits)
+{
+ 	int localId = threadIdx.x;
+    int blockId = blockIdx.x;
+    int blockSize = blockDim.x;
+    int gridSize = gridDim.x;
+
+    const int lid_in_tile = localId & (SCATTER_TILE_THREAD_NUM - 1);
+    const int tile_in_block = localId / SCATTER_TILE_THREAD_NUM;
+    const int my_tile_id = blockId * SCATTER_TILES_PER_BLOCK + tile_in_block;	//"my" means for the threads in one tile.
+
+    //shared mem data
+    ScatterData sharedInfo[SCATTER_TILES_PER_BLOCK];
+
+    uint offset = 0;
+
+    /*each threads with lid_in_tile has an offset recording the first place to write the  
+     *element with digit "lid_in_tile" (lid_in_tile < RADIX)
+     *
+     * with lid_in_tile >= RADIX, their offset is always 0, no use
+     */
+    if (lid_in_tile < RADIX)	offset = histogram[lid_in_tile * tileNum + my_tile_id];
+
+    int start = my_tile_id * tileLen;
+    int stop = start + tileLen;
+    int end = stop > total? total : stop;
+
+    //each thread should run all the loops, even have reached the end
+    //
+    //each iteration is called a batch.
+    for(; start < stop; start += SCATTER_ELE_PER_BATCH) {
+    	//each thread processes SCATTER_ELE_PER_THREAD consecutive keys
+
+    	//local counts for each thread:
+    	//recording how many same keys has been visited till now by this thread.
+    	uint num_of_former_same_keys[SCATTER_ELE_PER_THREAD];
+
+    	//address in the localCount for each of the SCATTER_ELE_PER_THREAD element 
+    	uint address_ele_per_thread[SCATTER_ELE_PER_THREAD];
+
+    	//put the global keys of this batch to the shared memory, coalesced access
+    	for(uint i = 0; i < SCATTER_ELE_PER_THREAD; i++) {
+    		const uint lo_id = lid_in_tile + i * SCATTER_TILE_THREAD_NUM;
+    		const uint addr = start + lo_id;
+    		const current_key = (addr < end)? d_in[addr] : 0;
+    		sharedInfo[tile_in_block].keys[lo_id] = current_key;
+    		sharedInfo[tile_in_block].digits[lo_id] = ( current_key >> shiftBits ) & (RADIX - 1);
+    	}
+
+    	//the SCATTER_ELE_PER_BATCH threads will cooperate
+    	//How to cooperate?
+    	//Each threads read their own consecutive part, check how many same keys
+    	
+    	//initiate the localHis array
+    	for(uint i = 0; i < RADIX; i++)	sharedInfo[tile_in_block].localHis[i * SCATTER_TILE_THREAD_NUM + lid_in_tile] = 0;
+    	__syncthreads();
+
+    	//doing the per-batch histogram counting
+    	for(uint i = 0; i < SCATTER_ELE_PER_THREAD; i++) {
+    		//PAY ATTENTION: Here the shared memory access pattern has changed!!!!!!!
+    		//instead for coalesced access, here each thread processes consecutive area of 
+    		//SCATTER_ELE_PER_THREAD elements
+    		const uint lo_id = lid_in_tile * SCATTER_ELE_PER_THREAD + i;
+    		const uint digit = sharedInfo[tile_in_block].digits[lo_id];
+    		address_ele_per_thread[i] = digit * SCATTER_TILE_THREAD_NUM + lid_in_tile;
+    		num_of_former_same_keys[i] = sharedInfo[tile_in_block].localHis[address_ele_per_thread[i]];
+    		sharedInfo[tile_in_block].localHis[address_ele_per_thread[i]] = num_of_former_same_keys[i] + 1;
+    	}
+    	__syncthreads();
+
+    	//now what have been saved?
+    	//1. keys: the keys for this batch
+    	//2. digits: the digits for this batch
+    	//3. address_ele_per_thread: the address in localCount for each element visited by a thread
+    	//4. num_of_former_same_keys: # of same keys before this key
+    	//5. localHis: storing the key counts
+
+    	//localHist structure:
+    	//[SCATTER_TILE_THREAD_NUM for Radix 0][SCATTER_TILE_THREAD_NUM for Radix 1]...
+
+    	//now exclusive scan the localHist:
+//doing the naive scan:
+    	const uint digitCount = 0;
+    	uint countArr[RADIX];
+
+    	if (lid_in_tile < RADIX) {
+    		uint localBegin = lid_in_tile * SCATTER_TILE_THREAD_NUM;
+    		uchar prev = localHis[localBegin];
+    		uchar now = 0;
+    		localHis[localBegin] = 0;
+    		for(int i = localBegin + 1; i < localBegin + SCATTER_TILE_THREAD_NUM; i++) {
+    			now = localHis[i];
+    			localHis[i] = localHis[i-1] + prev;
+    			prev = now;
+    			if (i == localBegin + SCATTER_TILE_THREAD_NUM - 1)	countArr[lid_in_tile] = localHis[i] + prev;
+    		}
+    	}
+    	__syncthreads();
+
+    	if (lid_in_tile < RADIX)	digitCount = countArr[lid_in_tile];
+    	__syncthreads();
+
+    	if (lid_in_tile == 0) {
+    		for(int i = 1; i < RADIX; i++) {
+    			countArr[i] += countArr[i-1];
+    		}
+    	}
+    	__syncthreads();
+
+    	if (lid_in_tile > 0 && lid_in_tile < RADIX) {
+    		int localBegin = lid_in_tile * SCATTER_TILE_THREAD_NUM;
+    		for(int i = localBegin; i < localBegin + SCATTER_TILE_THREAD_NUM; i++)
+    			localHis[i] += countArr[lid_in_tile-1];
+    	}
+    	__syncthreads();
+//end of naive scan
+
+    	//now consider the offsets:
+    	//lid_in_tile which is < RADIX stores the global offset for this digit in this tile
+    	//here: updating the global offset
+
+    	if (lid_in_tile < RADIX) {
+    		sharedInfo[tile_in_block].bias[lid_in_tile] = offset;
+    		offset += digitCount;
+    	}
+
+    	//still consecutive access!!
+    	for(uint i = 0; i < SCATTER_ELE_PER_THREAD; i++) {
+    		const uint lo_id = lid_in_tile * SCATTER_ELE_PER_THREAD + i;
+    		//position of this element(with id: lo_id) being scattered to
+    		uint pos = num_of_former_same_keys[i] + sharedInfo[tile_in_block].localHis[address_ele_per_thread[i]];
+
+    		//since this access pattern is different from the scatter pattern(coalesced access), the position should be stored
+    		//also because this lo_id is not tractable in the scatter, thus using pos as the index instead of lo_id!!
+    		// both pos and lo_id are in the range of [0, SCATTER_ELE_PER_BATCH)
+    		sharedInfo[tile_in_block].shuffle[pos] = lo_id;		
+    	}
+    	__syncthreads();
+
+    	//scatter back to the global memory, iterating in the shuffle array
+    	for(uint i = 0; i < SCATTER_ELE_PER_THREAD; i++) {
+    		const uint lo_id = lid_in_tile + i * SCATTER_TILE_THREAD_NUM;	//coalesced access
+    		if ((int)lo_id < (int)end - (int)start) {						//in case that some threads have been larger than the total length causing index overflow
+    			const uchar position = sharedInfo[tile_in_block].shuffle[lo_id];	//position is the lo_id above
+    			const uint myDigit = sharedInfo[tile_in_block].digits[position];	//when storing digits, the storing pattern is lid_in_tile + i * SCATTER_TILE_THREAD_NUM, 
+
+    			//this is a bit complecated:
+    			//think about what we have now:
+    			//bias is the starting point for a cetain digit to be written to.
+    			//in the shuffle array, we have known that where each element should go
+    			//now we are iterating in the shuffle array
+    			//the array should be like this:
+    			// p0,p1,p2,p3......
+    			//p0->0, p1->0, p2->0, p3->1......
+    			//replacing the p0,p1...with the digit of the element they are pointing to, we can get 000000001111111122222....
+    			//so actually this for loop is iterating the 0000000111111122222.....!!!! for i=0, we deal with 0000.., for i = 1, we deal with 000111...
+    			
+    			//but pay attention:
+    			//for example: if we have 6 0's, 7 1's. Now for the first 1, lo_id = 6. Then addr would be wrong because we should write 
+    			//to bias[1] + 0 instead of bias[1] + 6. So we need to deduct the number of 0's, which is why previously bias need to be deducted!!!!!
+    			const uint addr = lo_id + sharedInfo[tile_in_block].bias[myDigit];
+    			d_out[addr] = sharedInfo[tile_in_block].keys[position];
+    		}
+    	}
+    	__syncthreads();
+    }
+}
+
+
+void testRadixSort() { 
+	int len = 16000000;
+	int *h_source = new int[len];
+	
+	for(int i = 0; i < len; i++)	h_source[i] = rand() % INT_MAX;
+
+	int blockLen = REDUCE_BLOCK_SIZE * REDUCE_ELE_PER_THREAD;
+	int gridSize = (len + blockLen- 1) / blockLen;
+
+	//histogram
+	int *histogram, *d_source;
+	checkCudaErrors(cudaMalloc(&d_source, sizeof(int)* len));
+	checkCudaErrors(cudaMalloc(&histogram, sizeof(int)* gridSize * RADIX));
+
+	int *h_dest = new int[gridSize * RADIX];
+
+	dim3 grid(gridSize);
+	dim3 block(REDUCE_BLOCK_SIZE);
+
+	// struct timeval start, end;
+
+
+	cudaMemcpy(d_source, h_source, sizeof(int) * len, cudaMemcpyHostToDevice);
+
+	radix_reduce<<<grid, block, sizeof(int) * REDUCE_BLOCK_SIZE * RADIX>>>(d_source, len, blockLen, histogram, 0);
+
+	scan_global(histogram, gridSize * RADIX, 1, 1024);
+	cudaMemcpy(h_dest, histogram, sizeof(int) * gridSize * RADIX, cudaMemcpyDeviceToHost);
+
+	for(int i = 0; i < gridSize ; i++) {
+		std::cout<<"block "<<i<<" : ";
+		for(int j = 0; j < RADIX; j++) {
+			std::cout<<h_dest[j * gridSize + i]<<' ';
+		}
+		std::cout<<std::endl;
+	}
+	// thrust::device_ptr<int> dev_his(his);
+	// thrust::device_ptr<int> dev_res_his(res_his);
+
+	// gettimeofday(&start,NULL);
+
+	// for(int shiftBits = 0; shiftBits < sizeof(int)*8; shiftBits += BITS) {
+
+	// 	countHis_int<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source, r_len, his, shiftBits);
+	// 	scanDevice(his, globalSize*RADIX, 1024, 1024,1);
+	// 	writeHis_int<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source,r_len,his,loc,shiftBits);
+	// 	scatterDevice_int(d_source,d_temp, r_len, loc, 1024,32768);
+	// 	int *swapPointer = d_temp;
+	// 	d_temp = d_source;
+	// 	d_source = swapPointer;
+	// }
+	// cudaDeviceSynchronize();
+	// gettimeofday(&end,NULL);
+	// totalTime = diffTime(end, start);
+
+	// checkCudaErrors(cudaFree(his));
+	// checkCudaErrors(cudaFree(d_temp));
+	// checkCudaErrors(cudaFree(loc));
+
+
+	delete[] h_source;
+	delete[] h_dest;
+}
+
+
+/*******************************   end of fast radix sort ***************************************/
+
 double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize) {
 	blockSize = 512;
 	gridSize = 256;

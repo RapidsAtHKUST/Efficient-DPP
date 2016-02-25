@@ -130,18 +130,19 @@ int main(int argc, char *argv[]) {
 		// else			cout<<"Failed!"<<endl;
 		// cout<<"bisort time: "<<totalTime<<" ms."<<endl;
 
-		cout<<"radixSort: ";
-		int gridSize = 512;
-		int blockSize =1024;
-		cout<<"using:"<<gridSize<<" blocks"<<endl;
-		res = testRadixSort_int(fixedArray, dataSize, totalTime,blockSize,gridSize);
-		if (res) 	cout<<"Success!"<<'\t';
-		else 		cout<<"Fail!"<<'\t';
-		if (i != 0)
-			radixSortTotal += totalTime;
+		// cout<<"radixSort: ";
+		// int gridSize = 512;
+		// int blockSize =1024;
+		// cout<<"using:"<<gridSize<<" blocks"<<endl;
+		// res = testRadixSort_int(fixedArray, dataSize, totalTime,blockSize,gridSize);
+		// if (res) 	cout<<"Success!"<<'\t';
+		// else 		cout<<"Fail!"<<'\t';
+		// if (i != 0)
+		// 	radixSortTotal += totalTime;
 		// cout<<"Time: "<<totalTime<<" ms"<<endl;
 	}
 
+	testRadixSort();
 	 // scan_warp_test();
 
 	// cout<<"map avg time: "<<mapTotal/experiNum<<" ms."<<endl;

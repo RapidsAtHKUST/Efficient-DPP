@@ -38,6 +38,7 @@ extern "C" void scan_global(int *d_source, int length, int isExclusive, int bloc
 extern "C" double scatterDevice_int(int *d_source, int *d_res, int r_len,int *d_loc, int blockSize, int gridSize);
 
 extern  "C" void scan_warp_test();
-
+extern  "C" void testRadixSort();
+extern  "C" void scan_global(int *d_source, int length, int isExclusive, int blockSize);
 #endif
 
