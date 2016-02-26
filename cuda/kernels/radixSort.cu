@@ -8,7 +8,7 @@
 #include "kernels.h"
 #define BITS 4
 #define RADIX (1<<BITS)
-
+using namespace std;
 __global__
 void countHis(const Record* source,
               const int length,
@@ -164,7 +164,7 @@ void writeHis_int(const int* source,
 //in one loop a batch of data is processed at the same time
 //IMPORTANT: make sure that SCATTER_ELE_PER_BATCH is less than sizeof(unsigned char) because the internal shared variable is uchar at most this large!
 #define SCATTER_ELE_PER_BATCH		(SCATTER_ELE_PER_THREAD * SCATTER_TILE_THREAD_NUM)
-#define SCATTER_BLOCK_SIZE			256
+#define SCATTER_BLOCK_SIZE			64
  //num of TILES to process for each scatter block
 #define SCATTER_TILES_PER_BLOCK				(SCATTER_BLOCK_SIZE / SCATTER_TILE_THREAD_NUM)
 
@@ -325,7 +325,6 @@ void radix_scatter( const int *d_in,
     	//now exclusive scan the localHist:
 //doing the naive scan:--------------------------------------------------------------------------------------------------------------------------------
     	int digitCount = 0;
-    	
 
     	if (lid_in_tile < RADIX) {
     		uint localBegin = lid_in_tile * SCATTER_TILE_THREAD_NUM;
@@ -345,10 +344,10 @@ void radix_scatter( const int *d_in,
 
     	if (lid_in_tile == 0) {
     		//exclusive scan for the countArr
-    		int prev = sharedInfo[tile_in_block].countArr[0];
-    		int now = 0;
+    		unsigned char prev = sharedInfo[tile_in_block].countArr[0];
+    		unsigned char now = 0;
     		sharedInfo[tile_in_block].countArr[0] = 0;
-    		for(int i = 1; i < RADIX; i++) {
+    		for(uint i = 1; i < RADIX; i++) {
     			now = sharedInfo[tile_in_block].countArr[i];
     			sharedInfo[tile_in_block].countArr[i] = sharedInfo[tile_in_block].countArr[i-1] + prev;
     			prev = now;
@@ -358,8 +357,8 @@ void radix_scatter( const int *d_in,
 
     	if ( lid_in_tile < RADIX) {
     		//scan add back
-    		int localBegin = lid_in_tile * SCATTER_TILE_THREAD_NUM;
-    		for(int i = localBegin; i < localBegin + SCATTER_TILE_THREAD_NUM; i++)
+    		uint localBegin = lid_in_tile * SCATTER_TILE_THREAD_NUM;
+    		for(uint i = localBegin; i < localBegin + SCATTER_TILE_THREAD_NUM; i++)
     			sharedInfo[tile_in_block].localHis[i] += sharedInfo[tile_in_block].countArr[lid_in_tile];
 
     		//now consider the offsets:
@@ -370,7 +369,6 @@ void radix_scatter( const int *d_in,
     		offset += digitCount;
 
     	}
-    	__syncthreads();
 
 //end of naive scan:-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -382,8 +380,8 @@ void radix_scatter( const int *d_in,
     	//still consecutive access!!
     	for(uint i = 0; i < SCATTER_ELE_PER_THREAD; i++) {
     		const unsigned char lo_id = lid_in_tile * SCATTER_ELE_PER_THREAD + i;
-    		//position of this element(with id: lo_id) being scattered to
 
+    		//position of this element(with id: lo_id) being scattered to
     		uint pos = num_of_former_same_keys[i] + sharedInfo[tile_in_block].localHis[address_ele_per_thread[i]];
 
     		//since this access pattern is different from the scatter pattern(coalesced access), the position should be stored
@@ -414,7 +412,7 @@ void radix_scatter( const int *d_in,
     			//but pay attention:
     			//for example: if we have 6 0's, 7 1's. Now for the first 1, lo_id = 6. Then addr would be wrong because we should write 
     			//to bias[1] + 0 instead of bias[1] + 6. So we need to deduct the number of 0's, which is why previously bias need to be deducted!!!!!
-    			const int addr = lo_id + sharedInfo[tile_in_block].bias[myDigit];
+    			const uint addr = lo_id + sharedInfo[tile_in_block].bias[myDigit];
                 // if (addr < 0)   printf("block %d,id %d: addr %d\n",blockId, localId,addr);
                 // else            printf("correct: block %d,id %d: addr %d\n",blockId, localId,addr);
     			d_out[addr] = sharedInfo[tile_in_block].keys[position];
@@ -429,9 +427,17 @@ void testRadixSort() {
 	// int len = 16777216;
 	int len = 16000000;
 
+	// int devCount;
+ //    cudaGetDeviceCount(&devCount);
+ //    cudaDeviceProp props;
+
+ //    for(int i = 0; i < devCount; i++) {
+ //    	cudaGetDeviceProperties(&props,i);
+	// 	std::cout<<"Rate: "<<props.clockRate<<std::endl;
+ //    }
 	int *h_source = new int[len];
-	
-	for(int i = 0; i < len; i++)	h_source[i] = rand() % 16;
+
+	for(int i = 0; i < len; i++)	h_source[i] = rand() % INT_MAX;
 
 	int blockLen = REDUCE_BLOCK_SIZE * REDUCE_ELE_PER_THREAD;
 	int gridSize = (len + blockLen- 1) / blockLen;
@@ -448,39 +454,47 @@ void testRadixSort() {
 	dim3 grid(gridSize);
 	dim3 block(REDUCE_BLOCK_SIZE);
 
-	// struct timeval start, end;
+	int expeTime = 10;
+	float totalTime = 0.0f;
+	bool res = true;
+	for(int i = 0; i < expeTime; i++) {
 
+		cudaMemcpy(d_source, h_source, sizeof(int) * len, cudaMemcpyHostToDevice);
 
-	cudaMemcpy(d_source, h_source, sizeof(int) * len, cudaMemcpyHostToDevice);
+		float myTime = 0.0f;
 
-	radix_reduce<<<grid, block, sizeof(int) * REDUCE_BLOCK_SIZE * RADIX>>>(d_source, len, blockLen, histogram, 0);
-	scan_global(histogram, gridSize * RADIX, 1, 1024);
+		cudaEvent_t start, end;
+		cudaEventCreate(&start);
+		cudaEventCreate(&end);
 
-	int tileLen = REDUCE_BLOCK_SIZE * REDUCE_ELE_PER_THREAD;
-	radix_scatter<<<(gridSize+SCATTER_TILES_PER_BLOCK-1)/SCATTER_TILES_PER_BLOCK,SCATTER_BLOCK_SIZE>>>( d_source, d_temp, len, tileLen, gridSize, histogram, 0);
+		cudaEventRecord(start);
+		for(int shiftBits = 0; shiftBits < sizeof(int) * 8; shiftBits += BITS) {
+			radix_reduce<<<grid, block, sizeof(int) * REDUCE_BLOCK_SIZE * RADIX>>>(d_source, len, blockLen, histogram, shiftBits);
+			scan_global(histogram, gridSize * RADIX, 1, 1024);
+			int tileLen = REDUCE_BLOCK_SIZE * REDUCE_ELE_PER_THREAD;
+			radix_scatter<<<(gridSize+SCATTER_TILES_PER_BLOCK-1)/SCATTER_TILES_PER_BLOCK,SCATTER_BLOCK_SIZE>>>( d_source, d_temp, len, tileLen, gridSize, histogram, shiftBits);
+			int *temp = d_temp;
+			d_temp = d_source;
+			d_source = temp;
+		}
+		cudaEventRecord(end);
+		cudaEventSynchronize(end);
+	    cudaEventElapsedTime(&myTime,start, end);
 
-	cudaMemcpy(h_dest, d_temp, sizeof(int) * len, cudaMemcpyDeviceToHost);
-
-	cudaMemcpy(h_his, histogram, sizeof(int) * gridSize * RADIX, cudaMemcpyDeviceToHost);
-
-	//checking
-	for(int i = 0; i < len-1; i++) {
-        if(h_dest[i] > h_dest[i+1]) {
-        	std::cout<<i<<' ';
-        }
-		// std::cout<<h_dest[i]<<' ';
+		cudaMemcpy(h_dest, d_source, sizeof(int) * len, cudaMemcpyDeviceToHost);
+		if (i != 0)		totalTime += myTime;
+		//checking
+		for(int i = 0; i < len-1; i++) {
+	        if(h_dest[i] > h_dest[i+1]) {
+				res = false;
+	        }
+		}
+		if (!res)	break;
 	}
-    std::cout<<std::endl;
 
-
-
-	// for(int i = 0; i < 20 ; i++) {
-	// 	std::cout<<"block "<<i<<" : ";
-	// 	for(int j = 0; j < RADIX; j++) {
-	// 		std::cout<<h_his[j * gridSize + i]<<' ';
-	// 	}
-	// 	std::cout<<std::endl;
-	// }
+    if (res)	std::cout<<"Correct!"<<std::endl;
+    else 		std::cout<<"Wrong!"<<std::endl;
+    cout<<"Avg time: "<<totalTime/(expeTime-1)<<" ms."<<endl;
 	// thrust::device_ptr<int> dev_his(his);
 	// thrust::device_ptr<int> dev_res_his(res_his);
 
