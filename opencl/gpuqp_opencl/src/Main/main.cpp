@@ -75,13 +75,13 @@ int main(int argc, const char * argv[]) {
     }
     
     //test primitives
-//    testMap(fixedRecords, dataSize, info, totalTime);
-//	testGather(fixedRecords, dataSize, info, totalTime);
-//	testScatter(fixedRecords, dataSize, info, totalTime);
+   testMap(fixedRecords, dataSize, info, totalTime);
+	testGather(fixedRecords, dataSize, info, totalTime);
+	testScatter(fixedRecords, dataSize, info, totalTime);
 //    testScan(fixedArray, dataSize, info, totalTime, 0);             //0: inclusive
 //    testScan(fixedArray, dataSize, info, totalTime, 1);             //1: exclusive
 //    testSplit(fixedRecords, dataSize, info, 20, totalTime);           //fanout: 20
-//    testRadixSort(fixedRecords, dataSize, info, totalTime);
+   testRadixSort(fixedRecords, dataSize, info, totalTime);
     
     testBitonitSort(fixedRecords, dataSize, info, 1, totalTime);      //1:  ascendingls
 //    testBitonitSort(fixedRecords, dataSize, info, 0, totalTime);      //0:  descending

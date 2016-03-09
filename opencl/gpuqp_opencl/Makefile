@@ -10,9 +10,11 @@ BINDIR := $(HOME_PATH)/bin
 OBJDIR := $(HOME_PATH)/obj
 MAINDIR := $(HOME_PATH)/src/Main
 DATADIR := $(HOME_PATH)/data/
+COMDIR := $(HOME_PATH)/common
+
 
 CC := g++ 
-CPPFLAGS := -g  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DDATADIR=\"$(DATADIR)\"
+CPPFLAGS := -g  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DDATADIR=\"$(DATADIR)\" -DOPENCL_PROJ
 
 PRINT ?= 0
 ifeq ($(PRINT), 1)
@@ -21,15 +23,15 @@ endif
 
 
 INCLUDE := -I$(INCDIR) \
+		   -I$(COMDIR) \
            -I/ghome/zlai/workspace/Nvidia_OpenCL_SDK_4_2_Linux/OpenCL/common/inc
 LINK := -L/ghome/zlai/workspace/Nvidia_OpenCL_SDK_4_2_Linux/OpenCL/common/lib -lOpenCL
 
-SRC :=  $(filter-out ._%,$(notdir $(shell find $(SRCDIR) -name *.cpp)))
+SRC :=  $(filter-out ._%,$(notdir $(shell find -L $(SRCDIR) $(COMDIR) -name *.cpp)))
 OBJ := $(SRC:%.cpp=$(OBJDIR)/%.o)
 PROGRAM := executor
 
-vpath %.cpp $(SRCDIR)/Join $(SRCDIR)/Utils $(SRCDIR)/Primitive $(SRCDIR)/Main $(SRCDIR)/Test 
-vpath %.h $(INCDIR)
+vpath %.cpp $(SRCDIR)/Join $(SRCDIR)/Utils $(SRCDIR)/Primitive $(SRCDIR)/Main $(SRCDIR)/Test $(COMDIR)
 vpath %.o $(OBJDIR)
 
 all: $(PROGRAM)

@@ -198,7 +198,7 @@ void addBlock(int* records,
  *
  */
 
-//warp size if 32(2^5)
+//warp size is 32(2^5)
 #define BITS        (5)
 #define WARPSIZE    (1<<BITS)
 #define MASK        ((1<<BITS)-1)

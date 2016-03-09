@@ -56,7 +56,7 @@ bool testMap(Record *fixedSource, int length, PlatInfo info , double& totalTime,
     //check
     SHOW_CHECKING;
     for(int i = 0; i < length; i++) {
-        if (h_source[i].x != h_dest[i].x || floorOfPower2(h_source[i].y) != h_dest[i].y) res = false;
+        if (h_source[i].x != h_dest[i].x || floorOfPower2_CPU(h_source[i].y) != h_dest[i].y) res = false;
     }
     FUNC_CHECK(res);
     

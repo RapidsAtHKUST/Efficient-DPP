@@ -9,29 +9,12 @@
 #ifndef __gpuqp_opencl__DataUtil__
 #define __gpuqp_opencl__DataUtil__
 
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/OpenCL.h>
-#else
-#include <CL/cl.h>
-#endif
+#include "utility.h"
 
-#include <string.h>
-#include <sys/time.h>   //timing
-#include <iostream>
-#include <climits>
-#include <cmath>
-#include <algorithm>
-#include <fstream>
-
-#include "dataDefinition.h"
 
 #ifndef PROJECT_ROOT
 #define PROJECT_ROOT                        "/Users/Bryan/gpuqp_opencl/gpuqp_opencl/"
 #endif
-
-//data information
-#define MAX_DATA_SIZE                       (16000000)
-#define MAX_NUM                             (INT_MAX/2)
 
 //Error information
 #define ERR_HOST_ALLOCATION                 "Failed to allocate the host memory."
@@ -65,40 +48,8 @@
 #define  printExecutingKernel(kernel)       std::cout<<"Executing kernel: " <<#kernel<<std::endl
 #define  checkLocalMemOverflow(localMem)    if (localMem > MAX_LOCAL_MEM_SIZE)  \
                                             std::cerr<<ERR_LOCAL_MEM_OVERFLOW<<"( "<<localMem<<" > "<<MAX_LOCAL_MEM_SIZE<<" )"<<std::endl
-//parallel condition
-#define BLOCKSIZE   (512)
-#define GRIDSIZE    (1024)
+
 #define MAX_LOCAL_MEM_SIZE (47 * 1000)              //local memory size of 47KB
-
-//auxiliary setting
-#define SHUFFLE_TIME(TIME)  (TIME*1.5)
-
-//the fixed records & int array read from the external file
-
-double diffTime(struct timeval end, struct timeval start) ;
-
-void recordRandom(Record *records, int length, int max = MAX_NUM);
-void recordRandom_Only(Record *records, int length,  int times);
-void recordSorted(Record *records, int length, int max = MAX_NUM);
-void recordSorted_Only(Record *records, int length);
-
-void intRandom(int *intArr, int length, int max);
-void intRandom_Only(int *intArr, int length,  int times);
-void intSorted(int *intArr, int length, int max);
-void intSorted_Only(int *intArr, int length, int times);
-
-void checkErr(cl_int status, const char* name);
-void printbinary(const unsigned int val, int dis) ;
-
-//read from the external memory
-void readFixedRecords(Record* fixedRecords, char *file, int& recordLength);
-void readFixedArray(int* fixedArray, char *file, int & arrayLength);
-
-int compRecordAsc ( const void * a, const void * b);
-int compRecordDec ( const void * a, const void * b);
-int compInt ( const void * p, const void * q);
-
-//result checking ancillary functions
-int floorOfPower2(int a);
+                                            
 
 #endif /* defined(__gpuqp_opencl__DataUtil__) */

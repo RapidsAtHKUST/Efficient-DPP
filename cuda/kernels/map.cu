@@ -8,29 +8,28 @@
 #include "kernels.h"
 
 //mapping function 1:
-__device__
-int floorOfPower2(int a) {
+__device__ Record floorOfPower2(Record a) {
 	int base = 1;
-	while (base < a) {
+	while (base < a.y) {
 		base <<= 1;
 	}
-	return base>>1;
+	a.y = (base>>1);
+	return a;
 }
 
-__global__
-void map(Record *d_source, Record *d_res, int r_len) {
+template<typename T> 
+__global__ void map_kernel(T *d_source, T *d_res, int r_len) {
 	int threadId = blockIdx.x * blockDim.x + threadIdx.x;
 	int threadNum = gridDim.x * blockDim.x;
 	
 	while (threadId < r_len) {
-		// d_res[threadId].x = d_source[threadId].x;
-		// d_res[threadId].y = floorOfPower2(d_source[threadId].y);
-		d_res[threadId] = d_source[threadId];
+		d_res[threadId] = floorOfPower2(d_source[threadId]);
 		threadId += threadNum;
 	}
 }
 
-double mapDevice(Record *d_source, Record *d_res, int r_len, int blockSize, int gridSize) {
+template<typename T>
+double map(T *d_source, T *d_res, int r_len, int blockSize, int gridSize) {
 
 	dim3 grid(gridSize);
 	dim3 block(blockSize);
@@ -39,7 +38,7 @@ double mapDevice(Record *d_source, Record *d_res, int r_len, int blockSize, int 
 	struct timeval start, end;
 
 	gettimeofday(&start, NULL);
-	map<<<grid, block>>>(d_source, d_res, r_len);
+	map_kernel<T><<<grid, block>>>(d_source, d_res, r_len);
 	cudaDeviceSynchronize();
 	gettimeofday(&end, NULL);
 
@@ -47,7 +46,6 @@ double mapDevice(Record *d_source, Record *d_res, int r_len, int blockSize, int 
 
 	return totalTime;
 }
-
 
 double mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize) {
 
@@ -60,7 +58,7 @@ double mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gr
 	checkCudaErrors(cudaMalloc(&d_res,sizeof(Record)*r_len));
 
 	cudaMemcpy(d_source, h_source, sizeof(Record) * r_len, cudaMemcpyHostToDevice);
-	totalTime = mapDevice(d_source, d_res, r_len, blockSize, gridSize);
+	totalTime = map<Record>(d_source, d_res, r_len, blockSize, gridSize);
 	cudaMemcpy(h_res, d_res, sizeof(Record)*r_len, cudaMemcpyDeviceToHost);	
 	
 	checkCudaErrors(cudaFree(d_res));

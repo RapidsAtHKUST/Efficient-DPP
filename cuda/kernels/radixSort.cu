@@ -427,14 +427,6 @@ void testRadixSort() {
 	// int len = 16777216;
 	int len = 16000000;
 
-	// int devCount;
- //    cudaGetDeviceCount(&devCount);
- //    cudaDeviceProp props;
-
- //    for(int i = 0; i < devCount; i++) {
- //    	cudaGetDeviceProperties(&props,i);
-	// 	std::cout<<"Rate: "<<props.clockRate<<std::endl;
- //    }
 	int *h_source = new int[len];
 
 	for(int i = 0; i < len; i++)	h_source[i] = rand() % INT_MAX;
