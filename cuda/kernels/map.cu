@@ -8,64 +8,88 @@
 #include "kernels.h"
 
 //mapping function 1:
-__device__ Record floorOfPower2(Record a) {
+
+template<class T>
+__device__ Op_Type floorOfPower2(Op_Type a) {
 	int base = 1;
-	while (base < a.y) {
+#ifdef RECORDS
+	int b = a.y;
+#else
+	int b = a; 
+#endif
+	while (base < b) {
 		base <<= 1;
 	}
-	a.y = (base>>1);
-	return a;
+#ifdef RECORDS
+	Op_Type res;
+	res.x = a.x;
+	res.y = base>>1;
+	return res;
+#else
+	return base>>1;
+#endif
 }
 
-template<typename T> 
-__global__ void map_kernel(T *d_source, T *d_res, int r_len) {
+
+template<class T>
+__global__ void map_kernel(Op_Type *d_source, Op_Type *d_res, int r_len) {
 	int threadId = blockIdx.x * blockDim.x + threadIdx.x;
 	int threadNum = gridDim.x * blockDim.x;
 	
 	while (threadId < r_len) {
-		d_res[threadId] = floorOfPower2(d_source[threadId]);
+		d_res[threadId] = floorOfPower2<Op_Type>(d_source[threadId]);
 		threadId += threadNum;
 	}
 }
 
-template<typename T>
-double map(T *d_source, T *d_res, int r_len, int blockSize, int gridSize) {
+
+template<class T>
+float map(Op_Type *d_source, Op_Type  *d_res, int r_len, int blockSize, int gridSize) {
 
 	dim3 grid(gridSize);
 	dim3 block(blockSize);
 
-	double totalTime = 0.0f;
-	struct timeval start, end;
+	float totalTime = 0.0f;
 
-	gettimeofday(&start, NULL);
-	map_kernel<T><<<grid, block>>>(d_source, d_res, r_len);
-	cudaDeviceSynchronize();
-	gettimeofday(&end, NULL);
+	cudaEvent_t start, end;
+	cudaEventCreate(&start);
+	cudaEventCreate(&end);
 
-	totalTime = diffTime(end, start);
+	cudaEventRecord(start);
+	map_kernel<Op_Type><<<grid, block>>>(d_source, d_res, r_len);
+	cudaEventRecord(end);
+	cudaEventSynchronize(end);
 
-	return totalTime;
-}
-
-double mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize) {
-
-	double totalTime = 0.0f;
-	
-	Record *d_source, *d_res;
-	
-	//allocate for the device memory
-	checkCudaErrors(cudaMalloc(&d_source,sizeof(Record)*r_len));
-	checkCudaErrors(cudaMalloc(&d_res,sizeof(Record)*r_len));
-
-	cudaMemcpy(d_source, h_source, sizeof(Record) * r_len, cudaMemcpyHostToDevice);
-	totalTime = map<Record>(d_source, d_res, r_len, blockSize, gridSize);
-	cudaMemcpy(h_res, d_res, sizeof(Record)*r_len, cudaMemcpyDeviceToHost);	
-	
-	checkCudaErrors(cudaFree(d_res));
-	checkCudaErrors(cudaFree(d_source));
+	cudaEventElapsedTime(&totalTime, start, end);
 
 	return totalTime;
 }
+
+#ifdef RECORDS
+	template float map<Record>(Record *d_source, Record *d_res, int r_len, int blockSize, int gridSize);
+#else
+	template float map<int>(int *d_source, int  *d_res, int r_len, int blockSize, int gridSize);
+#endif	
+
+// double mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize) {
+
+// 	double totalTime = 0.0f;
+	
+// 	Record *d_source, *d_res;
+	
+// 	//allocate for the device memory
+// 	checkCudaErrors(cudaMalloc(&d_source,sizeof(Record)*r_len));
+// 	checkCudaErrors(cudaMalloc(&d_res,sizeof(Record)*r_len));
+
+// 	cudaMemcpy(d_source, h_source, sizeof(Record) * r_len, cudaMemcpyHostToDevice);
+// 	totalTime = map<Record>(d_source, d_res, r_len, blockSize, gridSize);
+// 	cudaMemcpy(h_res, d_res, sizeof(Record)*r_len, cudaMemcpyDeviceToHost);	
+	
+// 	checkCudaErrors(cudaFree(d_res));
+// 	checkCudaErrors(cudaFree(d_source));
+
+// 	return totalTime;
+// }
 
 
 

@@ -10,7 +10,8 @@
 
 #include "kernels.h"
 
-bool testMap(Record *source, int r_len, double& time, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+template<class T>
+bool testMap(Op_Type *source, int r_len, float& time, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 
 bool testGather(Record *source, int r_len, int *loc,double& time, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 bool testGather_mul(Record *source, int r_len, int *loc,double& totalTime,  int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);

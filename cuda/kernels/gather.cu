@@ -7,8 +7,7 @@
 //
 #include "kernels.h"
 
-__global__
-void gather(const Record *d_source,
+__global__ void gather(const Record *d_source,
 			Record *d_res,
 			const int r_len,
 			const int *loc)

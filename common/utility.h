@@ -16,6 +16,7 @@
 #include <cstring>
 #include <fstream>
 #include <climits>
+#include <unistd.h>
 
 #ifdef CUDA_PROJ
 	//CUDA used header files
@@ -51,7 +52,17 @@
 	typedef struct Record {
 		int x;
 		int y;
+		Record(int x, int y) {
+			this->x = x;
+			this->y = y;
+		}
 	} Record;
+#endif
+
+#ifdef RECORDS    	//operating records
+	#define Op_Type Record
+#else				//operating ints
+	#define Op_Type T
 #endif
 
 #define MAX_DATA_SIZE 			(160000000)

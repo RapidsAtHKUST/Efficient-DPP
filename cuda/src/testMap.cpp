@@ -1,27 +1,42 @@
 #include "test.h"
 
-bool testMap(Record *source, int r_len, double& totalTime, int blockSize, int gridSize) {
+template<class T>
+bool testMap(Op_Type *source, int r_len, float& totalTime, int blockSize, int gridSize) {
 	
 	bool res = true;
 
 	//allocate for the host memory
-	Record *h_source = new Record[r_len];
-	Record *h_res = new Record[r_len];
+	Op_Type *h_source = new Op_Type[r_len];
+	Op_Type *h_res = new Op_Type[r_len];
+	Op_Type *d_source, *d_res;
 
 	for(int i = 0; i < r_len; i++) {
-		h_source[i].x = source[i].x;
-		h_source[i].y = source[i].y;
+		h_source[i] = source[i];
 	}
+	
+	//allocate for the device memory
+	checkCudaErrors(cudaMalloc(&d_source,sizeof(Op_Type)*r_len));
+	checkCudaErrors(cudaMalloc(&d_res,sizeof(Op_Type)*r_len));
 
-	totalTime = mapImpl(h_source, h_res, r_len, blockSize, gridSize);
+	cudaMemcpy(d_source, h_source, sizeof(Op_Type) * r_len, cudaMemcpyHostToDevice);
+	totalTime = map<Op_Type>(d_source, d_res, r_len, blockSize, gridSize);
+	cudaMemcpy(h_res, d_res, sizeof(Op_Type)*r_len, cudaMemcpyDeviceToHost);	
+	
+	checkCudaErrors(cudaFree(d_res));
+	checkCudaErrors(cudaFree(d_source));
 
 	//checking 
 	for(int i = 0; i < r_len; i++) {
+#ifdef RECORDS
 		if (h_source[i].x != h_res[i].x ||
-			floorOfPower2_CPU(h_source[i].y) != h_res[i].y) {
+			floorOfPower2_CPU(h_source[i].y) != h_res[i].y) 
+#else
+		if (h_res[i] != floorOfPower2_CPU(h_source[i]))
+#endif
+		{
 				res = false;
 				break;
-			}
+		}
 	}
 
 	delete[] h_source;
@@ -29,3 +44,9 @@ bool testMap(Record *source, int r_len, double& totalTime, int blockSize, int gr
 
 	return res;
 }
+
+#ifdef RECORDS
+	template bool testMap<Record>(Record *source, int r_len, float& totalTime, int blockSize, int gridSize);
+#else
+	template bool testMap<int>(int *source, int r_len, float& totalTime, int blockSize, int gridSize);
+#endif

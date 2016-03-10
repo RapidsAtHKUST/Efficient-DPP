@@ -6,7 +6,6 @@
 //  Copyright (c) 2015-2016 Bryan. All rights reserved.
 //
 #include "test.h"
-#include <unistd.h>
 
 using namespace std;
 
@@ -25,7 +24,7 @@ int recordLength;
 int arrayLength;
 
 int main(int argc, char *argv[]) {
-	
+ 
 	switch (argc) {
         case 2:         //fast run
             is_input = false;
@@ -38,7 +37,13 @@ int main(int argc, char *argv[]) {
             exit(1);
             break;
     }
-    
+
+#ifdef RECORDS
+    std::cout<<"Using type: Record"<<std::endl;
+#else
+    std::cout<<"Using type: Basic type"<<std::endl;
+#endif
+
     if (is_input) {
         strcat(input_rec_dir, argv[1]);
         strcat(input_arr_dir, argv[2]);
@@ -61,15 +66,20 @@ int main(int argc, char *argv[]) {
         intRandom_Only(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
     }
 
-	double totalTime = 0.0f;
+	float totalTime = 0.0f;
 	bool res;
 
-	res = testMap(fixedRecords, dataSize, totalTime);
+#ifdef RECORDS
+	res = testMap<Record>(fixedRecords, dataSize, totalTime);
+#else
+	res = testMap<int>(fixedArray, dataSize, totalTime);
+#endif
+
 	cout<<"map: ";
 	if (res) 	cout<<"Success!"<<'\t';
 	else 		cout<<"Fail!"<<'\t';
 	cout<<"Time: "<<totalTime<<" ms"<<endl;
-exit(1);
+
 	int experiNum = 10;
 
 	//total time for each primitive
@@ -111,7 +121,8 @@ exit(1);
 		// cout<<"split["<<i<<"] finished"<<endl;
 		// res = testSplit(records, dataSize, totalTime, fanout);		//fanout = 20
 		// if (!res) 	exit(1);
-		// splitTotal += totalTime;
+		// if (i != 0)
+		// 	splitTotal += totalTime;
 
 		// cout<<"Input:"<<endl;
 		// for(int i = 0; i < dataSize; i++) {
@@ -150,11 +161,11 @@ exit(1);
 
 	// cout<<"scatter avg time: "<<scatterTotal/experiNum<<" ms."<<endl;
 
-	// cout<<"split avg time: "<<splitTotal/experiNum<<" ms."<<endl;
+	// cout<<"split avg time: "<<splitTotal/(experiNum-1)<<" ms."<<endl;
 	// testScan(fixedArray, dataSize, totalTime,1);
 
 	// cout<<"My Scan Time:"<<scanTotal/experiNum<<" ms."<<endl;
-	cout<<"Radix sort Time:"<<radixSortTotal/(experiNum-1)<<" ms."<<endl;
+	// cout<<"Radix sort Time:"<<radixSortTotal/(experiNum-1)<<" ms."<<endl;
 
 	
 	

@@ -11,14 +11,21 @@ KERNELDIR := $(HOME_PATH)/kernels
 COMDIR := $(HOME_PATH)/common
 
 NVCC := nvcc
-CC := gcc
+CC := g++
 
 CC_FLAGS := -g  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DCUDA_PROJ
 NVCC_FLAGS := -g -Xptxas -dlcm=ca -DCUDA_PROJ
 
 PRINT ?= 0
+R ?= 0
+
 ifeq ($(PRINT), 1)
     CC_FLAGS += -DPRINT_KERNEL
+endif
+
+ifeq ($(R), 1)
+    CC_FLAGS += -DRECORDS
+	NVCC_FLAGS += -DRECORDS
 endif
 
 INCLUDE := 	-I$(INCDIR) \
@@ -41,7 +48,7 @@ vpath %.o $(OBJDIR)
 all: $(PROGRAM)
 
 $(PROGRAM):$(CPP_OBJ) $(CU_OBJ) 
-	$(NVCC) -o $(BINDIR)/$@ $^ $(LINK)
+	$(CC) -o $(BINDIR)/$@ $^ $(LINK)
 $(CPP_OBJ): $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(OBJDIR)	
 	$(CC) $(CC_FLAGS) -c $< -o $@ $(INCLUDE)
