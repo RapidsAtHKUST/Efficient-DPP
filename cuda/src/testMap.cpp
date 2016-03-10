@@ -1,26 +1,26 @@
 #include "test.h"
 
 template<class T>
-bool testMap(Op_Type *source, int r_len, float& totalTime, int blockSize, int gridSize) {
+bool testMap(T *source, int r_len, float& totalTime, int blockSize, int gridSize) {
 	
 	bool res = true;
 
 	//allocate for the host memory
-	Op_Type *h_source = new Op_Type[r_len];
-	Op_Type *h_res = new Op_Type[r_len];
-	Op_Type *d_source, *d_res;
+	T *h_source = new T[r_len];
+	T *h_res = new T[r_len];
+	T *d_source, *d_res;
 
 	for(int i = 0; i < r_len; i++) {
 		h_source[i] = source[i];
 	}
 	
 	//allocate for the device memory
-	checkCudaErrors(cudaMalloc(&d_source,sizeof(Op_Type)*r_len));
-	checkCudaErrors(cudaMalloc(&d_res,sizeof(Op_Type)*r_len));
+	checkCudaErrors(cudaMalloc(&d_source,sizeof(T)*r_len));
+	checkCudaErrors(cudaMalloc(&d_res,sizeof(T)*r_len));
 
-	cudaMemcpy(d_source, h_source, sizeof(Op_Type) * r_len, cudaMemcpyHostToDevice);
-	totalTime = map<Op_Type>(d_source, d_res, r_len, blockSize, gridSize);
-	cudaMemcpy(h_res, d_res, sizeof(Op_Type)*r_len, cudaMemcpyDeviceToHost);	
+	cudaMemcpy(d_source, h_source, sizeof(T) * r_len, cudaMemcpyHostToDevice);
+	totalTime = map<T>(d_source, d_res, r_len, blockSize, gridSize);
+	cudaMemcpy(h_res, d_res, sizeof(T)*r_len, cudaMemcpyDeviceToHost);	
 	
 	checkCudaErrors(cudaFree(d_res));
 	checkCudaErrors(cudaFree(d_source));
@@ -50,3 +50,4 @@ bool testMap(Op_Type *source, int r_len, float& totalTime, int blockSize, int gr
 #else
 	template bool testMap<int>(int *source, int r_len, float& totalTime, int blockSize, int gridSize);
 #endif
+

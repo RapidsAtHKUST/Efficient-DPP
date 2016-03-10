@@ -10,7 +10,7 @@
 //mapping function 1:
 
 template<class T>
-__device__ Op_Type floorOfPower2(Op_Type a) {
+__device__ T floorOfPower2(T a) {
 	int base = 1;
 #ifdef RECORDS
 	int b = a.y;
@@ -21,7 +21,7 @@ __device__ Op_Type floorOfPower2(Op_Type a) {
 		base <<= 1;
 	}
 #ifdef RECORDS
-	Op_Type res;
+	T res;
 	res.x = a.x;
 	res.y = base>>1;
 	return res;
@@ -32,19 +32,19 @@ __device__ Op_Type floorOfPower2(Op_Type a) {
 
 
 template<class T>
-__global__ void map_kernel(Op_Type *d_source, Op_Type *d_res, int r_len) {
+__global__ void map_kernel(T *d_source, T *d_res, int r_len) {
 	int threadId = blockIdx.x * blockDim.x + threadIdx.x;
 	int threadNum = gridDim.x * blockDim.x;
 	
 	while (threadId < r_len) {
-		d_res[threadId] = floorOfPower2<Op_Type>(d_source[threadId]);
+		d_res[threadId] = floorOfPower2<T>(d_source[threadId]);
 		threadId += threadNum;
 	}
 }
 
 
 template<class T>
-float map(Op_Type *d_source, Op_Type  *d_res, int r_len, int blockSize, int gridSize) {
+float map(T *d_source, T  *d_res, int r_len, int blockSize, int gridSize) {
 
 	dim3 grid(gridSize);
 	dim3 block(blockSize);
@@ -56,7 +56,7 @@ float map(Op_Type *d_source, Op_Type  *d_res, int r_len, int blockSize, int grid
 	cudaEventCreate(&end);
 
 	cudaEventRecord(start);
-	map_kernel<Op_Type><<<grid, block>>>(d_source, d_res, r_len);
+	map_kernel<T><<<grid, block>>>(d_source, d_res, r_len);
 	cudaEventRecord(end);
 	cudaEventSynchronize(end);
 
@@ -69,7 +69,8 @@ float map(Op_Type *d_source, Op_Type  *d_res, int r_len, int blockSize, int grid
 	template float map<Record>(Record *d_source, Record *d_res, int r_len, int blockSize, int gridSize);
 #else
 	template float map<int>(int *d_source, int  *d_res, int r_len, int blockSize, int gridSize);
-#endif	
+#endif
+
 
 // double mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize) {
 

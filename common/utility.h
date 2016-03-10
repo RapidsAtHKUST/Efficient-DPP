@@ -59,11 +59,11 @@
 	} Record;
 #endif
 
-#ifdef RECORDS    	//operating records
-	#define Op_Type Record
-#else				//operating ints
-	#define Op_Type T
-#endif
+// #ifdef RECORDS    	//operating records
+// 	#define Op_Type Record
+// #else				//operating ints
+// 	#define Op_Type T
+// #endif
 
 #define MAX_DATA_SIZE 			(160000000)
 #define MAX_NUM					(INT_MAX/2)
