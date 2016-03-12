@@ -20,6 +20,9 @@ Record *fixedRecords;
 int *fixedArray;
 int *fixedLoc;
 
+int *fixedKeys;
+int *fixedValues;
+
 int recordLength;
 int arrayLength;
 
@@ -61,19 +64,25 @@ int main(int argc, char *argv[]) {
         fixedArray = new int[dataSize];
         fixedLoc = new int[dataSize];
 
-        recordRandom(fixedRecords, dataSize);
-        intRandom(fixedArray, dataSize, MAX_NUM);
-        intRandom_Only(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
+        fixedKeys = new int[dataSize];
+        fixedValues = new int[dataSize];
+
+        recordRandom<int>(fixedKeys, fixedValues, dataSize, MAX_NUM);
+        valRandom<int>(fixedArray, dataSize, MAX_NUM);
+        valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
     }
 
 	float totalTime = 0.0f;
 	bool res;
 
+
+	res = testMap<int>(
 #ifdef RECORDS
-	res = testMap<Record>(fixedRecords, dataSize, totalTime);
+		fixedKeys, fixedValues,
 #else
-	res = testMap<int>(fixedArray, dataSize, totalTime);
+		fixedArray, 
 #endif
+		dataSize, totalTime);
 
 	cout<<"map: ";
 	if (res) 	cout<<"Success!"<<'\t';
@@ -153,7 +162,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// testRadixSort();
-	 // scan_warp_test();
+	 scan_warp_test();
 
 	// cout<<"map avg time: "<<mapTotal/experiNum<<" ms."<<endl;
 	// cout<<"gather avg time: "<<gatherTotal/experiNum<<" ms."<<endl;

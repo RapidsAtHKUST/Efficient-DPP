@@ -19,67 +19,81 @@ int compInt ( const void * p, const void * q) {
     return  *(int*) p - *(int*)q ;
 }
 
+template<typename T>
+T getRandNum( T max) {
+    return static_cast<T>(rand())  /  (static_cast<T> (RAND_MAX / max));
+}
+
 //generate a sorted ascending record array
-void recordSorted(Record *records, int length, int max) {
-    recordRandom(records, length, max);
-    qsort(records, length, sizeof(Record), compRecordAsc);
+template<typename T>
+void recordSorted(int *keys, T *values, int length, T max) {
+    valRandom<T>(values, length, max);
+    std::sort(values, values + length);
     for(int i = 0; i < length;i++) {
-        records[i].x = i;
+        keys[i] = i;
     }
 }
 
-void recordSorted_Only(Record *records, int length) {
+template<typename T>
+void recordSorted_Only(int *keys, T *values, int length) {
     for(int i = 0; i < length;i++) {
-        records[i].x = records[i].y = i;
+        keys[i] = i;
+        values[i] = (T)i;
     }
 }
 
-void recordRandom(Record *records, int length, int max) {
+template<typename T>
+void recordRandom(int *keys, T *values, int length, T max) {
     srand((unsigned)time(NULL));
     sleep(1);
     for(int i = 0; i < length ; i++) {
-        records[i].x = i;
-        records[i].y = rand() % max;
+        keys[i] = i;
+        values[i] = getRandNum<T>(max);
     }
 }
 
-void recordRandom_Only(Record *records, int length,  int times) {
+template<typename T>
+void recordRandom_Only(int *keys, T *values, int length,  int times) {
     srand((unsigned)time(NULL));
     sleep(1);
     for(int i = 0; i < length ; i++) {
-        records[i].x = i;
-        records[i].y = i;
+        keys[i] = i;
+        values[i] = (T)i;
     }
-    int temp, from = 0, to = 0;
+    T temp;
+    int from = 0, to = 0;
     for(int i = 0; i < times; i++) {
         from = rand() % length;
         to = rand() % length;
-        temp = records[from].y;
-        records[from].y = records[to].y;
-        records[to].y = temp;
+        temp = values[from];
+        values[from] = values[to];
+        values[to] = temp;
     }
 }
 
-void intRandom(int *intArr, int length, int max) {
+template<typename T>
+void valRandom(T *arr, int length, T max) {
     srand((unsigned)time(NULL));
     for(int i = 0; i < length; i++) {
-        intArr[i] = rand() % max;
+        arr[i] = getRandNum<T>(max);
     }
 }
 
-void intRandom_Only(int *intArr, int length,  int times) {
+template<typename T>
+void valRandom_Only(T *arr, int length,  int times) {
     srand((unsigned)time(NULL));
     sleep(1);
     for(int i = 0; i < length; i++) {
-        intArr[i] = i;
+        arr[i] = i;
     }
-    int temp, from = 0, to = 0;
+    T temp; 
+    int from = 0, to = 0;
     for(int i = 0; i < times; i++) {
         from = rand() % length;
         to = rand() % length;
-        temp = intArr[from];
-        intArr[from] = intArr[to];
-        intArr[to] = temp;
+        temp = arr[from];
+        arr[from] = arr[to];
+        arr[to] = temp;
     }
 }
 
@@ -206,6 +220,36 @@ void checkErr(cl_int status, const char* name) {
 #endif
 
 
+//templates
 
+//int
+template void recordSorted<int>(int *keys, int *values, int length, int max= MAX_NUM);
+template void recordSorted_Only<int>(int *keys, int *values, int length);
+template void recordRandom<int>(int *keys, int *values, int length, int max=MAX_NUM);
+template void recordRandom_Only<int>(int *keys, int *values, int length,  int times);
+template void valRandom<int>(int *arr, int length, int max=MAX_NUM);
+template void valRandom_Only<int>(int *arr, int length,  int times);
 
+//long
+template void recordSorted<long>(int *keys, long *values, int length, long max= MAX_NUM);
+template void recordSorted_Only<long>(int *keys, long *values, int length);
+template void recordRandom<long>(int *keys, long *values, int length, long max=MAX_NUM);
+template void recordRandom_Only<long>(int *keys, long *values, int length,  int times);
+template void valRandom<long>(long *arr, int length, long max=MAX_NUM);
+template void valRandom_Only<long>(long *arr, int length,  int times);
 
+//float
+template void recordSorted<float>(int *keys, float *values, int length, float max= MAX_NUM);
+template void recordSorted_Only<float>(int *keys, float *values, int length);
+template void recordRandom<float>(int *keys, float *values, int length, float max=MAX_NUM);
+template void recordRandom_Only<float>(int *keys, float *values, int length,  int times);
+template void valRandom<float>(float *arr, int length, float max=MAX_NUM);
+template void valRandom_Only<float>(float *arr, int length,  int times);
+
+//double
+template void recordSorted<double>(int *keys, double *values, int length, double max= MAX_NUM);
+template void recordSorted_Only<double>(int *keys, double *values, int length);
+template void recordRandom<double>(int *keys, double *values, int length, double max=MAX_NUM);
+template void recordRandom_Only<double>(int *keys, double *values, int length,  int times);
+template void valRandom<double>(double *arr, int length, double max=MAX_NUM);
+template void valRandom_Only<double>(double *arr, int length,  int times);

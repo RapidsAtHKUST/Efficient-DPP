@@ -12,40 +12,43 @@
 template<class T>
 __device__ T floorOfPower2(T a) {
 	int base = 1;
-#ifdef RECORDS
-	int b = a.y;
-#else
-	int b = a; 
-#endif
-	while (base < b) {
+
+	while (base < (int)a) {
 		base <<= 1;
 	}
-#ifdef RECORDS
-	T res;
-	res.x = a.x;
-	res.y = base>>1;
-	return res;
-#else
 	return base>>1;
-#endif
 }
 
 
 template<class T>
-__global__ void map_kernel(T *d_source, T *d_res, int r_len) {
+__global__ void map_kernel( 
+#ifdef RECORDS
+	int *d_source_keys, int *d_dest_keys, 
+#endif
+	T *d_source_values, T *d_dest_values,
+	int r_len) 
+{
 	int threadId = blockIdx.x * blockDim.x + threadIdx.x;
 	int threadNum = gridDim.x * blockDim.x;
 	
 	while (threadId < r_len) {
-		d_res[threadId] = floorOfPower2<T>(d_source[threadId]);
+#ifdef RECORDS
+		d_dest_keys[threadId] = d_source_keys[threadId];
+#endif
+		d_dest_values[threadId] = floorOfPower2<T>(d_source_values[threadId]);
 		threadId += threadNum;
 	}
 }
 
 
 template<class T>
-float map(T *d_source, T  *d_res, int r_len, int blockSize, int gridSize) {
-
+float map(		
+#ifdef RECORDS
+	int *d_source_keys, int *d_dest_keys,
+#endif
+	T *d_source_values, T *d_dest_values, 	
+	int r_len, int blockSize, int gridSize) 
+{
 	dim3 grid(gridSize);
 	dim3 block(blockSize);
 
@@ -56,7 +59,11 @@ float map(T *d_source, T  *d_res, int r_len, int blockSize, int gridSize) {
 	cudaEventCreate(&end);
 
 	cudaEventRecord(start);
-	map_kernel<T><<<grid, block>>>(d_source, d_res, r_len);
+	map_kernel<T><<<grid, block>>>(		
+#ifdef RECORDS
+		d_source_keys, d_dest_keys,
+#endif
+		d_source_values, d_dest_values, r_len);
 	cudaEventRecord(end);
 	cudaEventSynchronize(end);
 
@@ -65,11 +72,13 @@ float map(T *d_source, T  *d_res, int r_len, int blockSize, int gridSize) {
 	return totalTime;
 }
 
+template
+float map<int>(		
 #ifdef RECORDS
-	template float map<Record>(Record *d_source, Record *d_res, int r_len, int blockSize, int gridSize);
-#else
-	template float map<int>(int *d_source, int  *d_res, int r_len, int blockSize, int gridSize);
+	int *d_source_keys, int *d_dest_keys,
 #endif
+	int *d_source_values, int *d_dest_values, 	
+	int r_len, int blockSize, int gridSize);
 
 
 // double mapImpl(Record *h_source, Record *h_res, int r_len, int blockSize, int gridSize) {

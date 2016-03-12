@@ -25,8 +25,14 @@ extern "C" double gatherImpl_mul(Record *h_source, Record *h_res, int r_len,int 
 //directly functioning on the device memory
 
 
+
 template<class T>
-float map(T *d_source, T *d_res, int r_len, int blockSize, int gridSize);
+float map(		
+#ifdef RECORDS
+	int *d_source_keys, int *d_des_keys,
+#endif
+	T *d_source_values, T *d_dest_values, 	
+	int r_len, int blockSize, int gridSize) ;
 
 extern "C" double gatherDevice(Record *d_source, Record *d_res, int r_len,int *d_loc, int blockSize, int gridSize);
 extern "C" double scatterDevice(Record *d_source, Record *d_res, int r_len,int *d_loc, int blockSize, int gridSize);
@@ -37,7 +43,7 @@ extern "C" double bitonicSortDevice(Record *d_source, int r_len, int dir, int bl
 extern "C" double bitonicSortDevice_op(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
 
 //currently used fastest scan
-extern "C" void scan_global(int *d_source, int length, int isExclusive, int blockSize);
+
 extern "C" double scatterDevice_int(int *d_source, int *d_res, int r_len,int *d_loc, int blockSize, int gridSize);
 
 extern  "C" void scan_warp_test();

@@ -17,6 +17,7 @@
 #include <fstream>
 #include <climits>
 #include <unistd.h>
+#include <algorithm>
 
 #ifdef CUDA_PROJ
 	//CUDA used header files
@@ -26,7 +27,7 @@
 	#include <thrust/device_ptr.h>
 	#include <thrust/device_vector.h>
 	#include <thrust/sort.h>
-	
+
 	typedef int2 Record;
 #endif
 
@@ -71,18 +72,28 @@
 #define GRIDSIZE					(1024)
 #define SHUFFLE_TIME(TIME)		(TIME * 1.5)
 
-
 int compRecordAsc ( const void * a, const void * b);
 int compRecordDec ( const void * a, const void * b);
 int compInt ( const void * p, const void * q);
 
 //generate a sorted ascending record array
-void recordSorted(Record *records, int length, int max=MAX_NUM);
-void recordSorted_Only(Record *records, int length);
-void recordRandom(Record *records, int length, int max=MAX_NUM);
-void recordRandom_Only(Record *records, int length,  int times);
-void intRandom(int *intArr, int length, int max=MAX_NUM);
-void intRandom_Only(int *intArr, int length,  int times);
+template<typename T>
+void recordSorted(int *keys, T *values, int length, T max= MAX_NUM);
+
+template<typename T>
+void recordSorted_Only(int *keys, T *values, int length);
+
+template<typename T>
+void recordRandom(int *keys, T *values, int length, T max=MAX_NUM);
+
+template<typename T>
+void recordRandom_Only(int *keys, T *values, int length, int times);
+
+template<typename T>
+void valRandom(T *intArr, int length, T max=MAX_NUM);
+
+template<typename T>
+void valRandom_Only(T *intArr, int length,  int times);
 
 // void generateFixedRecords(Record* fixedRecords, int length, bool write, char *file);
 
