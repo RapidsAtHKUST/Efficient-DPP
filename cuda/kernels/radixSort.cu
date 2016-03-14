@@ -548,7 +548,7 @@ double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize)
 		countHis<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source, r_len, his, shiftBits);
 		scanDevice(his, globalSize*RADIX, 1024, 1024,1);
 		writeHis<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source,r_len,his,loc,shiftBits);
-		scatterDevice(d_source,d_temp, r_len, loc, 1024,32768);
+		// scatter(d_source,d_temp, r_len, loc, 1024,32768);
 		cudaMemcpy(d_source, d_temp, sizeof(Record)*r_len, cudaMemcpyDeviceToDevice);
 	}
 	cudaDeviceSynchronize();
@@ -594,7 +594,7 @@ double radixSortDevice_int(int *d_source, int r_len, int blockSize, int gridSize
 		countHis_int<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source, r_len, his, shiftBits);
 		scanDevice(his, globalSize*RADIX, 1024, 1024,1);
 		writeHis_int<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source,r_len,his,loc,shiftBits);
-		scatterDevice_int(d_source,d_temp, r_len, loc, 1024,32768);
+		// scatter(d_source,d_temp, r_len, loc, 1024,32768);
 		int *swapPointer = d_temp;
 		d_temp = d_source;
 		d_source = swapPointer;

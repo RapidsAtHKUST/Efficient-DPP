@@ -7,11 +7,10 @@
 //
 #include "kernels.h"
 
-__global__
-void createHist( const Record* source,
-                        int length,
-                        int *his,
-                        int fanout)
+template<class T>
+__global__ void createHist( 
+    T* d_source_values,
+    int length, int *his, int fanout)
 {
 	extern __shared__ int temp[];		//size: fanout * localSize
 
@@ -26,7 +25,8 @@ void createHist( const Record* source,
     __syncthreads();
 
     for(int pos = globalId; pos < length; pos += globalSize) {
-        int offset = source[pos].y;
+        int offset = (int)d_source_values[pos];
+        assert(offset < fanout);
         temp[offset * localSize + localId]++;
     }
     
@@ -35,12 +35,17 @@ void createHist( const Record* source,
     }
 }
 
-__global__
-void splitWithHist(const Record *source,
-                   int* his,
-                   int length,
-                   Record *dest,
-				   int fanout)
+template<class T>
+__global__ void splitWithHist(
+#ifdef RECORDS
+    int *d_source_keys, int *d_dest_keys, 
+#endif
+    T *d_source_values, T *d_dest_values,
+    int* his, int length, int fanout
+#ifdef RECORDS
+    ,bool isRecord
+#endif
+    )
 {
 	extern __shared__ int temp[];			//size: fanout * localSize
 
@@ -54,13 +59,28 @@ void splitWithHist(const Record *source,
     }
     
     for(int pos = globalId; pos < length; pos += globalSize) {
-        int offset = source[pos].y;
-        dest[temp[offset * localSize + localId]++] = source[pos];
+        T offset = d_source_values[pos];
+#ifdef RECORDS
+        if (isRecord) 
+            d_dest_keys[temp[offset * localSize + localId]] = d_source_keys[pos];
+#endif        
+        d_dest_values[temp[offset * localSize + localId]++] = d_source_values[pos];
     }
 }
 
-double splitDevice(Record *d_source, Record *d_dest, int* d_his, int r_len, int fanout, int blockSize, int gridSize) {
-	double totalTime = 0.0f;
+template<class T>
+float split(
+#ifdef RECORDS
+    int *d_source_keys, int *d_dest_keys,
+#endif
+    T *d_source_values, T *d_dest_values, 
+    int* d_his, int r_len, int fanout, int blockSize, int gridSize
+#ifdef RECORDS
+    ,bool isRecord
+#endif
+    ) 
+{
+	float totalTime = 0.0f;
 
 	dim3 grid(gridSize);
 	dim3 block(blockSize);
@@ -68,39 +88,42 @@ double splitDevice(Record *d_source, Record *d_dest, int* d_his, int r_len, int 
 	int globalSize = blockSize * gridSize;
 	int hisLength = globalSize * fanout;
 
-	struct timeval start, end;
+	cudaEvent_t start, end;
+    cudaEventCreate(&start);
+    cudaEventCreate(&end);
 
-	gettimeofday(&start, NULL);
-	createHist<<<grid, block, sizeof(int)*fanout*blockSize>>>(d_source,r_len,d_his,fanout);
+    cudaEventRecord(start);
+	createHist<T><<<grid, block, sizeof(int)*fanout*blockSize>>>(d_source_values, r_len,d_his,20);
 	scanDevice(d_his,hisLength, blockSize, gridSize, 1);
-	splitWithHist<<<grid, block, sizeof(int)*fanout*blockSize>>>(d_source, d_his, r_len, d_dest, fanout);
-	cudaDeviceSynchronize();
-	gettimeofday(&end, NULL);
+	splitWithHist<T><<<grid, block, sizeof(int)*fanout*blockSize>>>(
+#ifdef RECORDS
+    d_source_keys, d_dest_keys, 
+#endif
+    d_source_values,d_dest_values,
+    d_his, r_len, fanout
+#ifdef RECORDS
+    ,isRecord
+#endif
+    );
+	cudaEventRecord(end);
+    cudaEventSynchronize(end);
 
-	totalTime = diffTime(end, start);
+    cudaEventElapsedTime(&totalTime, start, end);
 
 	return totalTime;
 }
 
-double splitImpl(Record *h_source, Record *h_dest, int r_len, int fanout, int blockSize, int gridSize) {
-	
-	double totalTime = 0.0f;
-
-	int globalSize = blockSize * gridSize;
-	int *d_his;
-	Record *d_source, *d_dest;
-	checkCudaErrors(cudaMalloc(&d_source, sizeof(Record)* r_len));
-	checkCudaErrors(cudaMalloc(&d_dest, sizeof(Record)* r_len));
-	checkCudaErrors(cudaMalloc(&d_his, sizeof(int)* globalSize * fanout));
-	cudaMemcpy(d_source, h_source, sizeof(Record)*r_len, cudaMemcpyHostToDevice);
-
-	totalTime = splitDevice(d_source, d_dest, d_his, r_len, fanout, blockSize, gridSize);
-	
-	cudaMemcpy(h_dest, d_dest, sizeof(Record)*r_len, cudaMemcpyDeviceToHost);	
-
-	return totalTime;
-
-}
+//template
+template float split<int>(
+#ifdef RECORDS
+    int *d_source_keys, int *d_dest_keys,
+#endif
+    int *d_source_values, int *d_dest_values, 
+    int* d_his, int r_len, int fanout, int blockSize, int gridSize
+#ifdef RECORDS
+    ,bool isRecord
+#endif
+    ); 
 
 
 

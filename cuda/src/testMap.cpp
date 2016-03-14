@@ -1,7 +1,6 @@
 #include "test.h"
 
-template<class T>
-bool testMap( 
+template<class T> bool testMap( 
 #ifdef RECORDS
 	int *source_keys, 
 #endif
@@ -12,8 +11,8 @@ bool testMap(
 
 	//allocate for the host memory
 #ifdef RECORDS
-	T *h_source_keys = new T[r_len];
-	T *h_dest_keys = new T[r_len];
+	int *h_source_keys = new int[r_len];
+	int *h_dest_keys = new int[r_len];
 #endif
 	T *h_source_values = new T[r_len];
 	T *h_dest_values = new T[r_len];
@@ -33,10 +32,10 @@ bool testMap(
 	cudaMemcpy(d_source_values, h_source_values, sizeof(T) * r_len, cudaMemcpyHostToDevice);
 
 #ifdef RECORDS
-	T *d_source_keys, *d_dest_keys;
-	checkCudaErrors(cudaMalloc(&d_source_keys,sizeof(T)*r_len));
-	checkCudaErrors(cudaMalloc(&d_dest_keys,sizeof(T)*r_len));
-	cudaMemcpy(d_source_keys, h_source_keys, sizeof(T) * r_len, cudaMemcpyHostToDevice);
+	int *d_source_keys, *d_dest_keys;
+	checkCudaErrors(cudaMalloc(&d_source_keys,sizeof(int)*r_len));
+	checkCudaErrors(cudaMalloc(&d_dest_keys,sizeof(int)*r_len));
+	cudaMemcpy(d_source_keys, h_source_keys, sizeof(int) * r_len, cudaMemcpyHostToDevice);
 #endif
 
 	totalTime = map<T> 	
@@ -44,11 +43,15 @@ bool testMap(
 #ifdef RECORDS
 		d_source_keys, d_dest_keys,
 #endif
-		d_source_values, d_dest_values, r_len, blockSize, gridSize);
+		d_source_values, d_dest_values, r_len, blockSize, gridSize
+#ifdef RECORDS
+		,true			//testing using Records
+#endif
+		);
 	cudaMemcpy(h_dest_values, d_dest_values, sizeof(T)*r_len, cudaMemcpyDeviceToHost);	
 	
 #ifdef RECORDS
-	cudaMemcpy(h_dest_keys, d_dest_keys, sizeof(T)*r_len, cudaMemcpyDeviceToHost);	
+	cudaMemcpy(h_dest_keys, d_dest_keys, sizeof(int)*r_len, cudaMemcpyDeviceToHost);	
 #endif
 	checkCudaErrors(cudaFree(d_dest_values));
 	checkCudaErrors(cudaFree(d_source_values));
@@ -73,15 +76,39 @@ bool testMap(
 
 	delete[] h_source_values;
 	delete[] h_dest_values;
-
+#ifdef RECORDS
+	delete[] h_source_keys;
+	delete[] h_dest_keys;
+#endif
 	return res;
 }
 
-template
-bool testMap<int>( 
+//templates
+template bool testMap<int>( 
 #ifdef RECORDS
 	int *source_keys, 
 #endif
 	int *source_values, int r_len, 
+	float& totalTime, int blockSize, int gridSize);
+
+template bool testMap<long>( 
+#ifdef RECORDS
+	int *source_keys, 
+#endif
+	long *source_values, int r_len, 
+	float& totalTime, int blockSize, int gridSize);
+
+template bool testMap<float>( 
+#ifdef RECORDS
+	int *source_keys, 
+#endif
+	float *source_values, int r_len, 
+	float& totalTime, int blockSize, int gridSize);
+
+template bool testMap<double>( 
+#ifdef RECORDS
+	int *source_keys, 
+#endif
+	double *source_values, int r_len, 
 	float& totalTime, int blockSize, int gridSize);
 

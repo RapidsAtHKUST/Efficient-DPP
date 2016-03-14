@@ -90,10 +90,10 @@ template<typename T>
 void recordRandom_Only(int *keys, T *values, int length, int times);
 
 template<typename T>
-void valRandom(T *intArr, int length, T max=MAX_NUM);
+void valRandom(T *arr, int length, T max=MAX_NUM);
 
 template<typename T>
-void valRandom_Only(T *intArr, int length,  int times);
+void valRandom_Only(T *arr, int length,  int times);
 
 // void generateFixedRecords(Record* fixedRecords, int length, bool write, char *file);
 

@@ -76,20 +76,20 @@ int main(int argc, char *argv[]) {
 	bool res;
 
 
-	res = testMap<int>(
-#ifdef RECORDS
-		fixedKeys, fixedValues,
-#else
-		fixedArray, 
-#endif
-		dataSize, totalTime);
+// 	res = testMap<int>(
+// #ifdef RECORDS
+// 		fixedKeys, fixedValues,
+// #else
+// 		fixedArray, 
+// #endif
+// 		dataSize, totalTime);
 
-	cout<<"map: ";
-	if (res) 	cout<<"Success!"<<'\t';
-	else 		cout<<"Fail!"<<'\t';
-	cout<<"Time: "<<totalTime<<" ms"<<endl;
+	// cout<<"map: ";
+	// if (res) 	cout<<"Success!"<<'\t';
+	// else 		cout<<"Fail!"<<'\t';
+	// cout<<"Time: "<<totalTime<<" ms"<<endl;
 
-	int experiNum = 10;
+	int experiNum = 100;
 
 	//total time for each primitive
 	double gatherTotal = 0.0f;
@@ -107,6 +107,90 @@ int main(int argc, char *argv[]) {
 		// cout<<"map["<<i<<"] finished"<<endl;
 		// if (!res) 	exit(1);
 		// mapTotal += totalTime;
+
+// 	res = testGather<int>(
+// #ifdef RECORDS
+// 		fixedKeys, fixedValues,
+// #else
+// 		fixedArray, 
+// #endif
+// 		dataSize, fixedLoc, totalTime);
+
+// 	cout<<"gather: ";
+// 	if (res) 	cout<<"Success!"<<'\t';
+// 	else 		cout<<"Fail!"<<'\t';
+// 	cout<<"Time: "<<totalTime<<" ms"<<endl;
+
+// 		res = testGather_mul<int>(
+// #ifdef RECORDS
+// 		fixedKeys, fixedValues,
+// #else
+// 		fixedArray, 
+// #endif
+// 		dataSize, fixedLoc, totalTime);
+
+// 	cout<<"gather_mul: ";
+// 	if (res) 	cout<<"Success!"<<'\t';
+// 	else 		cout<<"Fail!"<<'\t';
+// 	cout<<"Time: "<<totalTime<<" ms"<<endl;
+
+
+// 		res = testScatter<int>(
+// #ifdef RECORDS
+// 		fixedKeys, fixedValues,
+// #else
+// 		fixedArray, 
+// #endif
+// 		dataSize, fixedLoc, totalTime);
+
+// 	cout<<"scatter: ";
+// 	if (res) 	cout<<"Success!"<<'\t';
+// 	else 		cout<<"Fail!"<<'\t';
+// 	cout<<"Time: "<<totalTime<<" ms"<<endl;
+
+
+
+// 		res = testScatter_mul<int>(
+// #ifdef RECORDS
+// 		fixedKeys, fixedValues,
+// #else
+// 		fixedArray, 
+// #endif
+// 		dataSize, fixedLoc, totalTime);
+
+// 	cout<<"scatter_mul: ";
+// 	if (res) 	cout<<"Success!"<<'\t';
+// 	else 		cout<<"Fail!"<<'\t';
+// 	cout<<"Time: "<<totalTime<<" ms"<<endl;
+
+
+
+		int fanout = 20;
+		int *splitVals = new int[dataSize];
+#ifdef RECORDS
+		int *splitKeys = new int[dataSize];
+		recordRandom<int>(splitKeys, splitVals, dataSize, fanout);
+#else 
+		valRandom<int>(splitVals, dataSize, fanout);
+#endif
+		res = testSplit<int>(
+#ifdef RECORDS
+		splitKeys, splitVals,
+#else
+		splitVals, 
+#endif
+		dataSize, totalTime, fanout);
+
+	cout<<"split: ";
+	if (res) 	cout<<"Success!"<<'\t';
+	else 		cout<<"Fail!"<<'\t';
+
+	cout<<"Time: "<<totalTime<<" ms"<<endl;
+
+		// for(int i = 0; i < dataSize; i++)	{
+		// 	cout<<splitVals[i]<<' ';
+		// }
+		// cout<<endl;
 
 		// res = testGather(fixedRecords, dataSize, fixedLoc, totalTime);
 		// cout<<"gather["<<i<<"] finished"<<endl;
@@ -162,7 +246,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// testRadixSort();
-	 scan_warp_test();
+	 // scan_warp_test();
 
 	// cout<<"map avg time: "<<mapTotal/experiNum<<" ms."<<endl;
 	// cout<<"gather avg time: "<<gatherTotal/experiNum<<" ms."<<endl;
