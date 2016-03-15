@@ -21,11 +21,7 @@ int compInt ( const void * p, const void * q) {
 
 template<typename T>
 T getRandNum( T max) {
-    //a little bit wierd here because sometimes ( 5 out of 10,0000,0000) it will
-    //get a res that is equal to max!
-    T res = static_cast<T>(rand())  /  (static_cast<T> (RAND_MAX / max));
-    if (res >= max) return max-1;
-    else            return res;
+    return static_cast<T>( ((double)rand() / RAND_MAX) * max );
 }
 
 //generate a sorted ascending record array

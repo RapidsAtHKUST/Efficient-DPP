@@ -100,7 +100,7 @@ float split(
     d_source_keys, d_dest_keys, 
 #endif
     d_source_values,d_dest_values,
-    d_his, r_len, fanout
+    d_his, r_len, 20
 #ifdef RECORDS
     ,isRecord
 #endif
@@ -124,6 +124,26 @@ template float split<int>(
     ,bool isRecord
 #endif
     ); 
+
+// double splitImpl(Record *h_source, Record *h_dest, int r_len, int fanout, int blockSize, int gridSize) {
+	
+// 	double totalTime = 0.0f;
+
+// 	int globalSize = blockSize * gridSize;
+// 	int *d_his;
+// 	Record *d_source, *d_dest;
+// 	checkCudaErrors(cudaMalloc(&d_source, sizeof(Record)* r_len));
+// 	checkCudaErrors(cudaMalloc(&d_dest, sizeof(Record)* r_len));
+// 	checkCudaErrors(cudaMalloc(&d_his, sizeof(int)* globalSize * fanout));
+// 	cudaMemcpy(d_source, h_source, sizeof(Record)*r_len, cudaMemcpyHostToDevice);
+
+// 	totalTime = splitDevice(d_source, d_dest, d_his, r_len, fanout, blockSize, gridSize);
+	
+// 	cudaMemcpy(h_dest, d_dest, sizeof(Record)*r_len, cudaMemcpyDeviceToHost);	
+
+// 	return totalTime;
+
+// }
 
 
 
