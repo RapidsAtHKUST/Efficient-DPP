@@ -208,8 +208,9 @@ void addBlock(int* records,
 
 //scan_warp: d_source is always been inclusively scanned, the return number is the right output
 //return: corresponding data of each thread index
-__device__
-int scan_warp(int *d_source, const uint length, int isExclusive)
+
+template<typename T> 
+ __device__ T scan_warp(T *d_source, const uint length, int isExclusive)
 {
     int localId = threadIdx.x;
     const unsigned int lane = localId & MASK;        //warp size is 32
@@ -223,13 +224,13 @@ int scan_warp(int *d_source, const uint length, int isExclusive)
     if (lane >= 16)     d_source[localId] += d_source[localId-16];
 
     if (isExclusive == 0)   return d_source[localId];
-    else                    return (lane > 0)? d_source[localId-1] : 0;
+    else                    return (lane > 0)? d_source[localId-1] : (T)0;
 }
 
 //each block can process up to 1024*8=8192 elements if 1024 threads are used
 //return: the sum of this block of data(only true when it is a inclusive scan)
-__global__
-void scan_block(int *d_source, const uint length, int isExclusive, bool isWriteSum, int *blockSum)
+template<typename T>
+__global__ void scan_block(T *d_source, const uint length, int isExclusive, bool isWriteSum, T *blockSum)
 {
     int localId = threadIdx.x;
     int globalId = threadIdx.x + blockDim.x * blockIdx.x;
@@ -240,9 +241,9 @@ void scan_block(int *d_source, const uint length, int isExclusive, bool isWriteS
     const unsigned int warpId = localId >> BITS;
 
     // extern __shared__ int share[];
-    __shared__ int temp[MAX_BLOCKSIZE*ELEMENT_PER_THREAD];                  //global data used in this block
-    __shared__ int warpSum[MAX_BLOCKSIZE];      
-    __shared__ int sumWarpSum[WARPSIZE];
+    __shared__ T temp[MAX_BLOCKSIZE*ELEMENT_PER_THREAD];                  //global data used in this block
+    __shared__ T warpSum[MAX_BLOCKSIZE];      
+    __shared__ T sumWarpSum[WARPSIZE];
 
     //global mem to shared mem, coalesced access
     int startIdx = blockId * blockSize * ELEMENT_PER_THREAD;
@@ -254,7 +255,7 @@ void scan_block(int *d_source, const uint length, int isExclusive, bool isWriteS
 
     //endPlace: ending index of the part this block process
     int endPlace = (blockId+1)*blockSize*ELEMENT_PER_THREAD >= length?  length : (blockId+1)*blockSize*ELEMENT_PER_THREAD;
-    int endEle = 0;
+    T endEle = 0;
     if ( isWriteSum && (localId == 0) && isExclusive)   endEle = d_source[endPlace-1];
     __syncthreads();
 
@@ -295,8 +296,8 @@ void scan_block(int *d_source, const uint length, int isExclusive, bool isWriteS
     }
 }
 
-__global__
-void scan_addBlock(int* d_source, uint length, int* blockSum)
+template<typename T>
+__global__ void scan_addBlock(T* d_source, uint length, T* blockSum)
 {
     int localId = threadIdx.x;
     int blockId = blockIdx.x;
@@ -312,8 +313,16 @@ void scan_addBlock(int* d_source, uint length, int* blockSum)
 }
 
 //can process up to ELEMENT_PER_THREAD * BLOCKSIZE * GRIDSIZE * GRIDSIZE = 1024 * 8 * 1024 * 1024 data
-void scan_global(int *d_source, int length, int isExclusive, int blockSize)
+template<typename T>
+float scan(T *d_source, int length, int isExclusive, int blockSize)
 {
+
+    float totalTime = 0.0f;
+
+    cudaEvent_t start, end;
+    cudaEventCreate(&start);
+    cudaEventCreate(&end);
+
     int element_per_block = blockSize * ELEMENT_PER_THREAD;
     //decide how many levels should we handle(at most 3 levels: 8192^3)
     int firstLevelBlockNum = (length + element_per_block - 1 )/ element_per_block;
@@ -325,36 +334,52 @@ void scan_global(int *d_source, int length, int isExclusive, int blockSize)
 
     dim3 block(blockSize);
 
+    cudaEventRecord(start);
     if (firstLevelBlockNum == 1) {      //length <= element_per_block, only 1 level is enough
-        scan_block<<<1, block>>>(d_source, length, isExclusive, false, NULL);
+        scan_block<T><<<1, block>>>(d_source, length, isExclusive, false, NULL);
     }
     else if (secondLevelBlockNum == 1) {    //lenth <= element_per_block^2, 2 levels are needed.
         dim3 grid1(firstLevelBlockNum);
-        int *firstBlockSum;
-        checkCudaErrors(cudaMalloc(&firstBlockSum, sizeof(int)*firstLevelBlockNum));
-        scan_block<<<grid1, block>>>(d_source, length, isExclusive, true, firstBlockSum);
-        scan_block<<<1, block>>>(firstBlockSum, firstLevelBlockNum, 0, false, NULL);
-        scan_addBlock<<<grid1, block>>>(d_source, length, firstBlockSum);
+        T *firstBlockSum;
+        checkCudaErrors(cudaMalloc(&firstBlockSum, sizeof(T)*firstLevelBlockNum));
+        scan_block<T><<<grid1, block>>>(d_source, length, isExclusive, true, firstBlockSum);
+        scan_block<T><<<1, block>>>(firstBlockSum, firstLevelBlockNum, 0, false, NULL);
+        scan_addBlock<T><<<grid1, block>>>(d_source, length, firstBlockSum);
         checkCudaErrors(cudaFree(firstBlockSum));
     }
     else {                              //length <= element_per_block^3, 3 levels are enough
         dim3 grid1(firstLevelBlockNum);
         dim3 grid2(secondLevelBlockNum);
 
-        int *firstBlockSum, *secondBlockSum;
-        checkCudaErrors(cudaMalloc(&firstBlockSum, sizeof(int)*firstLevelBlockNum));
-        checkCudaErrors(cudaMalloc(&secondBlockSum, sizeof(int)*secondLevelBlockNum));
+        T *firstBlockSum, *secondBlockSum;
+        checkCudaErrors(cudaMalloc(&firstBlockSum, sizeof(T)*firstLevelBlockNum));
+        checkCudaErrors(cudaMalloc(&secondBlockSum, sizeof(T)*secondLevelBlockNum));
 
-        scan_block<<<grid1, block>>>(d_source, length, isExclusive, true, firstBlockSum);
-        scan_block<<<grid2, block>>>(firstBlockSum, firstLevelBlockNum, 0, true, secondBlockSum);
-        scan_block<<<1, block>>>(secondBlockSum, secondLevelBlockNum, 0, false, NULL);
-        scan_addBlock<<<grid2, block>>>(firstBlockSum, firstLevelBlockNum, secondBlockSum);
-        scan_addBlock<<<grid1, block>>>(d_source, length, firstBlockSum);
+        scan_block<T><<<grid1, block>>>(d_source, length, isExclusive, true, firstBlockSum);
+        scan_block<T><<<grid2, block>>>(firstBlockSum, firstLevelBlockNum, 0, true, secondBlockSum);
+        scan_block<T><<<1, block>>>(secondBlockSum, secondLevelBlockNum, 0, false, NULL);
+        scan_addBlock<T><<<grid2, block>>>(firstBlockSum, firstLevelBlockNum, secondBlockSum);
+        scan_addBlock<T><<<grid1, block>>>(d_source, length, firstBlockSum);
 
         checkCudaErrors(cudaFree(firstBlockSum));
         checkCudaErrors(cudaFree(secondBlockSum));
     }
+    cudaEventRecord(end);
+    cudaEventSynchronize(end);
+
+    cudaEventElapsedTime(&totalTime, start, end);
+
+    return totalTime;
 }
+
+//templates
+template float scan<int>(int *d_source, int length, int isExclusive, int blockSize);
+
+template float scan<long>(long *d_source, int length, int isExclusive, int blockSize);
+
+template float scan<float>(float *d_source, int length, int isExclusive, int blockSize);
+
+template float scan<double>(double *d_source, int length, int isExclusive, int blockSize);
 
 //testing function for warp-wise scan
 void scan_warp_test() {
@@ -397,7 +422,7 @@ void scan_warp_test() {
         cudaMemcpy(d_source, h_source, sizeof(int) * len, cudaMemcpyHostToDevice);
 
         cudaEventRecord(start);
-        scan_global(d_source,len,isExclusive,1024);
+        scan<int>(d_source,len,isExclusive,1024);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 

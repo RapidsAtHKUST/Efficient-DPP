@@ -94,7 +94,7 @@ float split(
 
     cudaEventRecord(start);
 	createHist<T><<<grid, block, sizeof(int)*fanout*blockSize>>>(d_source_values, r_len,d_his,20);
-	scanDevice(d_his,hisLength, blockSize, gridSize, 1);
+	scan<T>(d_his, hisLength, 1, 1024);
 	splitWithHist<T><<<grid, block, sizeof(int)*fanout*blockSize>>>(
 #ifdef RECORDS
     d_source_keys, d_dest_keys, 

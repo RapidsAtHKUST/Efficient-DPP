@@ -69,8 +69,8 @@ int main(int argc, const char * argv[]) {
     }
     else {
         dataSize = atoi(argv[1]);
-        recordRandom(fixedRecords, dataSize);
-        intRandom(fixedArray, dataSize, MAX_NUM);
+        recordRandom<int>(fixedRecords, dataSize);
+        valRandom>int>(fixedArray, dataSize, MAX_NUM);
         intRandom_Only(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
     }
     

@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
 	// else 		cout<<"Fail!"<<'\t';
 	// cout<<"Time: "<<totalTime<<" ms"<<endl;
 
-	int experiNum = 100;
+	int experiNum = 10;
 
 	//total time for each primitive
 	double gatherTotal = 0.0f;
@@ -246,7 +246,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// testRadixSort();
-	 // scan_warp_test();
+	 scan_warp_test();
 
 	// cout<<"map avg time: "<<mapTotal/experiNum<<" ms."<<endl;
 	// cout<<"gather avg time: "<<gatherTotal/experiNum<<" ms."<<endl;

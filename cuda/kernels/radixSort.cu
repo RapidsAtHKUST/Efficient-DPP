@@ -462,7 +462,7 @@ void testRadixSort() {
 		cudaEventRecord(start);
 		for(int shiftBits = 0; shiftBits < sizeof(int) * 8; shiftBits += BITS) {
 			radix_reduce<<<grid, block, sizeof(int) * REDUCE_BLOCK_SIZE * RADIX>>>(d_source, len, blockLen, histogram, shiftBits);
-			scan_global(histogram, gridSize * RADIX, 1, 1024);
+			scan(histogram, gridSize * RADIX, 1, 1024);
 			int tileLen = REDUCE_BLOCK_SIZE * REDUCE_ELE_PER_THREAD;
 			radix_scatter<<<(gridSize+SCATTER_TILES_PER_BLOCK-1)/SCATTER_TILES_PER_BLOCK,SCATTER_BLOCK_SIZE>>>( d_source, d_temp, len, tileLen, gridSize, histogram, shiftBits);
 			int *temp = d_temp;

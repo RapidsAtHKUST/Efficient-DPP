@@ -93,6 +93,9 @@ float split(
 #endif
     );
 
+template<typename T>
+float scan(T *d_source, int length, int isExclusive, int blockSize);
+
 // extern "C" double gatherDevice(Record *d_source, Record *d_res, int r_len,int *d_loc, int blockSize, int gridSize);
 // extern "C" double scatterDevice(Record *d_source, Record *d_res, int r_len,int *d_loc, int blockSize, int gridSize);
 extern "C" double scanDevice(int *d_source, int r_len, int blockSize, int gridSize, int isExclusive);

@@ -2,24 +2,33 @@
 
 using namespace std;
 
-bool testScan(int *source, int r_len, double& totalTime, int isExclusive,  int blockSize, int gridSize) {
+template<typename T>
+bool testScan(T *source, int r_len, float& totalTime, int isExclusive,  int blockSize, int gridSize) {
 	
 	bool res = true;
 	
 	//allocate for the host memory
-	int *h_source_gpu = new int[r_len];
-	int *h_source_cpu = new int[r_len];
+	T *h_source_gpu = new T[r_len];
+	T *h_source_cpu = new T[r_len];
 
 	for(int i = 0; i < r_len; i++) {
 		h_source_gpu[i] = source[i];
 		h_source_cpu[i] = source[i];
 	}
-	std::cout<<std::endl;
 	
-	totalTime = scanImpl(h_source_gpu, r_len, blockSize, gridSize, isExclusive);
+	T *d_source;
+    checkCudaErrors(cudaMalloc(&d_source,sizeof(T)*r_len));
+
+    // int *h_source_thrust = new int[r_len];          //host memory
+    // for(int i = 0; i < r_len; i++) h_source_thrust[i] = h_source[i];
+
+    cudaMemcpy(d_source, h_source_gpu, sizeof(T) * r_len, cudaMemcpyHostToDevice);
+    totalTime = scan<T>(d_source, r_len, blockSize, isExclusive);
+    cudaMemcpy(h_source_gpu, d_source, sizeof(T) * r_len, cudaMemcpyDeviceToHost);
+
+	// totalTime = scanImpl(h_source_gpu, r_len, blockSize, gridSize, isExclusive);
 
 	// checking 
-
 	if (isExclusive == 0) {         //inclusive
         for(int i = 1 ; i < r_len; i++) {
             h_source_cpu[i] = source[i] + h_source_cpu[i-1];
@@ -39,8 +48,19 @@ bool testScan(int *source, int r_len, double& totalTime, int isExclusive,  int b
 	if (res)	cout<<"Pass!"<<endl;
 	else		cout<<"Failed!"<<endl;
 
+    checkCudaErrors(cudaFree(d_source));
+
 	delete[] h_source_gpu;
 	delete[] h_source_cpu;
 	
 	return res;
 }
+
+//templates
+template bool testScan<int>(int *source, int r_len, float& totalTime, int isExclusive,  int blockSize, int gridSize);
+
+template bool testScan<long>(long *source, int r_len, float& totalTime, int isExclusive,  int blockSize, int gridSize);
+
+template bool testScan<float>(float *source, int r_len, float& totalTime, int isExclusive,  int blockSize, int gridSize);
+
+template bool testScan<double>(double *source, int r_len, float& totalTime, int isExclusive,  int blockSize, int gridSize);
