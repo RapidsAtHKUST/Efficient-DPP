@@ -12,7 +12,13 @@
  * int * dest1
  * int * dest2
  */
-double map(cl_mem d_source, int length, cl_mem& d_dest, int localSize, int gridSize, PlatInfo info) {
+double map(
+#ifdef RECORDS
+    cl_mem d_source_keys, cl_mem &d_dest_keys, bool isRecord,
+#endif
+    cl_mem d_source_values, cl_mem& d_dest_values, int length, 
+    int localSize, int gridSize, PlatInfo info) 
+{
     
     double totalTime = 0;
     
@@ -30,9 +36,15 @@ double map(cl_mem d_source, int length, cl_mem& d_dest, int localSize, int gridS
 
     //set kernel arguments
     argsNum = 0;
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_source);
+    
+#ifdef RECORDS
+    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_source_keys);
+    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_dest_keys);
+    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(bool), &isRecord);
+#endif
+    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_source_values);
+    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_dest_values);
     status |= clSetKernelArg(mapKernel, argsNum++, sizeof(int), &length);
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_dest);
     checkErr(status, ERR_SET_ARGUMENTS);
 
     //set work group and NDRange sizes
@@ -55,3 +67,11 @@ double map(cl_mem d_source, int length, cl_mem& d_dest, int localSize, int gridS
     
     return totalTime;
 }
+
+
+
+
+   
+
+
+

@@ -23,12 +23,16 @@ double scatter(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int lo
     KernelProcessor reader(&kerAddr,1,info.context);
     cl_kernel scatterKernel = reader.getKernel(kerName);
     
+    int globalSize = localSize * gridSize;
+    int ele_per_thread = (length + globalSize - 1) / (globalSize);
     //set kernel arguments
     argsNum = 0;
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_source);
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_dest);
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_loc);
+    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &ele_per_thread);
+
     checkErr(status, ERR_SET_ARGUMENTS);
     
     //set work group and NDRange sizes

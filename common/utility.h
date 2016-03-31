@@ -50,9 +50,11 @@
 
 #ifdef OPENMP_PROJ
 	#include <omp.h>
+	#include <immintrin.h>
 	typedef struct Record {
 		int x;
 		int y;
+		Record(){}
 		Record(int x, int y) {
 			this->x = x;
 			this->y = y;
@@ -68,9 +70,11 @@
 
 #define MAX_DATA_SIZE 			(160000000)
 #define MAX_NUM					(INT_MAX/2)
-#define BLOCKSIZE 					(512)
+#define BLOCKSIZE 					(1024)
 #define GRIDSIZE					(1024)
 #define SHUFFLE_TIME(TIME)		(TIME * 1.5)
+#define SHARED_MEM_SIZE			(48000)
+#define SHARED_MEM_CHECK(SIZE)		assert(SIZE <= SHARED_MEM_SIZE);
 
 int compRecordAsc ( const void * a, const void * b);
 int compRecordDec ( const void * a, const void * b);
@@ -106,5 +110,6 @@ double diffTime(struct timeval end, struct timeval start);	//calculate the time
 
 void printbinary(const unsigned int val, int dis);
 int floorOfPower2_CPU(int a);
+void printRes(std::string funcName, bool res, float elaspsedTime);
 
 #endif

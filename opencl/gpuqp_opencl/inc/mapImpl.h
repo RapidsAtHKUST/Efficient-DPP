@@ -12,6 +12,11 @@
 #include <stdio.h>
 #include "Foundation.h"
 
-double map(cl_mem d_source, int length, cl_mem& d_dest, int localSize, int gridSize, PlatInfo info);
+double map(
+#ifdef RECORDS
+    cl_mem d_source_keys, cl_mem d_dest_keys, bool isRecord,
+#endif
+    cl_mem d_source_values, cl_mem& d_dest_values, int length, 
+    int localSize, int gridSize, PlatInfo info) ;
 
 #endif /* defined(__gpuqp_opencl__mapImpl__) */

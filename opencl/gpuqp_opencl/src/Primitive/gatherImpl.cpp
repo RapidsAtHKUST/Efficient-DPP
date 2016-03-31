@@ -8,7 +8,12 @@
 
 #include "gatherImpl.h"
 
-double gather(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int localSize, int gridSize, PlatInfo info) {
+double gather(
+#ifdef RECORDS
+    cl_mem d_source_keys, cl_mem &d_dest_keys, bool isRecord,
+#endif
+    cl_mem d_source_values, cl_mem& d_dest_values, int length, 
+    cl_mem d_loc, int localSize, int gridSize, PlatInfo info) {
     
     double totalTime = 0;
     
@@ -26,10 +31,20 @@ double gather(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int loc
     
     //set kernel arguments
     argsNum = 0;
-    status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(cl_mem), &d_source);
-    status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(cl_mem), &d_dest);
+
+    int globalSize = gridSize * localSize;
+    int ele_per_thread = (length + globalSize - 1) / globalSize;
+
+#ifdef RECORDS
+    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_source_keys);
+    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_dest_keys);
+    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(bool), &isRecord);
+#endif
+    status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(cl_mem), &d_source_values);
+    status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(cl_mem), &d_dest_values);
     status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(cl_mem), &d_loc);
+    status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(int), &ele_per_thread);
     checkErr(status, ERR_SET_ARGUMENTS);
     
     //set work group and NDRange sizes

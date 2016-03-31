@@ -14,13 +14,17 @@ COMDIR := $(HOME_PATH)/common
 
 
 CC := g++ 
-CPPFLAGS := -g  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DDATADIR=\"$(DATADIR)\" -DOPENCL_PROJ
+CPPFLAGS := -g -O2  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DDATADIR=\"$(DATADIR)\" -DOPENCL_PROJ
 
 PRINT ?= 0
 ifeq ($(PRINT), 1)
     CPPFLAGS += -DPRINT_KERNEL
 endif
 
+R ?= 0
+ifeq ($(R), 1) 
+	CPPFLAGS += -DRECORDS
+endif
 
 INCLUDE := -I$(INCDIR) \
 		   -I$(COMDIR) \

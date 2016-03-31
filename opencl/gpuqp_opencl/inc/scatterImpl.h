@@ -11,6 +11,11 @@
 
 #include "Foundation.h"
 
-double scatter(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int localSize, int gridSize, PlatInfo info);
+double scatter(
+#ifdef RECORDS
+    cl_mem d_source_keys, cl_mem &d_dest_keys, bool isRecord,
+#endif
+    cl_mem d_source_values, cl_mem& d_dest_values, int length, 
+    cl_mem d_loc, int localSize, int gridSize, PlatInfo info);
 
 #endif /* defined(__gpuqp_opencl__scatterImpl__) */

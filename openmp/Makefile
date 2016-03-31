@@ -11,7 +11,7 @@ COMDIR := $(HOME_PATH)/common
 
 CC := icc
 
-CC_FLAGS := -g  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DOPENMP_PROJ -fopenmp
+CC_FLAGS := -O2 -g  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DOPENMP_PROJ -fopenmp #-qopt-report=3 -qopt-report-phase=vec
 
 PRINT ?= 0
 ifeq ($(PRINT), 1)
@@ -19,9 +19,10 @@ ifeq ($(PRINT), 1)
 endif
 
 INCLUDE := 	-I$(INCDIR) \
-			-I$(COMDIR)
+			-I$(COMDIR) \
+			-I/ghome/zlai/intel/tbb/include
 
-LINK := 
+LINK :=  -tbb
 
 CPP_SRC :=  $(filter-out ._%,$(notdir $(shell find -L $(SRCDIR) $(COMDIR) -name *.cpp)))
 CPP_OBJ := $(CPP_SRC:%.cpp=$(OBJDIR)/%.o)

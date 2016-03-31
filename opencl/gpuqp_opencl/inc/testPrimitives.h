@@ -11,9 +11,25 @@
 
 #include "Foundation.h"
 
-bool testMap(Record *fixedSource, int length, PlatInfo info, double& totalTime, int localSize = BLOCKSIZE, int gridSize = GRIDSIZE);
-bool testGather(Record *fixedSource, int length, PlatInfo info , double& totalTime, int localSize = BLOCKSIZE, int gridSize = GRIDSIZE);
-bool testScatter(Record *fixedSource, int length, PlatInfo info , double& totalTime, int localSize = BLOCKSIZE, int gridSize = GRIDSIZE);
+bool testMap(
+#ifdef RECORDS
+    int *fixedKeys,
+#endif
+    int *fixedValues, 
+    int length, PlatInfo info , double& totalTime, int localSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+
+bool testGather(
+#ifdef RECORDS
+    int *fixedKeys,
+#endif
+    int *fixedValues, int length, PlatInfo info , double& totalTime, int localSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+
+bool testScatter(
+#ifdef RECORDS
+    int *fixedKeys,
+#endif
+    int *fixedValues, int length, PlatInfo info , double& totalTime, int localSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+
 bool testScan(int *fixedSource, int length, PlatInfo info, double& totalTime, int isExclusive, int localSize = BLOCKSIZE);
 bool testSplit(Record *fixedSource, int length, PlatInfo info , int fanout, double& totalTime, int localSize= BLOCKSIZE, int gridSize = GRIDSIZE);
 bool testRadixSort(Record *fixedSource, int length, PlatInfo info, double& totalTime);

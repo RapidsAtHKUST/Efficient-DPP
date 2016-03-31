@@ -212,6 +212,13 @@ int floorOfPower2_CPU(int a) {
 	return base>>1;
 }
 
+void printRes(std::string funcName, bool res, float elaspsedTime) {
+    std::cout<<funcName<<": \t\t";
+    
+    std::cout<<"Time: "<<elaspsedTime<<" ms."<<"\t\t\t";
+    if (res)    std::cout<<"Pass!"<<std::endl;
+    else        std::cout<<"Failed!"<<std::endl;
+}
 
 #ifdef OPENCL_PROJ
 //OpenCL error checking functions
@@ -223,37 +230,33 @@ void checkErr(cl_int status, const char* name) {
 }
 #endif
 
-
 //templates
 
 //int
-template void recordSorted<int>(int *keys, int *values, int length, int max= MAX_NUM);
+template void recordSorted<int>(int *keys, int *values, int length, int max);
 template void recordSorted_Only<int>(int *keys, int *values, int length);
-template void recordRandom<int>(int *keys, int *values, int length, int max=MAX_NUM);
+template void recordRandom<int>(int *keys, int *values, int length, int max);
 template void recordRandom_Only<int>(int *keys, int *values, int length,  int times);
-template void valRandom<int>(int *arr, int length, int max=MAX_NUM);
+template void valRandom<int>(int *arr, int length, int max);
 template void valRandom_Only<int>(int *arr, int length,  int times);
 
 //long
-template void recordSorted<long>(int *keys, long *values, int length, long max= MAX_NUM);
+template void recordSorted<long>(int *keys, long *values, int length, long max);
 template void recordSorted_Only<long>(int *keys, long *values, int length);
-template void recordRandom<long>(int *keys, long *values, int length, long max=MAX_NUM);
+template void recordRandom<long>(int *keys, long *values, int length, long max);
 template void recordRandom_Only<long>(int *keys, long *values, int length,  int times);
-template void valRandom<long>(long *arr, int length, long max=MAX_NUM);
+template void valRandom<long>(long *arr, int length, long max);
 template void valRandom_Only<long>(long *arr, int length,  int times);
 
 //float
-template void recordSorted<float>(int *keys, float *values, int length, float max= MAX_NUM);
+template void recordSorted<float>(int *keys, float *values, int length, float max);
 template void recordSorted_Only<float>(int *keys, float *values, int length);
-template void recordRandom<float>(int *keys, float *values, int length, float max=MAX_NUM);
+template void recordRandom<float>(int *keys, float *values, int length, float max);
 template void recordRandom_Only<float>(int *keys, float *values, int length,  int times);
-template void valRandom<float>(float *arr, int length, float max=MAX_NUM);
+template void valRandom<float>(float *arr, int length, float max);
 template void valRandom_Only<float>(float *arr, int length,  int times);
 
 //double
-template void recordSorted<double>(int *keys, double *values, int length, double max= MAX_NUM);
+template void recordSorted<double>(int *keys, double *values, int length, double max);
 template void recordSorted_Only<double>(int *keys, double *values, int length);
-template void recordRandom<double>(int *keys, double *values, int length, double max=MAX_NUM);
-template void recordRandom_Only<double>(int *keys, double *values, int length,  int times);
-template void valRandom<double>(double *arr, int length, double max=MAX_NUM);
-template void valRandom_Only<double>(double *arr, int length,  int times);
+template void recordRandom<double>(int *keys, double *values, int length, double max);

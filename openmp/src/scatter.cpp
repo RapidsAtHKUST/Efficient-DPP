@@ -1,14 +1,8 @@
 #include "functions.h"
 using namespace std;
 
-double scatter(Record *source, Record *dest, int n, int *loc /*, FuncType func*/) {
-	// #pragma offload target(mic) \
-	// in(source:length(n) alloc_if(1) free_if(0)) \
-	// nocopy(dest:length(n) alloc_if(1) free_if(0))
-	// {};
-	
+double scatter(int *source, int *dest, int n, int *loc) {
     kmp_set_defaults("KMP_AFFINITY=compact");
-
     struct timeval start, end;
 
     #pragma offload target(mic) \
@@ -17,7 +11,7 @@ double scatter(Record *source, Record *dest, int n, int *loc /*, FuncType func*/
     in(loc:length(n) alloc_if(1) free_if(1))
     {
     	gettimeofday(&start, NULL);
-		#pragma omp parallel for
+		#pragma omp parallel for simd
 		for(int i = 0; i < n; i++) {
 			dest[loc[i]] = source[i];
 		}
@@ -28,23 +22,37 @@ double scatter(Record *source, Record *dest, int n, int *loc /*, FuncType func*/
 	return diffTime(end,start);
 }
 
-void testScatter() {
-	int n = 16000000;
-	Record *source = new Record[n];
-	Record *dest = new Record[n];
+double scatter_intr(int *source, int *dest, int n, int *loc) {
+    kmp_set_defaults("KMP_AFFINITY=compact");
+    struct timeval start, end;
 
-	int *loc = new int[n];
-	intRandom_Only(loc, n, n/2);
+    #pragma offload target(mic) \
+    in(source:length(n) alloc_if(1) free_if(1)) \
+    out(dest:length(n) alloc_if(1) free_if(1)) \
+    in(loc:length(n) alloc_if(1) free_if(1))
+    {
+    	gettimeofday(&start, NULL);
+		#pragma omp parallel for simd
+		for(int i = 0; i < n; i+=16) {
+			__m512i index = _mm512_load_epi32(loc + i);
+			__m512 source_piece = _mm512_load_ps(source + i);
+			_mm512_i32scatter_ps(dest, index, source_piece, sizeof(int));
+		}
+		#pragma omp barrier
+    	gettimeofday(&end, NULL);
+	}
 
-	recordRandom(source, n, 10000000);
+	return diffTime(end,start);
+}
+
+void testScatter(int *source, int *dest, int *loc, int n) {
 
 	double myTime = scatter(source, dest, n, loc);
 
 	//checking
 	bool res = true;
 	for(int i=  0; i < n; i++) {
-		if (dest[loc[i]].x != source[i].x ||
-			dest[loc[i]].y != source[i].y)	{
+		if (dest[i] != source[loc[i]])	{
 			res = false;
 			break;
 		}
@@ -53,8 +61,22 @@ void testScatter() {
 	cout<<"Time: "<<myTime<<" ms."<<endl;
 	if (res)	cout<<"Right!"<<endl;
 	else		cout<<"Wrong!"<<endl;
+}
 
-	delete[] source;
-	delete[] dest;
-	delete[] loc;
+void testScatter_intr(int *source, int *dest, int *loc, int n) {
+
+	double myTime = scatter_intr(source, dest, n, loc);
+
+	//checking
+	bool res = true;
+	for(int i=  0; i < n; i++) {
+		if (dest[i] != source[loc[i]])	{
+			res = false;
+			break;
+		}
+	}
+	cout<<"Num: "<<n<<endl;
+	cout<<"Time: "<<myTime<<" ms."<<endl;
+	if (res)	cout<<"Right!"<<endl;
+	else		cout<<"Wrong!"<<endl;
 }

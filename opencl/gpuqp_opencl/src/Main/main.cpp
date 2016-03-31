@@ -17,9 +17,12 @@ char input_arr_dir[500];
 char input_rec_dir[500];
 char input_loc_dir[500];
 
-Record fixedRecords[MAX_DATA_SIZE];
-int fixedArray[MAX_DATA_SIZE];
-int fixedLoc[MAX_DATA_SIZE];
+Record *fixedRecords;
+
+int *fixedKeys;
+int *fixedValues;
+
+int *fixedLoc;
 
 /*parameters:
  * if IS_INPUT==true,  executor INPUT_REC_DIR INPUT_ARR_DIR INPUT_LOC_DIR
@@ -63,27 +66,61 @@ int main(int argc, const char * argv[]) {
         strcat(input_loc_dir, argv[3]);
         std::cout<<"Start reading data..."<<std::endl;
         readFixedRecords(fixedRecords, input_rec_dir, dataSize);
-        readFixedArray(fixedArray, input_arr_dir, dataSize);
         readFixedArray(fixedLoc, input_loc_dir, dataSize);
         std::cout<<"Finish reading data..."<<std::endl;
     }
     else {
         dataSize = atoi(argv[1]);
-        recordRandom<int>(fixedRecords, dataSize);
-        valRandom>int>(fixedArray, dataSize, MAX_NUM);
-        intRandom_Only(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
+
+    #ifdef RECORDS
+        fixedKeys = new int[dataSize];
+    #endif
+        fixedValues = new int[dataSize];
+        fixedLoc = new int[dataSize];
+    #ifdef RECORDS
+        recordRandom<int>(fixedKeys, fixedValues, dataSize);
+    #else
+        valRandom<int>(fixedValues,dataSize, MAX_NUM);
+    #endif
+        valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
     }
     
     //test primitives
-   testMap(fixedRecords, dataSize, info, totalTime);
-	testGather(fixedRecords, dataSize, info, totalTime);
-	testScatter(fixedRecords, dataSize, info, totalTime);
-//    testScan(fixedArray, dataSize, info, totalTime, 0);             //0: inclusive
+    for(int i= 0 ; i < 10; i++) {
+
+//     testMap(
+// #ifdef RECORDS
+//     fixedKeys,
+// #endif
+//     fixedValues, 
+//     dataSize,  info , totalTime);
+
+//     testGather(
+// #ifdef RECORDS
+//     fixedKeys,
+// #endif
+//     fixedValues, 
+//     dataSize,  info , totalTime);
+//     testScatter(
+// #ifdef RECORDS
+//     fixedKeys,
+// #endif
+//     fixedValues, 
+//     dataSize,  info , totalTime);
+
+//     cout<<"finished "<<i<<endl;
+   testScan(fixedValues, dataSize, info, totalTime, 0);             //0: inclusive
+        
+    }
+    
+   // testMap(fixedRecords, dataSize, info, totalTime);
+	// testGather(fixedRecords, dataSize, info, totalTime);
+	// testScatter(fixedRecords, dataSize, info, totalTime);
 //    testScan(fixedArray, dataSize, info, totalTime, 1);             //1: exclusive
 //    testSplit(fixedRecords, dataSize, info, 20, totalTime);           //fanout: 20
-   testRadixSort(fixedRecords, dataSize, info, totalTime);
+   // testRadixSort(fixedRecords, dataSize, info, totalTime);
     
-    testBitonitSort(fixedRecords, dataSize, info, 1, totalTime);      //1:  ascendingls
+    // testBitonitSort(fixedRecords, dataSize, info, 1, totalTime);      //1:  ascendingls
 //    testBitonitSort(fixedRecords, dataSize, info, 0, totalTime);      //0:  descending
     
     //test joins

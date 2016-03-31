@@ -8,189 +8,6 @@
 #include "kernels.h"
 using namespace std;
 
-
-//calculate the smallest power of two larger than input
-__device__
-int ceilPowerOfTwo(uint input) {
-    int k = 1;
-    while (k < input) k<<=1;
-    return k;
-}
-
-//each block can proceed BLOCKSIZE*2 (currently 1024) numbers
-__global__
-void prefixScan(int* records,       //size: number of elements
-                uint length,
-                uint isExclusive)
-{
-	extern __shared__ int temp[];
-
-	int localId = threadIdx.x;
-    
-    temp[2*localId] = 0;                            //initialize to zero for 0 padding
-    temp[2*localId + 1] = 0;
-    __syncthreads();
-    
-    int offset = 1;                                 //offset: the distance of the two added numbers
-    int paddedLength = ceilPowerOfTwo(length);      //padding
-    
-    //memory copy
-    if (2*localId<length)    temp[2*localId] = records[2*localId];
-    if (2*localId+1<length)  temp[2*localId+1] = records[2*localId+1];
-    
-    __syncthreads();
-    
-    //reduce
-    for(int d = paddedLength >> 1; d > 0; d >>=1) {
-        if (localId < d) {
-            int ai = offset * ( 2 * localId + 1 ) - 1;
-            int bi = offset * ( 2 * localId + 2 ) - 1;
-            temp[bi] += temp[ai];
-        }
-        offset <<= 1;
-        __syncthreads();
-    }
-    
-    if (localId == 0)    {
-        temp[paddedLength-1] = 0;
-    }
-    __syncthreads();
-    
-    //sweep down
-    for(int d = 1; d < paddedLength; d <<= 1) {
-        offset >>= 1;
-        if (localId < d) {
-            int ai = offset * (2 * localId + 1) -1;
-            int bi = offset * (2 * localId + 2) -1;
-            
-            int t = temp[ai];
-            temp[ai] = temp[bi];
-            temp[bi] += t;
-        }
-        
-        __syncthreads();
-    }
-    
-    if (isExclusive == 1) {     //exclusive
-        //memory output
-        if (2*localId<length)    records[2*localId] = temp[2*localId];
-        if (2*localId+1<length)  records[2*localId+1] = temp[2*localId+1];
-    }
-    else {                      //inclusive
-        //memory output
-        if (2*localId<length)    records[2*localId] += temp[2*localId];
-        if (2*localId+1<length)  records[2*localId+1] += temp[2*localId+1];
-    }
-}
-
-//scan large array: parittion into blocks, each block proceeds 1024 numbers.
-__global__
-void scanLargeArray(int* records,           //size: number of elements
-                    uint length,
-                    uint isExclusive,
-                    int* blockSum)       //store the sums of each block
-{
-	extern __shared__ int temp[];
-
-	int localId = threadIdx.x;
-	int globalId = blockIdx.x * blockDim.x + threadIdx.x;
-	int groupId = blockIdx.x;
-
-    uint tempSize =  blockDim.x * 2;
-
-    temp[2*localId] = 0;                            //initialize to zero for 0 padding
-    temp[2*localId + 1] = 0;
-    
-    __syncthreads();
-    
-    int offset = 1;                                 //offset: the distance of the two added numbers
-    
-    //memory copy
-    if (2*globalId<length)    temp[2*localId] = records[2*globalId];
-    if (2*globalId+1<length)  temp[2*localId+1] = records[2*globalId+1];
-    
-    //reduce
-    for(int d = tempSize >> 1; d > 0; d >>=1) {
-        
-        __syncthreads();
-        if (localId < d) {
-            int ai = offset * ( 2 * localId + 1 ) - 1;
-            int bi = offset * ( 2 * localId + 2 ) - 1;
-            temp[bi] += temp[ai];
-        }
-        offset <<= 1;
-    }
-    
-    if (localId == 0)   {
-        blockSum[groupId] = temp[tempSize-1];              //write the sum
-        temp[tempSize-1] = 0;
-    }
-    
-    __syncthreads();
-    
-    //sweep down
-    for(int d = 1; d < tempSize; d <<= 1) {
-        offset >>= 1;
-        
-        __syncthreads();
-        if (localId < d) {
-            int ai = offset * (2 * localId + 1) -1;
-            int bi = offset * (2 * localId + 2) -1;
-            
-            int t = temp[ai];
-            temp[ai] = temp[bi];
-            temp[bi] += t;
-        }
-    }
-    
-    __syncthreads();
-    
-    if (isExclusive == 1) {
-        //memory output
-        if (2*globalId<length)    records[2*globalId] = temp[2*localId];
-        if (2*globalId+1<length)  records[2*globalId+1] = temp[2*localId+1];
-    }
-    else {
-        //memory output
-        if (2*globalId<length)    records[2*globalId] += temp[2*localId];
-        if (2*globalId+1<length)  records[2*globalId+1] += temp[2*localId+1];
-    }
-}
-
-__global__
-void addBlock(int* records,
-              uint length,
-              int* blockSum)
-{
-	extern __shared__ int temp[];
-	int localId = threadIdx.x;
-	int globalId = blockIdx.x * blockDim.x + threadIdx.x;
-	int groupId = blockIdx.x;
-    
-    temp[2*localId] = 0;
-    temp[2*localId+1] = 0;
-    
-    __syncthreads();
-    
-    //memory copy
-    if (2*globalId<length)    temp[2*localId] = records[2*globalId];
-    if (2*globalId+1<length)  temp[2*localId+1] = records[2*globalId+1];
-    
-    __syncthreads();
-    
-    int thisBlockSum = 0;
-    
-    if (groupId > 0) {
-        thisBlockSum = blockSum[groupId-1];
-        if (2*globalId < length)        temp[2*localId] += thisBlockSum;
-        if (2*globalId + 1 < length)    temp[2*localId + 1] += thisBlockSum;
-    }
-    __syncthreads();
-    
-    if (2*globalId < length)        records[2*globalId] = temp[2*localId];
-    if (2*globalId + 1 < length)    records[2*globalId + 1] = temp[2*localId+1];
-}
-
 /*****************************************************************************/
 /*
  *
@@ -374,111 +191,193 @@ float scan(T *d_source, int length, int isExclusive, int blockSize)
 
 //templates
 template float scan<int>(int *d_source, int length, int isExclusive, int blockSize);
-
 template float scan<long>(long *d_source, int length, int isExclusive, int blockSize);
-
 template float scan<float>(float *d_source, int length, int isExclusive, int blockSize);
-
 template float scan<double>(double *d_source, int length, int isExclusive, int blockSize);
-
-//testing function for warp-wise scan
-void scan_warp_test() {
-    int totalLoop = 10;
-    double totalTime = 0.0f;
-    bool res = true;
-    int isExclusive = 1;
-
-    int len = 16000000;
-    cout<<"Data size: "<<len<<endl;
-
-    int *h_source = new int[len];
-    int *h_dest = new int[len];
-    int *h_source_com = new int[len];
-    int *h_source_com_exclusive = new int[len];
-
-    for(int i = 0; i < len; i++) {
-        h_source[i] = i+1;
-        h_source_com[i] = i+1;
-    }
-
-    //cpu inclusive
-    for(int i = 0; i < len; i++)
-        if (i>0)    h_source_com[i] += h_source_com[i-1];
-
-    h_source_com_exclusive[0] = 0;
-    for(int i = 1; i < len; i++) {
-        h_source_com_exclusive[i] = h_source_com_exclusive[i-1] + h_source[i-1];
-    }
-    
-    int *d_source;
-    checkCudaErrors(cudaMalloc(&d_source, sizeof(int) * len));
-
-    //cuda timing event
-    cudaEvent_t start, end;
-    cudaEventCreate(&start);
-    cudaEventCreate(&end);
-
-    for(int loop = 0; loop < totalLoop; loop++) {
-        cudaMemcpy(d_source, h_source, sizeof(int) * len, cudaMemcpyHostToDevice);
-
-        cudaEventRecord(start);
-        scan<int>(d_source,len,isExclusive,1024);
-        cudaEventRecord(end);
-        cudaEventSynchronize(end);
-
-        cout<<"finish "<<loop+1<<endl;
-        float myTime = 0.0f;
-        cudaEventElapsedTime(&myTime,start, end);
-
-        //get rid of the first loop: time is not accurate in the first run
-        if (loop > 0)   
-            totalTime += myTime;
-
-        cudaMemcpy(h_dest, d_source, sizeof(int) * len, cudaMemcpyDeviceToHost);
-
-        int *h_check;
-        if (isExclusive == 1)   h_check = h_source_com_exclusive;
-        else                    h_check = h_source_com;
-
-        for(int i = 0; i < len; i++) {
-            if (h_check[i] != h_dest[i])    
-                res = false;                
-        }
-        if (!res)   break;
-
-        isExclusive = 1 - isExclusive;
-    }
-
-    cout<<"Output: ";
-    if (res)    cout<<"correct!"<<endl;
-    else    {
-        cout<<"incorrect ";
-        if (isExclusive == 1)   cout<<"for exclusive."<<endl;
-        else                    cout<<"for inclusive."<<endl;
-
-        int *h_check;
-        if (isExclusive==1) h_check = h_source_com_exclusive;
-        else                h_check = h_source_com;
-
-        for(int i = 0; i < len; i++) {
-            if (h_check[i] != h_dest[i])    {
-                cout<<i<<": "<<h_dest[i]<<'\t'<<h_check[i]<<"\tWrong!"<<endl;
-            }
-        }   
-    }
-
-    delete[] h_source;
-    delete[] h_dest;
-    delete[] h_source_com;
-    checkCudaErrors(cudaFree(d_source));
-
-    cout<<"Avg time: "<<totalTime/(totalLoop-1)<<" ms."<<endl;
-}
-
 
 /*****************************************************************************/
 /********************************* host functions ****************************/
+//calculate the smallest power of two larger than input
+__device__
+int ceilPowerOfTwo(uint input) {
+    int k = 1;
+    while (k < input) k<<=1;
+    return k;
+}
 
+//each block can proceed BLOCKSIZE*2 (currently 1024) numbers
+__global__
+void prefixScan(int* records,       //size: number of elements
+                uint length,
+                uint isExclusive)
+{
+    extern __shared__ int temp[];
+
+    int localId = threadIdx.x;
+    
+    temp[2*localId] = 0;                            //initialize to zero for 0 padding
+    temp[2*localId + 1] = 0;
+    __syncthreads();
+    
+    int offset = 1;                                 //offset: the distance of the two added numbers
+    int paddedLength = ceilPowerOfTwo(length);      //padding
+    
+    //memory copy
+    if (2*localId<length)    temp[2*localId] = records[2*localId];
+    if (2*localId+1<length)  temp[2*localId+1] = records[2*localId+1];
+    
+    __syncthreads();
+    
+    //reduce
+    for(int d = paddedLength >> 1; d > 0; d >>=1) {
+        if (localId < d) {
+            int ai = offset * ( 2 * localId + 1 ) - 1;
+            int bi = offset * ( 2 * localId + 2 ) - 1;
+            temp[bi] += temp[ai];
+        }
+        offset <<= 1;
+        __syncthreads();
+    }
+    
+    if (localId == 0)    {
+        temp[paddedLength-1] = 0;
+    }
+    __syncthreads();
+    
+    //sweep down
+    for(int d = 1; d < paddedLength; d <<= 1) {
+        offset >>= 1;
+        if (localId < d) {
+            int ai = offset * (2 * localId + 1) -1;
+            int bi = offset * (2 * localId + 2) -1;
+            
+            int t = temp[ai];
+            temp[ai] = temp[bi];
+            temp[bi] += t;
+        }
+        
+        __syncthreads();
+    }
+    
+    if (isExclusive == 1) {     //exclusive
+        //memory output
+        if (2*localId<length)    records[2*localId] = temp[2*localId];
+        if (2*localId+1<length)  records[2*localId+1] = temp[2*localId+1];
+    }
+    else {                      //inclusive
+        //memory output
+        if (2*localId<length)    records[2*localId] += temp[2*localId];
+        if (2*localId+1<length)  records[2*localId+1] += temp[2*localId+1];
+    }
+}
+
+//scan large array: parittion into blocks, each block proceeds 1024 numbers.
+__global__
+void scanLargeArray(int* records,           //size: number of elements
+                    uint length,
+                    uint isExclusive,
+                    int* blockSum)       //store the sums of each block
+{
+    extern __shared__ int temp[];
+
+    int localId = threadIdx.x;
+    int globalId = blockIdx.x * blockDim.x + threadIdx.x;
+    int groupId = blockIdx.x;
+
+    uint tempSize =  blockDim.x * 2;
+
+    temp[2*localId] = 0;                            //initialize to zero for 0 padding
+    temp[2*localId + 1] = 0;
+    
+    __syncthreads();
+    
+    int offset = 1;                                 //offset: the distance of the two added numbers
+    
+    //memory copy
+    if (2*globalId<length)    temp[2*localId] = records[2*globalId];
+    if (2*globalId+1<length)  temp[2*localId+1] = records[2*globalId+1];
+    
+    //reduce
+    for(int d = tempSize >> 1; d > 0; d >>=1) {
+        
+        __syncthreads();
+        if (localId < d) {
+            int ai = offset * ( 2 * localId + 1 ) - 1;
+            int bi = offset * ( 2 * localId + 2 ) - 1;
+            temp[bi] += temp[ai];
+        }
+        offset <<= 1;
+    }
+    
+    if (localId == 0)   {
+        blockSum[groupId] = temp[tempSize-1];              //write the sum
+        temp[tempSize-1] = 0;
+    }
+    
+    __syncthreads();
+    
+    //sweep down
+    for(int d = 1; d < tempSize; d <<= 1) {
+        offset >>= 1;
+        
+        __syncthreads();
+        if (localId < d) {
+            int ai = offset * (2 * localId + 1) -1;
+            int bi = offset * (2 * localId + 2) -1;
+            
+            int t = temp[ai];
+            temp[ai] = temp[bi];
+            temp[bi] += t;
+        }
+    }
+    
+    __syncthreads();
+    
+    if (isExclusive == 1) {
+        //memory output
+        if (2*globalId<length)    records[2*globalId] = temp[2*localId];
+        if (2*globalId+1<length)  records[2*globalId+1] = temp[2*localId+1];
+    }
+    else {
+        //memory output
+        if (2*globalId<length)    records[2*globalId] += temp[2*localId];
+        if (2*globalId+1<length)  records[2*globalId+1] += temp[2*localId+1];
+    }
+}
+
+__global__
+void addBlock(int* records,
+              uint length,
+              int* blockSum)
+{
+    extern __shared__ int temp[];
+    int localId = threadIdx.x;
+    int globalId = blockIdx.x * blockDim.x + threadIdx.x;
+    int groupId = blockIdx.x;
+    
+    temp[2*localId] = 0;
+    temp[2*localId+1] = 0;
+    
+    __syncthreads();
+    
+    //memory copy
+    if (2*globalId<length)    temp[2*localId] = records[2*globalId];
+    if (2*globalId+1<length)  temp[2*localId+1] = records[2*globalId+1];
+    
+    __syncthreads();
+    
+    int thisBlockSum = 0;
+    
+    if (groupId > 0) {
+        thisBlockSum = blockSum[groupId-1];
+        if (2*globalId < length)        temp[2*localId] += thisBlockSum;
+        if (2*globalId + 1 < length)    temp[2*localId + 1] += thisBlockSum;
+    }
+    __syncthreads();
+    
+    if (2*globalId < length)        records[2*globalId] = temp[2*localId];
+    if (2*globalId + 1 < length)    records[2*globalId + 1] = temp[2*localId+1];
+}
 
 double scanDevice(int *d_source, int r_len, int blockSize, int gridSize, int isExclusive) {
     

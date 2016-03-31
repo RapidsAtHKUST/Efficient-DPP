@@ -55,10 +55,17 @@ void KernelProcessor::compile(cl_context context) {
     checkErr(err, "Failed to get the devices of the context.");
     
     //compile
-    char path[200] = "-I";
+    char path[1000] = "-I";
     strcat(path, PROJECT_ROOT);
     strcat(path, "/inc ");
-    strcat(path,"-DKERNEL");
+
+    // strcat(path, " -I");
+    // strcat(path, PROJECT_ROOT);
+    // strcat(path, "/common ");
+    strcat(path,"-DKERNEL ");
+#ifdef RECORDS
+    strcat(path,"-DRECORDS");
+#endif
     
     err = clBuildProgram(program, cl_int(num), devices,path, 0, 0);
     checkErr(err, "Compilation error.");

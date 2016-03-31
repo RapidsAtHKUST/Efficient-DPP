@@ -71,6 +71,7 @@ template<class T> bool testSplit(
     for(int i = 1; i < r_len; i++) {
         if (h_dest_values[i] < h_dest_values[i-1])  {
         	res = false;
+        	break;
         }
     }
 

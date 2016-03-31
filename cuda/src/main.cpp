@@ -15,6 +15,7 @@ char input_loc_dir[500];
 
 bool is_input;
 int dataSize;
+int fanout = 10;
 
 Record *fixedRecords;
 int *fixedArray;
@@ -22,6 +23,10 @@ int *fixedLoc;
 
 int *fixedKeys;
 int *fixedValues;
+
+int *splitVals;
+int *splitKeys;
+int *splitArray;	
 
 int recordLength;
 int arrayLength;
@@ -67,212 +72,130 @@ int main(int argc, char *argv[]) {
         fixedKeys = new int[dataSize];
         fixedValues = new int[dataSize];
 
+        splitVals = new int[dataSize];
+		splitKeys = new int[dataSize];
+		splitArray = new int[dataSize];
+
         recordRandom<int>(fixedKeys, fixedValues, dataSize, MAX_NUM);
+		recordRandom<int>(splitKeys, splitVals, dataSize, fanout);
+
         valRandom<int>(fixedArray, dataSize, MAX_NUM);
         valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
+		valRandom<int>(splitArray, dataSize, fanout);			//fanout
+
     }
 
-	float totalTime = 0.0f;
 	bool res;
-
-
-// 	res = testMap<int>(
-// #ifdef RECORDS
-// 		fixedKeys, fixedValues,
-// #else
-// 		fixedArray, 
-// #endif
-// 		dataSize, totalTime);
-
-	// cout<<"map: ";
-	// if (res) 	cout<<"Success!"<<'\t';
-	// else 		cout<<"Fail!"<<'\t';
-	// cout<<"Time: "<<totalTime<<" ms"<<endl;
-
+	bool isFirstCount = false;			//not counting the time in the first loop
 	int experiNum = 10;
+	int act_experiNum;
+
+	if (isFirstCount)	act_experiNum = experiNum;
+	else 				act_experiNum = experiNum - 1;	
+	assert(act_experiNum != 0);
 
 	//total time for each primitive
-	double gatherTotal = 0.0f;
-	double gather_mul_total = 0.0f;
-
-	double mapTotal = 0.0f;
-	double scatterTotal = 0.0f;
-	double splitTotal = 0.0f;
-	double scanTotal = 0.0f;
-	double radixSortTotal = 0.0f;
-
+	float idnElapsedTime;
+	float mapTotal = 0.0f;
+	float gatherTotal = 0.0f;
+	float scatterTotal = 0.0f;
+	float splitTotal = 0.0f;
+	float scanTotal = 0.0f;
+	float radixSortTotal = 0.0f;
 
 	for(int i = 0; i < experiNum; i++) {
-		// res = testMap(fixedRecords, dataSize, totalTime);
-		// cout<<"map["<<i<<"] finished"<<endl;
-		// if (!res) 	exit(1);
-		// mapTotal += totalTime;
+		cout<<"Round "<<i<<" :"<<endl;
 
-// 	res = testGather<int>(
-// #ifdef RECORDS
-// 		fixedKeys, fixedValues,
-// #else
-// 		fixedArray, 
-// #endif
-// 		dataSize, fixedLoc, totalTime);
-
-// 	cout<<"gather: ";
-// 	if (res) 	cout<<"Success!"<<'\t';
-// 	else 		cout<<"Fail!"<<'\t';
-// 	cout<<"Time: "<<totalTime<<" ms"<<endl;
-
-// 		res = testGather_mul<int>(
-// #ifdef RECORDS
-// 		fixedKeys, fixedValues,
-// #else
-// 		fixedArray, 
-// #endif
-// 		dataSize, fixedLoc, totalTime);
-
-// 	cout<<"gather_mul: ";
-// 	if (res) 	cout<<"Success!"<<'\t';
-// 	else 		cout<<"Fail!"<<'\t';
-// 	cout<<"Time: "<<totalTime<<" ms"<<endl;
-
-
-// 		res = testScatter<int>(
-// #ifdef RECORDS
-// 		fixedKeys, fixedValues,
-// #else
-// 		fixedArray, 
-// #endif
-// 		dataSize, fixedLoc, totalTime);
-
-// 	cout<<"scatter: ";
-// 	if (res) 	cout<<"Success!"<<'\t';
-// 	else 		cout<<"Fail!"<<'\t';
-// 	cout<<"Time: "<<totalTime<<" ms"<<endl;
-
-
-
-// 		res = testScatter_mul<int>(
-// #ifdef RECORDS
-// 		fixedKeys, fixedValues,
-// #else
-// 		fixedArray, 
-// #endif
-// 		dataSize, fixedLoc, totalTime);
-
-// 	cout<<"scatter_mul: ";
-// 	if (res) 	cout<<"Success!"<<'\t';
-// 	else 		cout<<"Fail!"<<'\t';
-// 	cout<<"Time: "<<totalTime<<" ms"<<endl;
-
-
-
-		int fanout = 20;
-		int *splitVals = new int[dataSize];
+//--------------testing map--------------
+		res = testMap<int>(
 #ifdef RECORDS
-		int *splitKeys = new int[dataSize];
-		recordRandom<int>(splitKeys, splitVals, dataSize, fanout);
-#else 
-		valRandom<int>(splitVals, dataSize, fanout);
+		fixedKeys, fixedValues,
+#else
+		fixedArray, 
 #endif
+		dataSize, idnElapsedTime);
+
+		printRes("map", res,idnElapsedTime);
+		if (i != 0)		mapTotal += idnElapsedTime;
+
+//--------------testing gather--------------
+		res = testGather<int>(
+#ifdef RECORDS
+		fixedKeys, fixedValues,
+#else
+		fixedArray, 
+#endif
+		dataSize, fixedLoc, idnElapsedTime);
+
+		printRes("gather", res,idnElapsedTime);
+		if (i != 0)		gatherTotal += idnElapsedTime;
+
+//--------------testing scatter--------------
+		res = testScatter<int>(
+#ifdef RECORDS
+		fixedKeys, fixedValues,
+#else
+		fixedArray, 
+#endif
+		dataSize, fixedLoc, idnElapsedTime);
+
+		printRes("scatter", res,idnElapsedTime);
+		if (i != 0)		scatterTotal += idnElapsedTime;
+
+//--------------testing split--------------
 		res = testSplit<int>(
 #ifdef RECORDS
 		splitKeys, splitVals,
 #else
-		splitVals, 
+		splitArray, 
 #endif
-		dataSize, totalTime, fanout);
+		dataSize, idnElapsedTime, fanout);
 
-	cout<<"split: ";
-	if (res) 	cout<<"Success!"<<'\t';
-	else 		cout<<"Fail!"<<'\t';
+		printRes("split", res,idnElapsedTime);
+		if (i != 0)		splitTotal += idnElapsedTime;
 
-	cout<<"Time: "<<totalTime<<" ms"<<endl;
+//--------------testing scan: 0 for inclusive, 1 for exclusive--------------
+		res = testScan<int>(fixedArray, dataSize, idnElapsedTime, 0);
+		printRes("scan", res,idnElapsedTime);
+		if (i != 0)		scanTotal += idnElapsedTime;
 
-		// for(int i = 0; i < dataSize; i++)	{
-		// 	cout<<splitVals[i]<<' ';
-		// }
-		// cout<<endl;
+//--------------testing radix sort (no need to specify the block and grid size)--------------
+		res = testRadixSort<int>(
+#ifdef RECORDS
+		fixedKeys, fixedValues,
+#else
+		fixedArray, 
+#endif
+		dataSize, idnElapsedTime);
 
-		// res = testGather(fixedRecords, dataSize, fixedLoc, totalTime);
-		// cout<<"gather["<<i<<"] finished"<<endl;
-		// if (!res) 	exit(1);
-		// gatherTotal += totalTime;
-
-		// res = testGather_mul(fixedRecords, dataSize, fixedLoc, totalTime);
-		// cout<<"gather_mul["<<i<<"] finished"<<endl;
-		// if (!res) 	exit(1);
-		// gather_mul_total += totalTime;		
-		
-		// res = testScatter(fixedRecords, dataSize, fixedLoc,totalTime);
-		// cout<<"scatter["<<i<<"] finished"<<endl;
-		// if (!res) 	exit(1);
-		// scatterTotal += totalTime;
-		
-		// int fanout = 20;
-		// Record *records = new Record[dataSize];
-		// recordRandom(records, dataSize, fanout);
-
-		// cout<<"split["<<i<<"] finished"<<endl;
-		// res = testSplit(records, dataSize, totalTime, fanout);		//fanout = 20
-		// if (!res) 	exit(1);
-		// if (i != 0)
-		// 	splitTotal += totalTime;
-
-		// cout<<"Input:"<<endl;
-		// for(int i = 0; i < dataSize; i++) {
-		// 	cout<<fixedRecords[i].x<<' '<<fixedRecords[i].y<<endl;
-		// }
-		
-		 // res = testScan(fixedArray, dataSize, totalTime, 1);
-		
-		// cout<<"scan["<<i<<"] finished"<<endl;
-		// if (!res) 	exit(1);
-		// if (i != 0)		
-			// scanTotal += totalTime;
-
-		// res = testBisort(fixedRecords, dataSize, totalTime, 1);
-		// if (res)		cout<<"success!"<<endl;
-		// else			cout<<"Failed!"<<endl;
-		// cout<<"bisort time: "<<totalTime<<" ms."<<endl;
-
-		// cout<<"radixSort: ";
-		// int gridSize = 512;
-		// int blockSize =1024;
-		// res = testRadixSort_int(fixedArray, dataSize, totalTime,blockSize,gridSize);
-		// if (res) 	cout<<"Success!"<<'\t';
-		// else 		cout<<"Fail!"<<'\t';
-		// if (i != 0)
-		// 	radixSortTotal += totalTime;
-		// cout<<"Time: "<<totalTime<<" ms"<<endl;
+		printRes("radix sort", res,idnElapsedTime);
+		if (i != 0)		radixSortTotal += idnElapsedTime;
 	}
 
-	// testRadixSort();
-	 scan_warp_test();
-
-	// cout<<"map avg time: "<<mapTotal/experiNum<<" ms."<<endl;
-	// cout<<"gather avg time: "<<gatherTotal/experiNum<<" ms."<<endl;
-	// cout<<"gather_mul avg time: "<<gather_mul_total/experiNum<<" ms."<<endl;
-
-	// cout<<"scatter avg time: "<<scatterTotal/experiNum<<" ms."<<endl;
-
-	// cout<<"split avg time: "<<splitTotal/(experiNum-1)<<" ms."<<endl;
-	// testScan(fixedArray, dataSize, totalTime,1);
-
-	// cout<<"My Scan Time:"<<scanTotal/experiNum<<" ms."<<endl;
-	// cout<<"Radix sort Time:"<<radixSortTotal/(experiNum-1)<<" ms."<<endl;
-
-	
-	
-	// if (res) 	cout<<"Success!"<<'\t';
-	// else 		cout<<"Fail!"<<'\t';
-	// cout<<"Time: "<<totalTime<<" ms"<<endl;
-	// delete[] records;
-
-	
+	cout<<"-----------------------------------------"<<endl;
+#ifdef RECORDS
+    cout<<"Using type: Record."<<endl;
+#else
+    cout<<"Using type: Basic type."<<endl;
+#endif
+	cout<<"Data Size: "<<dataSize<<endl;
+	cout<<"Map avg time: "<<mapTotal/act_experiNum<<" ms."<<endl;
+	cout<<"Gather avg time: "<<gatherTotal/act_experiNum<<" ms."<<endl;
+	cout<<"Scatter avg time: "<<scatterTotal/act_experiNum<<" ms."<<endl;
+	cout<<"Split avg time: "<<splitTotal/act_experiNum<<" ms."<<endl;
+	cout<<"Scan avg time:"<<scanTotal/act_experiNum<<" ms."<<endl;
+	cout<<"Radix sort avg time:"<<radixSortTotal/act_experiNum<<" ms."<<endl;
 	
 	delete[] fixedRecords;
 	delete[] fixedArray;
 	delete[] fixedLoc;
 
-	return 0;
+	delete[] fixedKeys;
+	delete[] fixedValues;
 
+	delete[] splitVals;
+	delete[] splitKeys;
+	delete[] splitArray;
+
+	return 0;
 }

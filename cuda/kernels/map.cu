@@ -1,6 +1,6 @@
 //
 //  map.cu
-//  gpuqp_cuda
+//  comparison_gpu/cuda
 //
 //  Created by Bryan on 01/19/16.
 //  Copyright (c) 2015-2016 Bryan. All rights reserved.

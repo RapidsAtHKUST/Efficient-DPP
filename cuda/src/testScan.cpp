@@ -23,7 +23,7 @@ bool testScan(T *source, int r_len, float& totalTime, int isExclusive,  int bloc
     // for(int i = 0; i < r_len; i++) h_source_thrust[i] = h_source[i];
 
     cudaMemcpy(d_source, h_source_gpu, sizeof(T) * r_len, cudaMemcpyHostToDevice);
-    totalTime = scan<T>(d_source, r_len, blockSize, isExclusive);
+    totalTime = scan<T>(d_source, r_len, isExclusive, blockSize);
     cudaMemcpy(h_source_gpu, d_source, sizeof(T) * r_len, cudaMemcpyDeviceToHost);
 
 	// totalTime = scanImpl(h_source_gpu, r_len, blockSize, gridSize, isExclusive);
@@ -45,9 +45,6 @@ bool testScan(T *source, int r_len, float& totalTime, int isExclusive,  int bloc
         if (h_source_cpu[i] != h_source_gpu[i]) res = false;
     }
 
-	if (res)	cout<<"Pass!"<<endl;
-	else		cout<<"Failed!"<<endl;
-
     checkCudaErrors(cudaFree(d_source));
 
 	delete[] h_source_gpu;
@@ -58,9 +55,6 @@ bool testScan(T *source, int r_len, float& totalTime, int isExclusive,  int bloc
 
 //templates
 template bool testScan<int>(int *source, int r_len, float& totalTime, int isExclusive,  int blockSize, int gridSize);
-
 template bool testScan<long>(long *source, int r_len, float& totalTime, int isExclusive,  int blockSize, int gridSize);
-
 template bool testScan<float>(float *source, int r_len, float& totalTime, int isExclusive,  int blockSize, int gridSize);
-
 template bool testScan<double>(double *source, int r_len, float& totalTime, int isExclusive,  int blockSize, int gridSize);

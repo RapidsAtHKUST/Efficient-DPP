@@ -11,6 +11,12 @@
 #include "gpuqpHeaders.h"
 using namespace std;
 
+//shadowing function
+void recordRandom_Only(Record* a, int len, int time) {}
+void recordRandom(Record* a, int len) {}
+void recordSorted_Only(Record* a, int len) {}
+void recordSorted(Record* a, int len) {}
+
 bool testNinlj(int rLen, int sLen, PlatInfo info, double &totalTime, int localSize, int gridSize) {
     
     bool res = true;

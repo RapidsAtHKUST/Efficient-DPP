@@ -11,20 +11,33 @@
 #include "gpuqpHeaders.h"
 using namespace std;
 
-bool testMap(Record *fixedSource, int length, PlatInfo info , double& totalTime, int localSize, int gridSize) {
+void recordRandom(Record *a, int b, int c) {}
+
+bool testMap(
+#ifdef RECORDS
+    int *fixedKeys,
+#endif
+    int *fixedValues, 
+    int length, PlatInfo info , double& totalTime, int localSize, int gridSize) {
     
     bool res = true;
     FUNC_BEGIN;
     SHOW_PARALLEL(localSize, gridSize);
     SHOW_DATA_NUM(length);
     
-    Record *h_source = new Record[length];
-    Record *h_dest = new Record[length];
+    int *h_source_values = new int[length];
+    int *h_dest_values = new int[length];    
+#ifdef RECORDS
+    int *h_source_keys = new int[length];
+    int *h_dest_keys = new int[length];    
+#endif
     
 //    recordRandom(h_source, length);
     for(int i = 0; i < length; i++) {
-        h_source[i].x = fixedSource[i].x;
-        h_source[i].y = fixedSource[i].y;
+        h_source_values[i] = fixedValues[i];
+#ifdef RECORDS
+        h_source_keys[i] = fixedKeys[i];
+#endif
     }
 
     struct timeval start, end;
@@ -33,22 +46,40 @@ bool testMap(Record *fixedSource, int length, PlatInfo info , double& totalTime,
     //memory allocation
     cl_int status = 0;
     
-    cl_mem d_source = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(Record)*length, NULL, &status);
+    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
-    cl_mem d_dest = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(Record)*length,NULL , &status);
+    cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*length,NULL , &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source, CL_TRUE, 0, sizeof(Record)*length, h_source, 0, 0, 0);
+
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(int)*length, h_source_values, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
+#ifdef RECORDS
+    cl_mem d_source_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(int)*length, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+
+    cl_mem d_dest_keys = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*length,NULL , &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_keys, CL_TRUE, 0, sizeof(int)*length, h_source_keys, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+#endif    
 
     //call map
-    totalTime = map(d_source, length, d_dest, localSize, gridSize, info);
+    totalTime = map(
+#ifdef RECORDS
+    d_source_keys, d_dest_keys,true,
+#endif
+    d_source_values, d_dest_values, length, 
+    localSize, gridSize, info);
 
     //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_dest, CL_TRUE, 0, sizeof(Record)*length, h_dest, 0, 0, 0);
+    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
     checkErr(status, ERR_READ_BUFFER);
-
+#ifdef RECORDS
+    status = clEnqueueReadBuffer(info.currentQueue, d_dest_keys, CL_TRUE, 0, sizeof(int)*length, h_dest_keys, 0, 0, 0);
+    checkErr(status, ERR_READ_BUFFER);
+#endif
     status = clFinish(info.currentQueue);
     
     gettimeofday(&end, NULL);
@@ -56,19 +87,32 @@ bool testMap(Record *fixedSource, int length, PlatInfo info , double& totalTime,
     //check
     SHOW_CHECKING;
     for(int i = 0; i < length; i++) {
-        if (h_source[i].x != h_dest[i].x || floorOfPower2_CPU(h_source[i].y) != h_dest[i].y) res = false;
+        if (
+#ifdef RECORDS
+        h_source_keys[i] != h_dest_keys[i]    ||
+#endif
+        floorOfPower2_CPU(h_source_values[i]) != h_dest_values[i]) 
+            res = false;
     }
     FUNC_CHECK(res);
     
-    status = clReleaseMemObject(d_source);
+    status = clReleaseMemObject(d_source_values);
     checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_dest);
+    status = clReleaseMemObject(d_dest_values);
     checkErr(status, ERR_RELEASE_MEM);
 
-    
-    delete [] h_source;
-    delete [] h_dest;
-    
+    delete [] h_source_values;
+    delete [] h_dest_values;
+#ifdef RECORDS
+    status = clReleaseMemObject(d_source_keys);
+    checkErr(status, ERR_RELEASE_MEM);
+    status = clReleaseMemObject(d_dest_keys);
+    checkErr(status, ERR_RELEASE_MEM);
+
+    delete [] h_source_keys;
+    delete [] h_dest_keys;
+#endif
+
     SHOW_TIME(totalTime);
     SHOW_TOTAL_TIME(diffTime(end, start));
     FUNC_END;
@@ -76,24 +120,34 @@ bool testMap(Record *fixedSource, int length, PlatInfo info , double& totalTime,
     return res;
 }
 
-bool testGather(Record *fixedSource, int length, PlatInfo info , double& totalTime, int localSize, int gridSize) {
+bool testGather(
+#ifdef RECORDS
+    int *fixedKeys,
+#endif
+    int *fixedValues, int length, PlatInfo info , double& totalTime, int localSize, int gridSize) {
     
     bool res = true;
     FUNC_BEGIN;
     SHOW_PARALLEL(localSize, gridSize);
     SHOW_DATA_NUM(length);
     
-    Record *h_source = new Record[length];
-    Record *h_dest = new Record[length];
+    int *h_source_values = new int[length];
+    int *h_dest_values = new int[length];
+#ifdef RECORDS
+    int *h_source_keys = new int[length];
+    int *h_dest_keys = new int[length];    
+#endif
+
     int *h_loc = new int[length];
     
-//    recordRandom(h_source, length);
     for(int i = 0; i < length; i++) {
-        h_source[i].x = fixedSource[i].x;
-        h_source[i].y = fixedSource[i].y;
+#ifdef RECORDS
+        h_source_keys[i] = fixedKeys[i];
+#endif
+        h_source_values[i] = fixedValues[i];        
     }
     
-    intRandom_Only(h_loc, length, length);
+    valRandom_Only<int>(h_loc, length, length);
     
     struct timeval start, end;
     gettimeofday(&start,NULL);
@@ -101,45 +155,75 @@ bool testGather(Record *fixedSource, int length, PlatInfo info , double& totalTi
     cl_int status = 0;
     
     //memory allocation
-    cl_mem d_source = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*length, NULL, &status);
+    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_dest = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(Record)*length, NULL, &status);
+    cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(int)*length, h_source_values, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+    
+#ifdef RECORDS
+    cl_mem d_source_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(int)*length, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    cl_mem d_dest_keys = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*length,NULL , &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_keys, CL_TRUE, 0, sizeof(int)*length, h_source_keys, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+#endif  
+
     cl_mem d_loc = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source, CL_TRUE, 0, sizeof(Record)*length, h_source, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
+
     status = clEnqueueWriteBuffer(info.currentQueue, d_loc, CL_TRUE, 0, sizeof(int)*length, h_loc, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
-    
+
     //call gather
-    totalTime = gather(d_source, d_dest, length, d_loc, localSize, gridSize, info);
+    totalTime = gather(
+#ifdef RECORDS
+    d_source_keys, d_dest_keys,true,
+#endif
+    d_source_values, d_dest_values, length, d_loc, localSize, gridSize, info);
     
     //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_dest, CL_TRUE, 0, sizeof(Record)*length, h_dest, 0, 0, 0);
+    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
     checkErr(status, ERR_READ_BUFFER);
     status = clFinish(info.currentQueue);
     
+#ifdef RECORDS
+    status = clEnqueueReadBuffer(info.currentQueue, d_dest_keys, CL_TRUE, 0, sizeof(int)*length, h_dest_keys, 0, 0, 0);
+    checkErr(status, ERR_READ_BUFFER);
+#endif
     gettimeofday(&end, NULL);
     
     //check
     SHOW_CHECKING;
     for(int i = 0; i < length; i++) {
-        if ( (h_dest[i].x != h_source[h_loc[i]].x ) ||
-             (h_dest[i].y != h_source[h_loc[i]].y ) )    res = false;
+        if ( 
+#ifdef RECORDS
+            (h_dest_keys[i] != h_source_keys[h_loc[i]]) ||
+#endif
+             (h_dest_values[i] != h_source_values[h_loc[i]] ) )    res = false;
     }
     FUNC_CHECK(res);
     
-    status = clReleaseMemObject(d_source);
+    status = clReleaseMemObject(d_source_values);
     checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_dest);
+    status = clReleaseMemObject(d_dest_values);
     checkErr(status, ERR_RELEASE_MEM);
     status = clReleaseMemObject(d_loc);
     checkErr(status, ERR_RELEASE_MEM);
-    
-    delete [] h_source;
-    delete [] h_dest;
+#ifdef RECORDS
+    status = clReleaseMemObject(d_source_keys);
+    checkErr(status, ERR_RELEASE_MEM);
+    status = clReleaseMemObject(d_dest_keys);
+    checkErr(status, ERR_RELEASE_MEM);
+
+    delete [] h_source_keys;
+    delete [] h_dest_keys;
+#endif
+
+    delete [] h_source_values;
+    delete [] h_dest_values;
     delete [] h_loc;
     
     SHOW_TIME(totalTime);
@@ -149,70 +233,111 @@ bool testGather(Record *fixedSource, int length, PlatInfo info , double& totalTi
     return res;
 }
 
-bool testScatter(Record *fixedSource, int length, PlatInfo info , double& totalTime, int localSize, int gridSize) {
+bool testScatter(
+#ifdef RECORDS
+    int *fixedKeys,
+#endif
+    int *fixedValues, int length, PlatInfo info , double& totalTime, int localSize, int gridSize) {
     
     bool res = true;
     FUNC_BEGIN;
     SHOW_PARALLEL(localSize, gridSize);
     SHOW_DATA_NUM(length);
     
-    Record *h_source = new Record[length];
-    Record *h_dest = new Record[length];
+    int *h_source_values = new int[length];
+    int *h_dest_values = new int[length];
+#ifdef RECORDS
+    int *h_source_keys = new int[length];
+    int *h_dest_keys = new int[length];    
+#endif
+
     int *h_loc = new int[length];
     
-//    recordRandom(h_source, length);
     for(int i = 0; i < length; i++) {
-        h_source[i].x = fixedSource[i].x;
-        h_source[i].y = fixedSource[i].y;
+#ifdef RECORDS
+        h_source_keys[i] = fixedKeys[i];
+#endif
+        h_source_values[i] = fixedValues[i];        
     }
     
-    intRandom_Only(h_loc, length, length);
+    valRandom_Only<int>(h_loc, length, length);
     
     struct timeval start, end;
     gettimeofday(&start,NULL);
     
     cl_int status = 0;
     
+    // cl_int16 *int_16_source_values = (cl_int16 *)h_source_values; 
     //memory allocation
-    cl_mem d_source = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*length, NULL, &status);
+    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_dest = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(Record)*length, NULL, &status);
+    cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(int)*length, h_source_values, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+    
+#ifdef RECORDS
+    cl_mem d_source_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(int)*length, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    cl_mem d_dest_keys = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*length,NULL , &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_keys, CL_TRUE, 0, sizeof(int)*length, h_source_keys, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+#endif  
+
     cl_mem d_loc = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source, CL_TRUE, 0, sizeof(Record)*length, h_source, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
+
     status = clEnqueueWriteBuffer(info.currentQueue, d_loc, CL_TRUE, 0, sizeof(int)*length, h_loc, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
-    
+
     //call gather
-    totalTime = scatter(d_source, d_dest, length, d_loc,localSize,gridSize,info);
+    totalTime = scatter(
+#ifdef RECORDS
+    d_source_keys, d_dest_keys,true,
+#endif
+    d_source_values, d_dest_values, length, d_loc, localSize, gridSize, info);
     
     //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_dest, CL_TRUE, 0, sizeof(Record)*length, h_dest, 0, 0, 0);
+    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
     checkErr(status, ERR_READ_BUFFER);
     status = clFinish(info.currentQueue);
     
+#ifdef RECORDS
+    status = clEnqueueReadBuffer(info.currentQueue, d_dest_keys, CL_TRUE, 0, sizeof(int)*length, h_dest_keys, 0, 0, 0);
+    checkErr(status, ERR_READ_BUFFER);
+#endif
     gettimeofday(&end, NULL);
     
     //check
     SHOW_CHECKING;
     for(int i = 0; i < length; i++) {
-        if ( (h_dest[h_loc[i]].x != h_source[i].x ) ||
-            (h_dest[h_loc[i]].y != h_source[i].y ) )    res = false;
+        if ( 
+#ifdef RECORDS
+            (h_dest_keys[h_loc[i]] != h_source_keys[i]) ||
+#endif
+             (h_dest_values[h_loc[i]] != h_source_values[i] ) )    res = false;
     }
     FUNC_CHECK(res);
     
-    status = clReleaseMemObject(d_source);
+    status = clReleaseMemObject(d_source_values);
     checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_dest);
+    status = clReleaseMemObject(d_dest_values);
     checkErr(status, ERR_RELEASE_MEM);
     status = clReleaseMemObject(d_loc);
     checkErr(status, ERR_RELEASE_MEM);
-    
-    delete [] h_source;
-    delete [] h_dest;
+#ifdef RECORDS
+    status = clReleaseMemObject(d_source_keys);
+    checkErr(status, ERR_RELEASE_MEM);
+    status = clReleaseMemObject(d_dest_keys);
+    checkErr(status, ERR_RELEASE_MEM);
+
+    delete [] h_source_keys;
+    delete [] h_dest_keys;
+#endif
+
+    delete [] h_source_values;
+    delete [] h_dest_values;
     delete [] h_loc;
     
     SHOW_TIME(totalTime);
@@ -236,7 +361,7 @@ bool testScan(int *fixedSource, int length, PlatInfo info, double& totalTime, in
     int *cpu_input = new int[length];
     int *cpu_output = new int[length];
     
-    intRandom(gpu_io, length, INT_MAX);
+    valRandom<int>(gpu_io, length, INT_MAX);
     
     for(int i = 0; i < length; i++) {
         cpu_input[i] = gpu_io[i];

@@ -4,9 +4,17 @@
 #include "utility.h"
 
 
-void testMap();
+
 void testRadixSort();
-void testScatter();
-void testGather();
+
+void testGather(int *source, int *dest, int *loc, int n);
+void testGather_intr(int *source, int *dest, int *loc, int n);
+
+double testScatter(int *source, int *dest, int* loc, int n);
+double testScatter_intr(int *source, int *dest, int* loc, int n);
+
+void testScan_tbb(int*, int*, int);
+
+double map(float *source, float *dest, int n);
 
 #endif
