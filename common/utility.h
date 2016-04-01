@@ -18,6 +18,7 @@
 #include <climits>
 #include <unistd.h>
 #include <algorithm>
+#include <assert.h>
 
 #ifdef CUDA_PROJ
 	//CUDA used header files
@@ -62,11 +63,14 @@
 	} Record;
 #endif
 
-// #ifdef RECORDS    	//operating records
-// 	#define Op_Type Record
-// #else				//operating ints
-// 	#define Op_Type T
-// #endif
+#ifdef __GNUC__
+#define DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define DEPRECATED __declspec(deprecated)
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define DEPRECATED
+#endif
 
 #define MAX_DATA_SIZE 			(160000000)
 #define MAX_NUM					(INT_MAX/2)
@@ -106,9 +110,8 @@ void readFixedRecords(Record* fixedRecords, char *file, int& recordLength);
 void readFixedArray(int* fixedArray, char *file, int & arrayLength);
 
 double calCPUTime(clock_t start, clock_t end);
-double diffTime(struct timeval end, struct timeval start);	//calculate the time
+double diffTime(struct timeval end, struct timeval start);	//calculate
 
-void printbinary(const unsigned int val, int dis);
 int floorOfPower2_CPU(int a);
 void printRes(std::string funcName, bool res, float elaspsedTime);
 

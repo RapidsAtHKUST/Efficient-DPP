@@ -361,7 +361,8 @@ bool testScan(int *fixedSource, int length, PlatInfo info, double& totalTime, in
     int *cpu_input = new int[length];
     int *cpu_output = new int[length];
     
-    valRandom<int>(gpu_io, length, INT_MAX);
+    // valRandom<int>(gpu_io, length, 1500);
+    for(int i = 0; i < length; i++) gpu_io[i] = 1;
     
     for(int i = 0; i < length; i++) {
         cpu_input[i] = gpu_io[i];
@@ -402,7 +403,14 @@ bool testScan(int *fixedSource, int length, PlatInfo info, double& totalTime, in
     }
     
     for(int i = 0; i < length; i++) {
-        if (cpu_output[i] != gpu_io[i]) res = false;
+        if (cpu_output[i] != gpu_io[i])  {
+            res = false;
+            std::cout<<cpu_output[i-1]<<' '<<gpu_io[i-1]<<std::endl;
+            
+            std::cout<<cpu_output[i]<<' '<<gpu_io[i]<<std::endl;
+
+            break;
+        }
     }
     FUNC_CHECK(res);
     

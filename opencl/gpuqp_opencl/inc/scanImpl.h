@@ -12,6 +12,7 @@
 #include "Foundation.h"
 
 double scan(cl_mem &cl_arr, int num,int isExclusive, PlatInfo info, int localSize = BLOCKSIZE);
+DEPRECATED double scan_blelloch(cl_mem &cl_arr, int num,int isExclusive, PlatInfo info, int localSize = BLOCKSIZE);
 
 
 #endif /* defined(__gpuqp_opencl__scanImpl__) */

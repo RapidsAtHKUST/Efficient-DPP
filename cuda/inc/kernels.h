@@ -90,15 +90,15 @@ template<typename T> float radixSort(
     );
 
 //deprecated
-extern "C" double scanDevice(int *d_source, int r_len, int blockSize, int gridSize, int isExclusive);
-extern "C" double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize);
-extern "C" double bitonicSortDevice(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
-extern "C" double bitonicSortDevice_op(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
-extern "C" double scanImpl(int *h_source, int r_len, int blockSize, int gridSize, int isExclusive);
-extern "C" double splitImpl(Record *h_source, Record *h_dest, int r_len, int fanout, int blockSize, int gridSize);
-extern "C" double radixSortImpl(Record *h_source, int r_len, int blockSize, int gridSize);
-extern "C" double bitonicSortImpl(Record *h_source, int r_len, int dir, int blockSize, int gridSize);
-extern "C" double radixSortImpl_int(int *h_source, int r_len, int blockSize, int gridSize);
+DEPRECATED  double scanDevice(int *d_source, int r_len, int blockSize, int gridSize, int isExclusive);
+DEPRECATED  double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize);
+DEPRECATED  double bitonicSortDevice(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
+DEPRECATED  double bitonicSortDevice_op(Record *d_source, int r_len, int dir, int blockSize, int gridSize);
+DEPRECATED  double scanImpl(int *h_source, int r_len, int blockSize, int gridSize, int isExclusive);
+DEPRECATED  double splitImpl(Record *h_source, Record *h_dest, int r_len, int fanout, int blockSize, int gridSize);
+DEPRECATED  double radixSortImpl(Record *h_source, int r_len, int blockSize, int gridSize);
+DEPRECATED  double bitonicSortImpl(Record *h_source, int r_len, int dir, int blockSize, int gridSize);
+DEPRECATED  double radixSortImpl_int(int *h_source, int r_len, int blockSize, int gridSize);
 
 #endif
 
