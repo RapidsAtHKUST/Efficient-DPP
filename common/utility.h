@@ -113,6 +113,7 @@ double calCPUTime(clock_t start, clock_t end);
 double diffTime(struct timeval end, struct timeval start);	//calculate
 
 int floorOfPower2_CPU(int a);
+void printRes(std::string funcName, bool res, double elaspsedTime);
 void printRes(std::string funcName, bool res, float elaspsedTime);
 
 #endif

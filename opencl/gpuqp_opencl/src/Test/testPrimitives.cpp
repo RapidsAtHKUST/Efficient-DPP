@@ -380,6 +380,7 @@ bool testScan(int *fixedSource, int length, PlatInfo info, double& totalTime, in
     checkErr(status, ERR_WRITE_BUFFER);
     
     totalTime = scan(cl_arr, length, isExclusive,info, localSize);
+    // totalTime = scan_blelloch(cl_arr, length, isExclusive,info, localSize);
     
     status = clEnqueueReadBuffer(info.currentQueue, cl_arr, CL_TRUE, 0, sizeof(int)*length, gpu_io, 0, NULL, NULL);
     checkErr(status, ERR_READ_BUFFER);

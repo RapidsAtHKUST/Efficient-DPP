@@ -69,6 +69,14 @@ int main() {
 		loc_intr[i] = n - i - 1;
 	}
 
+	unsigned *a = new unsigned[n];
+	int *b = new int[n];
+
+	for(int i = 0; i < n; i++) {
+		a[i] = rand();
+	}
+
+	// cout<<endl;
 	// task_scheduler_init init;
 	// struct timeval start, end;
 	// int *a = new int[n];
@@ -111,8 +119,18 @@ int main() {
 	// cout<<"4------------------------------------------"<<endl;
 	// testMap(a,b,n);
 
+	// cout<<"input: ";
+	// 	for(int j = 0; j < n; j++) {
+	// 		a[j] = j + j ;
+	// 		cout<<a[j]<< ' ';
+	// 	}
+	// cout<<endl;
+
 	int num = 100;
-	// for(int i = 0; i < num; i++) {
+	for(int i = 0; i < num; i++) {
+		// for(int i = 0; i < n; i++) {
+		// 	a[i] = rand();
+		// }
 	// 	// double tempTime = map(a,b,n);
 	// 	cout<<"gather:"<<endl;
 	// 	testGather(source, dest, loc, n);
@@ -129,16 +147,22 @@ int main() {
 	// 	cout<<"scatter_intr:"<<endl;
 	// 	testScatter_intr(source_intr, dest_intr, loc_intr, n);
 	// 	cout<<endl;
-	// }
+		// testScan_tbb(a,b,n);
+		testRadixSort(a, n);
+		testRadixSort_tbb(a, n);
 
-	int *a = new int[n];
-	int *b = new int[n];
-
-	for(int i = 0; i < n; i++) {
-		a[i] = rand() % 1000 + 1;
+		// cout<<"output: ";
+		// for(int j = 0; j <n ; j++) {
+		// 	cout<<b[j]<<' ';
+		// }
+		// cout<<endl;	
+		// cout<<"output: ";
+		// for(int j = 0; j < n; j++) {
+		// 	cout<<a[j]<<' ';
+		// }
+		// cout<<endl;
 	}
-
-	testScan_tbb(a,b,n);
+	
 
 	delete[] a;
 	delete[] b;

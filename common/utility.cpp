@@ -212,6 +212,14 @@ int floorOfPower2_CPU(int a) {
 	return base>>1;
 }
 
+void printRes(std::string funcName, bool res, double elaspsedTime) {
+    std::cout<<funcName<<": \t\t";
+    
+    std::cout<<"Time: "<<elaspsedTime<<" ms."<<"\t\t\t";
+    if (res)    std::cout<<"Pass!"<<std::endl;
+    else        std::cout<<"Failed!"<<std::endl;
+}
+
 void printRes(std::string funcName, bool res, float elaspsedTime) {
     std::cout<<funcName<<": \t\t";
     

@@ -57,10 +57,7 @@ void testScatter(int *source, int *dest, int *loc, int n) {
 			break;
 		}
 	}
-	cout<<"Num: "<<n<<endl;
-	cout<<"Time: "<<myTime<<" ms."<<endl;
-	if (res)	cout<<"Right!"<<endl;
-	else		cout<<"Wrong!"<<endl;
+	printRes("scatter", res, myTime);
 }
 
 void testScatter_intr(int *source, int *dest, int *loc, int n) {
@@ -75,8 +72,5 @@ void testScatter_intr(int *source, int *dest, int *loc, int n) {
 			break;
 		}
 	}
-	cout<<"Num: "<<n<<endl;
-	cout<<"Time: "<<myTime<<" ms."<<endl;
-	if (res)	cout<<"Right!"<<endl;
-	else		cout<<"Wrong!"<<endl;
+	printRes("scatter (intrinsic) ", res, myTime);
 }

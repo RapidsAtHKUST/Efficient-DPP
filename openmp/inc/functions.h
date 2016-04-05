@@ -5,13 +5,15 @@
 
 
 
-void testRadixSort();
+void testRadixSort(unsigned *arr, int len) ;
+void testRadixSort_tbb(unsigned *arr_tbb, int len) ;
+
 
 void testGather(int *source, int *dest, int *loc, int n);
 void testGather_intr(int *source, int *dest, int *loc, int n);
 
-double testScatter(int *source, int *dest, int* loc, int n);
-double testScatter_intr(int *source, int *dest, int* loc, int n);
+void testScatter(int *source, int *dest, int* loc, int n);
+void testScatter_intr(int *source, int *dest, int* loc, int n);
 
 void testScan_tbb(int*, int*, int);
 
