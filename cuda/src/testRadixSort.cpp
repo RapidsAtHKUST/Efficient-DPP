@@ -10,6 +10,8 @@ bool testRadixSort(
 { 
     bool res = true;
 
+    T *cpu_check = new T[len];
+
 #ifdef RECORDS
     int *h_source_keys = new int[len];
     int *h_dest_keys = new int[len];
@@ -17,12 +19,12 @@ bool testRadixSort(
     T *h_source_values = new T[len];
     T *h_dest_values = new T[len];
 
-
     for(int i = 0; i < len; i++) {
 #ifdef RECORDS
     	h_source_keys[i] = source_keys[i];
 #endif
     	h_source_values[i] = source_values[i];
+        cpu_check[i] = source_values[i];
     }
 
     T *d_source_values;
@@ -53,13 +55,18 @@ bool testRadixSort(
 #endif
 
     //checking
-    for(int i = 0; i < len-1; i++) {
-        if(h_dest_values[i] > h_dest_values[i+1]) {
+    sort(cpu_check, cpu_check + len);
+    cout<<"output: ";
+    for(int i = 0; i < len; i++) {
+        cout<<h_dest_values[i]<<' ';
+        if(h_dest_values[i] != cpu_check[i]) {
             res = false;
-            break;
+            // cout<<"Failed at: "<<i<<endl;
+        //     break;
         }
     }
-    
+    cout<<endl;
+
     // thrust::device_ptr<int> dev_his(his);
     // thrust::device_ptr<int> dev_res_his(res_his);
 
@@ -90,6 +97,8 @@ bool testRadixSort(
 #endif
     delete[] h_source_values;
     delete[] h_dest_values;
+
+    delete[] cpu_check;
 
     return res;
 }

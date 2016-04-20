@@ -338,9 +338,10 @@ float radixSort(
     checkCudaErrors(cudaMalloc(&histogram, sizeof(int)* gridSize * RADIX));
 
     cudaEventRecord(start);
+    // for(int shiftBits = 0; shiftBits < sizeof(T) * 8; shiftBits += BITS) {
     for(int shiftBits = 0; shiftBits < sizeof(T) * 8; shiftBits += BITS) {
         radix_reduce<T><<<grid, block, sizeof(int) * REDUCE_BLOCK_SIZE * RADIX>>>(d_source_values, len, blockLen, histogram, shiftBits);
-        scan<int>(histogram, gridSize * RADIX, 1, 1024);
+        scan_warpwise<int>(histogram, gridSize * RADIX, 1, 1024);
         int tileLen = REDUCE_BLOCK_SIZE * REDUCE_ELE_PER_THREAD;
         radix_scatter<T><<<(gridSize+SCATTER_TILES_PER_BLOCK-1)/SCATTER_TILES_PER_BLOCK,SCATTER_BLOCK_SIZE>>>( 
 #ifdef RECORDS

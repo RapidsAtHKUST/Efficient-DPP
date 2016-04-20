@@ -23,7 +23,7 @@ bool testScan(T *source, int r_len, float& totalTime, int isExclusive,  int bloc
     // for(int i = 0; i < r_len; i++) h_source_thrust[i] = h_source[i];
 
     cudaMemcpy(d_source, h_source_gpu, sizeof(T) * r_len, cudaMemcpyHostToDevice);
-    totalTime = scan<T>(d_source, r_len, isExclusive, blockSize);
+    totalTime = scan_warpwise<T>(d_source, r_len, isExclusive, blockSize);
     cudaMemcpy(h_source_gpu, d_source, sizeof(T) * r_len, cudaMemcpyDeviceToHost);
 
 	// totalTime = scanImpl(h_source_gpu, r_len, blockSize, gridSize, isExclusive);

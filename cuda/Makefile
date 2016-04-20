@@ -35,9 +35,14 @@ INCLUDE := 	-I$(INCDIR) \
 LINK := -L /usr/local/cuda/lib64 -lcudart -lcuda
 
 CPP_SRC :=  $(filter-out ._%,$(notdir $(shell find -L $(SRCDIR) $(COMDIR) -name *.cpp)))
+CPP_SRC_FULL :=  $(filter-out ._%, $(shell find -L $(SRCDIR) $(COMDIR) -name *.cpp))
+
 CU_SRC :=  $(filter-out ._%,$(notdir $(shell find -L $(KERNELDIR) -name *.cu)))
+CU_SRC_FULL :=  $(filter-out ._%, $(shell find -L $(KERNELDIR) -name *.cu))
+
 CPP_OBJ := $(CPP_SRC:%.cpp=$(OBJDIR)/%.o)
 CU_OBJ := $(CU_SRC:%.cu=$(OBJDIR)/%.o)
+
 
 PROGRAM := executor
 
@@ -53,7 +58,7 @@ $(CPP_OBJ): $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(OBJDIR)	
 	$(CC) $(CC_FLAGS) -c $< -o $@ $(INCLUDE)
 
-$(CU_OBJ): $(OBJDIR)/%.o: %.cu
+$(CU_OBJ): $(OBJDIR)/%.o: %.cu 
 	@mkdir -p $(OBJDIR)	
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(INCLUDE)
 

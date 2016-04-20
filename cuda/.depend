@@ -1,0 +1,2 @@
+utility.o: /d2/zlai/workspace/comparison_gpu/cuda//common/utility.cpp \
+ /d2/zlai/workspace/comparison_gpu/cuda//common/utility.h

@@ -20,12 +20,15 @@ template<class T> bool testSplit(
 
 	T *d_source_values, *d_dest_values;
 
+	// cout<<"input: ";
 	for(int i = 0; i < r_len; i++) {
 		h_source_values[i] = source_values[i];
+		// cout<<h_source_values[i]<<' ';
 #ifdef RECORDS
 		h_source_keys[i] = source_keys[i];
 #endif
 	}
+	// cout<<endl;
 	
 	//allocate for the device memory
 	checkCudaErrors(cudaMalloc(&d_source_values,sizeof(T)*r_len));
@@ -69,11 +72,13 @@ template<class T> bool testSplit(
 	
 	//checking
     for(int i = 1; i < r_len; i++) {
+    	// cout<<h_dest_values[i]<<' ';
         if (h_dest_values[i] < h_dest_values[i-1])  {
         	res = false;
         	break;
         }
     }
+    cout<<endl;
 
 	delete[] h_source_values;
 	delete[] h_dest_values;

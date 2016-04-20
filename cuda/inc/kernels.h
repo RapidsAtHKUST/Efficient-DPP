@@ -77,6 +77,13 @@ template<class T> float split(
     );
 
 template<typename T>
+float scan_warpwise(T *d_source, int length, int isExclusive, int blockSize);
+
+template<typename T>
+float scan_ble(T *d_source, int length, int isExclusive, int blockSize);
+
+
+template<typename T>
 float scan(T *d_source, int length, int isExclusive, int blockSize);
 
 template<typename T> float radixSort(
