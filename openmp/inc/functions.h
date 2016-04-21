@@ -15,7 +15,8 @@ void testGather_intr(int *source, int *dest, int *loc, int n);
 void testScatter(int *source, int *dest, int* loc, int n);
 void testScatter_intr(int *source, int *dest, int* loc, int n);
 
-void testScan_tbb(int*, int*, int);
+void testScan_tbb(int* a, int* b, int n, int pattern);
+void testScan_omp(int *a, int *b, int n, int pattern);
 
 double map(float *source, float *dest, int n);
 

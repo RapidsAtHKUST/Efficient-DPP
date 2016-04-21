@@ -82,102 +82,91 @@ int main(int argc, char *argv[]) {
         valRandom<int>(fixedArray, dataSize, MAX_NUM);
         valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
 		valRandom<int>(splitArray, dataSize, fanout);			//fanout
-
     }
 
 	bool res;
-	bool isFirstCount = false;			//not counting the time in the first loop
 	int experiNum = 10;
-	int act_experiNum;
-
-	if (isFirstCount)	act_experiNum = experiNum;
-	else 				act_experiNum = experiNum - 1;	
-	assert(act_experiNum != 0);
 
 	//total time for each primitive
 	float idnElapsedTime;
-	float mapTotal = 0.0f;
-	float gatherTotal = 0.0f;
-	float scatterTotal = 0.0f;
-	float splitTotal = 0.0f;
-	float scanTotal = 0.0f;
-	float radixSortTotal = 0.0f;
+	float mapTime = MAX_TIME;
+	float gatherTime = MAX_TIME;
+	float scatterTime = MAX_TIME;
+	float splitTime = MAX_TIME;
+	float scanTime = MAX_TIME;
+	float radixSortTime = MAX_TIME;
 
 	for(int i = 0; i < experiNum; i++) {
 		cout<<"Round "<<i<<" :"<<endl;
 
-// //--------------testing map--------------
-// 		res = testMap<int>(
-// #ifdef RECORDS
-// 		fixedKeys, fixedValues,
-// #else
-// 		fixedArray, 
-// #endif
-// 		dataSize, idnElapsedTime);
+//--------------testing map--------------
+		res = testMap<int>(
+#ifdef RECORDS
+		fixedKeys, fixedValues,
+#else
+		fixedArray, 
+#endif
+		dataSize, idnElapsedTime);
 
-// 		printRes("map", res,idnElapsedTime);
-// 		if (i != 0)		mapTotal += idnElapsedTime;
+		printRes("map", res,idnElapsedTime);
+		if (idnElapsedTime < mapTime)		mapTime = idnElapsedTime;
 
-// //--------------testing gather--------------
-// 		res = testGather<int>(
-// #ifdef RECORDS
-// 		fixedKeys, fixedValues,
-// #else
-// 		fixedArray, 
-// #endif
-// 		dataSize, fixedLoc, idnElapsedTime);
+//--------------testing gather--------------
+		res = testGather<int>(
+#ifdef RECORDS
+		fixedKeys, fixedValues,
+#else
+		fixedArray, 
+#endif
+		dataSize, fixedLoc, idnElapsedTime);
 
-// 		printRes("gather", res,idnElapsedTime);
-// 		if (i != 0)		gatherTotal += idnElapsedTime;
+		printRes("gather", res,idnElapsedTime);
+		if (idnElapsedTime < gatherTime)		gatherTime = idnElapsedTime;
+		
 
-// //--------------testing scatter--------------
-// 		res = testScatter<int>(
-// #ifdef RECORDS
-// 		fixedKeys, fixedValues,
-// #else
-// 		fixedArray, 
-// #endif
-// 		dataSize, fixedLoc, idnElapsedTime);
+//--------------testing scatter--------------
+		res = testScatter<int>(
+#ifdef RECORDS
+		fixedKeys, fixedValues,
+#else
+		fixedArray, 
+#endif
+		dataSize, fixedLoc, idnElapsedTime);
 
-// 		printRes("scatter", res,idnElapsedTime);
-// 		if (i != 0)		scatterTotal += idnElapsedTime;
+		printRes("scatter", res,idnElapsedTime);
+		if (idnElapsedTime < scatterTime)		scatterTime = idnElapsedTime;
 
-// //--------------testing split--------------
-// 		res = testSplit<int>(
-// #ifdef RECORDS
-// 		splitKeys, splitVals,
-// #else
-// 		splitArray, 
-// #endif
-// 		dataSize, idnElapsedTime, fanout);
+// --------------testing split--------------
+		//use blockSize of 256 in fix
+		res = testSplit<int>(
+#ifdef RECORDS
+		splitKeys, splitVals,
+#else
+		splitArray, 
+#endif
+		dataSize, idnElapsedTime, fanout);
 
-// 		printRes("split", res,idnElapsedTime);
-// 		if (i != 0)		splitTotal += idnElapsedTime;
+		printRes("split", res,idnElapsedTime);
+		if (idnElapsedTime < splitTime)		splitTime = idnElapsedTime;
 
-// //--------------testing scan: 0 for inclusive, 1 for exclusive--------------
-// 		res = testScan<int>(fixedArray, dataSize, idnElapsedTime, 1);
-// 		printRes("scan", res,idnElapsedTime);
-// 		if (i != 0)		scanTotal += idnElapsedTime;
+//--------------testing scan: 0 for inclusive, 1 for exclusive--------------
 
-		// idnElapsedTime = scanImpl(fixedArray, dataSize, 1024, 1024, 0);
-		// cout<<"time: "<<idnElapsedTime<<endl;
+		res = testScan<int>(fixedArray, dataSize, idnElapsedTime, 1);
+		printRes("scan", res,idnElapsedTime);
+		if (idnElapsedTime < scanTime)		scanTime = idnElapsedTime;
 
 //--------------testing radix sort (no need to specify the block and grid size)--------------
-		int *testData = new int[dataSize];
-		for(int j = 0; j < dataSize; j++) testData[j] = dataSize - j - 1;
 
 		res = testRadixSort<int>(
 #ifdef RECORDS
 		fixedKeys, fixedValues,
 #else
-		testData, 
+		fixedArray, 
 #endif
 		dataSize, idnElapsedTime);
 
 		printRes("radix sort", res,idnElapsedTime);
-		if (i != 0)		radixSortTotal += idnElapsedTime;
-
-		delete[] testData;
+		if (idnElapsedTime < radixSortTime)		radixSortTime = idnElapsedTime;
 	}
 
 	cout<<"-----------------------------------------"<<endl;
@@ -187,12 +176,12 @@ int main(int argc, char *argv[]) {
     cout<<"Using type: Basic type."<<endl;
 #endif
 	cout<<"Data Size: "<<dataSize<<endl;
-	cout<<"Map avg time: "<<mapTotal/act_experiNum<<" ms."<<endl;
-	cout<<"Gather avg time: "<<gatherTotal/act_experiNum<<" ms."<<endl;
-	cout<<"Scatter avg time: "<<scatterTotal/act_experiNum<<" ms."<<endl;
-	cout<<"Split avg time: "<<splitTotal/act_experiNum<<" ms."<<endl;
-	cout<<"Scan avg time:"<<scanTotal/act_experiNum<<" ms."<<endl;
-	cout<<"Radix sort avg time:"<<radixSortTotal/act_experiNum<<" ms."<<endl;
+	cout<<"Map time: "<<mapTime<<" ms."<<endl;
+	cout<<"Gather time: "<<gatherTime<<" ms."<<endl;
+	cout<<"Scatter time: "<<scatterTime<<" ms."<<endl;
+	cout<<"Split time: "<<splitTime<<" ms."<<endl;
+	cout<<"Scan time:"<<scanTime<<" ms."<<endl;
+	cout<<"Radix sort time:"<<radixSortTime<<" ms."<<endl;
 	
 	delete[] fixedRecords;
 	delete[] fixedArray;

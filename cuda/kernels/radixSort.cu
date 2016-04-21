@@ -5,6 +5,12 @@
 //  Created by Bryan on 01/26/16.
 //  Copyright (c) 2015-2016 Bryan. All rights reserved.
 //
+
+/*pay attention:
+ * The ScatterData data structure may use char to record number count for speeding up. If the count is >= 256, it will cause problem!
+ *  So a tile should not contain too many elements, i.e, SCATTER_ELE_PER_TILE should not be too large.
+ *
+ */
 #include "kernels.h"
 #define BITS 4
 #define RADIX (1<<BITS)
@@ -23,9 +29,9 @@ using namespace std;
 
 #define SCATTER_ELE_PER_THREAD      8
 #define SCATTER_TILE_THREAD_NUM     16          //SCATTER_TILE_THREAD_NUM threads cooperate in a tile
-//in one loop a batch of data is processed at the same time
-//IMPORTANT: make sure that SCATTER_ELE_PER_BATCH is less than sizeof(unsigned char) because the internal shared variable is uchar at most this large!
-#define SCATTER_ELE_PER_BATCH       (SCATTER_ELE_PER_THREAD * SCATTER_TILE_THREAD_NUM)
+//in one loop a TILE of data is processed at the same time
+//IMPORTANT: make sure that SCATTER_ELE_PER_TILE is less than sizeof(unsigned char) because the internal shared variable is uchar at most this large!
+#define SCATTER_ELE_PER_TILE       (SCATTER_ELE_PER_THREAD * SCATTER_TILE_THREAD_NUM)
 #define SCATTER_BLOCK_SIZE          64
  //num of TILES to process for each scatter block
 #define SCATTER_TILES_PER_BLOCK             (SCATTER_BLOCK_SIZE / SCATTER_TILE_THREAD_NUM)
@@ -88,17 +94,17 @@ __global__ void radix_reduce(
     if (localId < RADIX)    histogram[localId * gridSize + blockId] = hist[localId * blockSize];
 }
 
-//data structures for storing information for each batch in a tile
+//data structures for storing information for each TILE in a tile
 template<typename T>
 struct ScatterData{
-    unsigned char digits[SCATTER_ELE_PER_BATCH];        //store the digits 
-    unsigned char shuffle[SCATTER_ELE_PER_BATCH];       //the positions that each elements in the batch should be scattered to
-    unsigned char localHis[SCATTER_TILE_THREAD_NUM * RADIX];    //store the digit counts for a batch
+    unsigned char digits[SCATTER_ELE_PER_TILE];        //store the digits 
+    unsigned char shuffle[SCATTER_ELE_PER_TILE];       //the positions that each elements in the TILE should be scattered to
+    unsigned char localHis[SCATTER_TILE_THREAD_NUM * RADIX];    //store the digit counts for a TILE
     unsigned char countArr[RADIX];
-    uint bias[RADIX];                           //the global offsets of the radixes in this batch
-    T values[SCATTER_ELE_PER_BATCH];
+    uint bias[RADIX];                           //the global offsets of the radixes in this TILE
+    T values[SCATTER_ELE_PER_TILE];
 #ifdef RECORDS
-    int keys[SCATTER_ELE_PER_BATCH];            //store the keys
+    int keys[SCATTER_ELE_PER_TILE];            //store the keys
 #endif
 } ;
 
@@ -143,12 +149,12 @@ __global__ void radix_scatter(
     int stop = start + tileLen;
     int end = stop > total? total : stop;
 
-    //each thread should run all the loops, even have reached the end
-    //
-    //each iteration is called a batch.
-    for(; start < stop; start += SCATTER_ELE_PER_BATCH) {
-        //each thread processes SCATTER_ELE_PER_THREAD consecutive keys
+    if (start >= end)   return;
 
+    //each thread should run all the loops, even have reached the end
+    //each iteration is called a TILE.
+    for(; start < end; start += SCATTER_ELE_PER_TILE) {
+        //each thread processes SCATTER_ELE_PER_THREAD consecutive keys
         //local counts for each thread:
         //recording how many same keys has been visited till now by this thread.
         unsigned char num_of_former_same_keys[SCATTER_ELE_PER_THREAD];
@@ -156,21 +162,22 @@ __global__ void radix_scatter(
         //address in the localCount for each of the SCATTER_ELE_PER_THREAD element 
         unsigned char address_ele_per_thread[SCATTER_ELE_PER_THREAD];
 
-        //put the global keys of this batch to the shared memory, coalesced access
+        //put the global keys of this TILE to the shared memory, coalesced access
         for(uint i = 0; i < SCATTER_ELE_PER_THREAD; i++) {
             const uint lo_id = lid_in_tile + i * SCATTER_TILE_THREAD_NUM;
-            const uint addr = start + lo_id;
+            const int addr = start + lo_id;
+            if (addr >= end)    break;                                     //important to have it to deal with numbers not regular
 #ifdef RECORDS
             const int current_key = (addr < end)? d_source_keys[addr] : 0;
             sharedInfo[tile_in_block].keys[lo_id] = current_key;
 #endif
             const T current_value = (addr < end)? d_source_values[addr] : (T)0;
             sharedInfo[tile_in_block].values[lo_id] = current_value;
-
+            
             sharedInfo[tile_in_block].digits[lo_id] = ( current_value >> shiftBits ) & (RADIX - 1);
         }
 
-        //the SCATTER_ELE_PER_BATCH threads will cooperate
+        //the SCATTER_ELE_PER_TILE threads will cooperate
         //How to cooperate?
         //Each threads read their own consecutive part, check how many same keys
         
@@ -178,12 +185,14 @@ __global__ void radix_scatter(
         for(uint i = 0; i < RADIX; i++) sharedInfo[tile_in_block].localHis[i * SCATTER_TILE_THREAD_NUM + lid_in_tile] = 0;
         __syncthreads();
 
-        //doing the per-batch histogram counting
+        //doing the per-TILE histogram counting
         for(uint i = 0; i < SCATTER_ELE_PER_THREAD; i++) {
             //PAY ATTENTION: Here the shared memory access pattern has changed!!!!!!!
             //instead for coalesced access, here each thread processes consecutive area of 
             //SCATTER_ELE_PER_THREAD elements
             const uint lo_id = lid_in_tile * SCATTER_ELE_PER_THREAD + i;
+            if (start + lo_id >= end)    break;                                     //important to have it to deal with numbers not regular
+
             const unsigned char digit = sharedInfo[tile_in_block].digits[lo_id];
             address_ele_per_thread[i] = digit * SCATTER_TILE_THREAD_NUM + lid_in_tile;
             num_of_former_same_keys[i] = sharedInfo[tile_in_block].localHis[address_ele_per_thread[i]];
@@ -192,8 +201,8 @@ __global__ void radix_scatter(
         __syncthreads();
 
         //now what have been saved?
-        //1. keys: the keys for this batch
-        //2. digits: the digits for this batch
+        //1. keys: the keys for this TILE
+        //2. digits: the digits for this TILE
         //3. address_ele_per_thread: the address in localCount for each element visited by a thread
         //4. num_of_former_same_keys: # of same keys before this key
         //5. localHis: storing the key counts
@@ -251,22 +260,19 @@ __global__ void radix_scatter(
 
 //end of naive scan:-------------------------------------------------------------------------------------------------------------------------------------
 
-        // if (lid_in_tile < RADIX) {
-        //  sharedInfo[tile_in_block].bias[lid_in_tile] = offset;
-        //  offset += digitCount;
-        // }
-
         //still consecutive access!!
         for(uint i = 0; i < SCATTER_ELE_PER_THREAD; i++) {
             const unsigned char lo_id = lid_in_tile * SCATTER_ELE_PER_THREAD + i;
+            if (start + lo_id >= end)    break;                                     //important to have it to deal with numbers not regular
 
             //position of this element(with id: lo_id) being scattered to
             uint pos = num_of_former_same_keys[i] + sharedInfo[tile_in_block].localHis[address_ele_per_thread[i]];
 
             //since this access pattern is different from the scatter pattern(coalesced access), the position should be stored
             //also because this lo_id is not tractable in the scatter, thus using pos as the index instead of lo_id!!
-            // both pos and lo_id are in the range of [0, SCATTER_ELE_PER_BATCH)
-            sharedInfo[tile_in_block].shuffle[pos] = lo_id;     
+            // both pos and lo_id are in the range of [0, SCATTER_ELE_PER_TILE)
+            sharedInfo[tile_in_block].shuffle[pos] = lo_id;  
+            // printf("write to shuffle[%d],value:%d\n",pos, lo_id);
         }
         __syncthreads();
 
@@ -276,7 +282,6 @@ __global__ void radix_scatter(
             if ((int)lo_id < (int)end - (int)start) {                       //in case that some threads have been larger than the total length causing index overflow
                 const unsigned char position = sharedInfo[tile_in_block].shuffle[lo_id];    //position is the lo_id above
                 const unsigned char myDigit = sharedInfo[tile_in_block].digits[position];   //when storing digits, the storing pattern is lid_in_tile + i * SCATTER_TILE_THREAD_NUM, 
-
                 //this is a bit complecated:
                 //think about what we have now:
                 //bias is the starting point for a cetain digit to be written to.
@@ -292,8 +297,6 @@ __global__ void radix_scatter(
                 //for example: if we have 6 0's, 7 1's. Now for the first 1, lo_id = 6. Then addr would be wrong because we should write 
                 //to bias[1] + 0 instead of bias[1] + 6. So we need to deduct the number of 0's, which is why previously bias need to be deducted!!!!!
                 const uint addr = lo_id + sharedInfo[tile_in_block].bias[myDigit];
-                // if (addr < 0)   printf("block %d,id %d: addr %d\n",blockId, localId,addr);
-                // else            printf("correct: block %d,id %d: addr %d\n",blockId, localId,addr);
 #ifdef RECORDS
                 d_dest_keys[addr] = sharedInfo[tile_in_block].keys[position];
 #endif
@@ -338,7 +341,6 @@ float radixSort(
     checkCudaErrors(cudaMalloc(&histogram, sizeof(int)* gridSize * RADIX));
 
     cudaEventRecord(start);
-    // for(int shiftBits = 0; shiftBits < sizeof(T) * 8; shiftBits += BITS) {
     for(int shiftBits = 0; shiftBits < sizeof(T) * 8; shiftBits += BITS) {
         radix_reduce<T><<<grid, block, sizeof(int) * REDUCE_BLOCK_SIZE * RADIX>>>(d_source_values, len, blockLen, histogram, shiftBits);
         scan_warpwise<int>(histogram, gridSize * RADIX, 1, 1024);
@@ -363,6 +365,7 @@ float radixSort(
         d_source_keys = temp_keys;
 #endif
     }
+
     cudaEventRecord(end);
     cudaEventSynchronize(end);
     cudaEventElapsedTime(&myTime,start, end);
@@ -371,7 +374,8 @@ float radixSort(
 #ifdef RECORDS
     checkCudaErrors(cudaFree(d_temp_keys));
 #endif
-
+    
+    cudaFree(histogram);
     return myTime;
 }
 

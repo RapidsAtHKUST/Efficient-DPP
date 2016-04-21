@@ -81,7 +81,7 @@ float split(
     ) 
 {
 	float totalTime = 0.0f;
-    blockSize = 1024;
+    blockSize = 256;
 	dim3 grid(gridSize);
 	dim3 block(blockSize);
 
@@ -96,7 +96,7 @@ float split(
 
     cudaEventRecord(start);
 	createHist<T><<<grid, block, sizeof(int)*fanout*blockSize>>>(d_source_values, r_len,d_his,fanout);
-	scan_warpwise<T>(d_his, hisLength, 1, 1024);
+	scan_ble<int>(d_his, hisLength, 1, 1024);
 	splitWithHist<T><<<grid, block, sizeof(int)*fanout*blockSize>>>(
 #ifdef RECORDS
     d_source_keys, d_dest_keys, 

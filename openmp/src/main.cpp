@@ -69,11 +69,12 @@ int main() {
 		loc_intr[i] = n - i - 1;
 	}
 
-	unsigned *a = new unsigned[n];
+	int *a = new int[n];
 	int *b = new int[n];
 
 	for(int i = 0; i < n; i++) {
 		a[i] = rand();
+		// b[i] = rand() % 100 + 1;
 	}
 
 	// cout<<endl;
@@ -126,18 +127,18 @@ int main() {
 	// 	}
 	// cout<<endl;
 
-	int num = 100;
+	int num = 10;
 	for(int i = 0; i < num; i++) {
-		// for(int i = 0; i < n; i++) {
-		// 	a[i] = rand();
+		// for(int j = 0; j < n; j++) {
+		// 	a[j] = rand() % 10000;
 		// }
 	// 	// double tempTime = map(a,b,n);
 	// 	cout<<"gather:"<<endl;
-	// 	testGather(source, dest, loc, n);
+		// testGather_intr(source, dest, loc, n);
 	// 	cout<<endl;
 
 	// 	cout<<"gather_intr:"<<endl;
-	// 	testGather_intr(source_intr, dest_intr, loc_intr, n);
+		testGather_intr(source_intr, dest_intr, loc_intr, n);
 	// 	cout<<endl;
 
 	// 	cout<<"scatter:"<<endl;
@@ -147,9 +148,11 @@ int main() {
 	// 	cout<<"scatter_intr:"<<endl;
 	// 	testScatter_intr(source_intr, dest_intr, loc_intr, n);
 	// 	cout<<endl;
-		// testScan_tbb(a,b,n);
-		testRadixSort(a, n);
-		testRadixSort_tbb(a, n);
+		// testScan_omp(a,b,n,0);
+		// testScan_tbb(a,b,n,0);
+
+		// testRadixSort(a, n);
+		// testRadixSort_tbb(a, n);
 
 		// cout<<"output: ";
 		// for(int j = 0; j <n ; j++) {

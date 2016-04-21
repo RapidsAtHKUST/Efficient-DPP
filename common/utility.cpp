@@ -80,6 +80,7 @@ void valRandom(T *arr, int length, T max) {
     srand((unsigned)time(NULL));
     for(int i = 0; i < length; i++) {
         arr[i] = getRandNum<T>(max);
+        assert(arr[i] >= 0);
     }
 }
 

@@ -67,8 +67,11 @@ void KernelProcessor::compile(cl_context context) {
     strcat(path,"-DRECORDS");
 #endif
     
+    cout<<"building programs"<<endl;
     err = clBuildProgram(program, cl_int(num), devices,path, 0, 0);
     checkErr(err, "Compilation error.");
+    cout<<"building programs complete"<<endl;
+
     
 }
 

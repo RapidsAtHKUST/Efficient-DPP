@@ -56,16 +56,17 @@ bool testRadixSort(
 
     //checking
     sort(cpu_check, cpu_check + len);
-    cout<<"output: ";
     for(int i = 0; i < len; i++) {
-        cout<<h_dest_values[i]<<' ';
         if(h_dest_values[i] != cpu_check[i]) {
             res = false;
-            // cout<<"Failed at: "<<i<<endl;
-        //     break;
+            cout<<"Failed at: "<<i<<": "<<h_dest_values[i]<<' '<<cpu_check[i]<<endl;
+            cout<<h_dest_values[i-1]<<' '<<cpu_check[i-1]<<endl;
+            cout<<h_dest_values[i+1]<<' '<<cpu_check[i+1]<<endl;
+
+            break;
         }
     }
-    cout<<endl;
+    // cout<<endl;
 
     // thrust::device_ptr<int> dev_his(his);
     // thrust::device_ptr<int> dev_res_his(res_his);
@@ -115,36 +116,3 @@ template bool testRadixSort<long>(
     int *source_keys, 
 #endif
     long *source_values, int len, float& totalTime) ;
-
-// bool testRadixSort(Record *source, int r_len, double& totalTime, int blockSize, int gridSize) {
-// 	bool res = true;
-// 	Record *h_source = new Record[r_len];
-
-// 	for(int i = 0; i < r_len; i++) {
-// 		h_source[i].x = source[i].x;
-// 		h_source[i].y = source[i].y;
-// 	}
-
-// 	totalTime = radixSortImpl(h_source, r_len, blockSize, gridSize);
-
-// 	for(int i = 0; i < r_len-1; i++) {
-// 		if (h_source[i].y > h_source[i+1].y) res = false;
-// 	}
-// 	return res;
-// }
-
-// bool testRadixSort_int(int *source, int r_len, double& totalTime, int blockSize, int gridSize) {
-// 	bool res = true;
-// 	int *h_source = new int[r_len];
-
-// 	for(int i = 0; i < r_len; i++) {
-// 		h_source[i]= source[i];
-// 	}
-
-// 	totalTime = radixSortImpl_int(h_source, r_len, blockSize, gridSize);
-
-// 	for(int i = 0; i < r_len-1; i++) {
-// 		if (h_source[i] > h_source[i+1]) res = false;
-// 	}
-// 	return res;
-// }

@@ -43,7 +43,7 @@ public:
 };
 
 double radixSort(unsigned *data, size_t n) {
-    
+
     __attribute__ ((target(mic)))  unsigned *buffer;
     int total_digits = sizeof(unsigned)*8;
  
@@ -118,7 +118,7 @@ double radixSort(unsigned *data, size_t n) {
     out(data:length(n) alloc_if(0) free_if(1))
     {};
 
-    return diffTime(end,start);
+    return diffTime(end, start);
 }
 
 double tbb_sort(unsigned *data, size_t num) {
