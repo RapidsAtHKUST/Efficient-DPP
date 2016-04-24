@@ -30,8 +30,14 @@ bool testScatter(
 #endif
     int *fixedValues, int length, PlatInfo info , double& totalTime, int localSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 
+bool testRadixSort(
+#ifdef RECORDS
+    int *fixedKeys,
+#endif
+    int *fixedValues, 
+    int length, PlatInfo info, double& totalTime);
+
 bool testScan(int *fixedSource, int length, PlatInfo info, double& totalTime, int isExclusive, int localSize = BLOCKSIZE);
 bool testSplit(Record *fixedSource, int length, PlatInfo info , int fanout, double& totalTime, int localSize= BLOCKSIZE, int gridSize = GRIDSIZE);
-bool testRadixSort(Record *fixedSource, int length, PlatInfo info, double& totalTime);
 bool testBitonitSort(Record *fixedSource, int length, PlatInfo info, int dir, double& totalTime, int localSize = BLOCKSIZE, int gridSize = GRIDSIZE);
 #endif

@@ -9,21 +9,23 @@
 #include "radixSortImpl.h"
 #include "scanImpl.h"
 #include "scatterImpl.h"
+#include "dataDef.h"
 
-double radixSort(cl_mem& d_source, int length, PlatInfo info) {
+double radixSort(
+#ifdef RECORDS
+    cl_mem& d_source_keys, bool isRecords,
+#endif
+    cl_mem& d_source_values,
+    int length, PlatInfo info) {
     
     double totalTime = 0;
     
-    int blockSize = 256;             //local memory size: 47KB
-    int gridSize = 512;
+    int gridSize = (length + REDUCE_BLOCK_SIZE * REDUCE_ELE_PER_THREAD- 1) / (REDUCE_BLOCK_SIZE * REDUCE_ELE_PER_THREAD);
     
     cl_int status;
     int argsNum = 0;
 
-    int bits = 4;                   //each pass sort 8 bits
-    int radix = (1<<bits);
-    
-    uint hisSize = blockSize * gridSize * radix;
+    uint hisSize = REDUCE_BLOCK_SIZE * gridSize * SORT_RADIX;
     uint isExclusive = 1;
     
     //kernel reading
@@ -31,44 +33,51 @@ double radixSort(cl_mem& d_source, int length, PlatInfo info) {
     strcat(sortPath, "/Kernels/radixSortKernel.cl");
     std::string sortKerAddr = sortPath;
     
-    char countHisSource[100] = "countHis";
-    char writeHisSource[100] = "writeHis";
-    
+    // char countHisSource[100] = "countHis";
+    // char writeHisSource[100] = "writeHis";
+    char radixReduceSource[100] = "radix_reduce";
+    char radixScatterSource[100] = "radix_scatter";
+
     KernelProcessor sortReader(&sortKerAddr,1,info.context);
     
-    cl_kernel countHisKernel = sortReader.getKernel(countHisSource);
-    cl_kernel writeHisKernel = sortReader.getKernel(writeHisSource);
-    
-    size_t testLocal[1] = {(size_t)blockSize};
-    size_t testGlobal[1] = {(size_t)(blockSize * gridSize)};
-    
+    // cl_kernel countHisKernel = sortReader.getKernel(countHisSource);
+    // cl_kernel writeHisKernel = sortReader.getKernel(writeHisSource);
+    cl_kernel radixReduceKernel = sortReader.getKernel(radixReduceSource);
+    cl_kernel radixScatterKernel = sortReader.getKernel(radixScatterSource);
+
+    size_t reduce_localSize[1] = {(size_t)REDUCE_BLOCK_SIZE};
+    size_t reduce_globalSize[1] = {(size_t)(REDUCE_BLOCK_SIZE * gridSize)};
+
+    size_t scatter_localSize[1] = {(size_t)SCATTER_BLOCK_SIZE};
+    size_t scatter_globalSize[1] = {(size_t)((gridSize+SCATTER_TILES_PER_BLOCK-1)/SCATTER_TILES_PER_BLOCK) * SCATTER_BLOCK_SIZE};
+
     struct timeval start, end;
     
-    cl_mem d_temp = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(Record)*length, NULL, &status);
+    cl_mem d_temp_values = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
+#ifdef RECORDS    
+    cl_mem d_temp_keys = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*length, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION); 
+#endif
     cl_mem d_histogram = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(uint)* hisSize, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_loc = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(uint)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
     
-    for(uint shiftBits = 0; shiftBits < sizeof(int) * 8; shiftBits += bits) {
+    for(uint shiftBits = 0; shiftBits < sizeof(int) * 8; shiftBits += SORT_BITS) {
         
-        isExclusive = 1;        //reset the exclusive
         //data preparation
-
         argsNum = 0;
-        status |= clSetKernelArg(countHisKernel, argsNum++, sizeof(cl_mem), &d_source);
-        status |= clSetKernelArg(countHisKernel, argsNum++, sizeof(int), &length);
-        status |= clSetKernelArg(countHisKernel, argsNum++, sizeof(cl_mem), &d_histogram);
-        status |= clSetKernelArg(countHisKernel, argsNum++, sizeof(ushort)*radix*blockSize, NULL);
-        status |= clSetKernelArg(countHisKernel, argsNum++, sizeof(uint), &shiftBits);
+        status |= clSetKernelArg(radixReduceKernel, argsNum++, sizeof(cl_mem), &d_source_values);
+        status |= clSetKernelArg(radixReduceKernel, argsNum++, sizeof(int), &length);
+        status |= clSetKernelArg(radixReduceKernel, argsNum++, sizeof(cl_mem), &d_histogram);
+        status |= clSetKernelArg(radixReduceKernel, argsNum++, sizeof(uint), &shiftBits);
+        status |= clSetKernelArg(radixReduceKernel, argsNum++, sizeof(uint)*SORT_RADIX*REDUCE_BLOCK_SIZE, NULL);
         checkErr(status, ERR_SET_ARGUMENTS);
         
 #ifdef PRINT_KERNEL
-        printExecutingKernel(countHisKernel);
+        printExecutingKernel(radixReduceKernel);
 #endif
         gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, countHisKernel, 1, 0, testGlobal, testLocal, 0, 0, 0);
+        status = clEnqueueNDRangeKernel(info.currentQueue, radixReduceKernel, 1, 0, reduce_globalSize, reduce_localSize, 0, 0, 0);
         status = clFinish(info.currentQueue);
         gettimeofday(&end, NULL);
         checkErr(status, ERR_EXEC_KERNEL);
@@ -77,37 +86,46 @@ double radixSort(cl_mem& d_source, int length, PlatInfo info) {
         totalTime += scan(d_histogram,hisSize,1,info);
         
         argsNum = 0;
-        status |= clSetKernelArg(writeHisKernel, argsNum++, sizeof(cl_mem), &d_source);
-        status |= clSetKernelArg(writeHisKernel, argsNum++, sizeof(uint), &length);
-        status |= clSetKernelArg(writeHisKernel, argsNum++, sizeof(cl_mem), &d_histogram);
-        status |= clSetKernelArg(writeHisKernel, argsNum++, sizeof(cl_mem), &d_loc);
-        status |= clSetKernelArg(writeHisKernel, argsNum++, sizeof(uint)*radix*blockSize, NULL);
-        status |= clSetKernelArg(writeHisKernel, argsNum++, sizeof(uint), &shiftBits);
+#ifdef RECORDS
+        status |= clSetKernelArg(radixScatterKernel, argsNum++, sizeof(cl_mem), &d_source_keys);
+        status |= clSetKernelArg(radixScatterKernel, argsNum++, sizeof(cl_mem), &d_temp_keys);
+#endif
+        status |= clSetKernelArg(radixScatterKernel, argsNum++, sizeof(cl_mem), &d_source_values);
+        status |= clSetKernelArg(radixScatterKernel, argsNum++, sizeof(cl_mem), &d_temp_values);
+
+        status |= clSetKernelArg(radixScatterKernel, argsNum++, sizeof(uint), &length);
+        status |= clSetKernelArg(radixScatterKernel, argsNum++, sizeof(int), &gridSize);
+
+        status |= clSetKernelArg(radixScatterKernel, argsNum++, sizeof(cl_mem), &d_histogram);
+        status |= clSetKernelArg(radixScatterKernel, argsNum++, sizeof(uint), &shiftBits);
+        status |= clSetKernelArg(radixScatterKernel, argsNum++, sizeof(ScatterData)*SCATTER_TILES_PER_BLOCK, NULL);
         checkErr(status, ERR_SET_ARGUMENTS);
         
 #ifdef PRINT_KERNEL
-        printExecutingKernel(writeHisKernel);
+        printExecutingKernel(radixScatterKernel);
 #endif
         gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, writeHisKernel, 1, 0, testGlobal, testLocal, 0, 0, 0);
+        status = clEnqueueNDRangeKernel(info.currentQueue, radixScatterKernel, 1, 0, scatter_globalSize, scatter_localSize, 0, 0, 0);
         status = clFinish(info.currentQueue);
         gettimeofday(&end, NULL);
         checkErr(status, ERR_EXEC_KERNEL);
         totalTime += diffTime(end, start);
         
-        //scatter
-        totalTime += scatter(d_source, d_temp, length, d_loc, 512, 32768, info);
-        
         //copy the buffer for another loop
-        status = clEnqueueCopyBuffer(info.currentQueue, d_temp, d_source, 0, 0, sizeof(Record)*length,0 , 0, 0);
+        status = clEnqueueCopyBuffer(info.currentQueue, d_temp_values, d_source_values, 0, 0, sizeof(int)*length,0 , 0, 0);
+#ifdef RECORDS
+        status = clEnqueueCopyBuffer(info.currentQueue, d_temp_keys, d_source_keys, 0, 0, sizeof(int)*length,0 , 0, 0);
+#endif
         checkErr(status, ERR_COPY_BUFFER);
     }
     
-    status = clReleaseMemObject(d_temp);
+    status = clReleaseMemObject(d_temp_values);
     checkErr(status, ERR_RELEASE_MEM);
+#ifdef RECORDS
+    status = clReleaseMemObject(d_temp_values);
+    checkErr(status, ERR_RELEASE_MEM);
+#endif
     status = clReleaseMemObject(d_histogram);
-    checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_loc);
     checkErr(status, ERR_RELEASE_MEM);
 
     return totalTime;

@@ -497,24 +497,32 @@ bool testSplit(Record *fixedSource, int length, PlatInfo info , int fanout, doub
     return res;
 }
 
-bool testRadixSort(Record *fixedSource, int length, PlatInfo info, double& totalTime) {
+bool testRadixSort(
+#ifdef RECORDS
+    int *fixedKeys,
+#endif
+    int *fixedValues, 
+    int length, PlatInfo info, double& totalTime) {
     
     bool res = true;
     FUNC_BEGIN;
     SHOW_PARALLEL(256, 512);
     SHOW_DATA_NUM(length);
-    
-    Record *h_source = new Record[length];
-    Record *cpuInput = new Record[length];
-    
-//    recordRandom(h_source, length);
+
+#ifdef RECORDS
+    int *h_source_keys = new int[length];
+#endif
+    int *h_source_values = new int[length];
+    int *cpu_input = new int[length];
+
     for(int i = 0; i < length; i++) {
-        h_source[i].x = fixedSource[i].x;
-        h_source[i].y = fixedSource[i].y;
+#ifdef RECORDS
+        h_source_keys[i] = fixedKeys[i];
+#endif
+        h_source_values[i] = fixedValues[i];        
+        cpu_input[i] = fixedValues[i];
     }
     
-    
-    for(int i = 0;i<length;i++) cpuInput[i] = h_source[i];
     
     struct timeval start, end;
     gettimeofday(&start,NULL);
@@ -522,40 +530,62 @@ bool testRadixSort(Record *fixedSource, int length, PlatInfo info, double& total
     cl_int status = 0;
     
     //memory allocation
-    cl_mem d_source = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*length, NULL, &status);
+    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
+#ifdef RECORDS
+    cl_mem d_source_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*length, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+#endif
     
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source, CL_TRUE, 0, sizeof(Record)*length, h_source, 0, 0, 0);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(int)*length, h_source_values, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
-    
-    //call gather
+#ifdef RECORDS
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_keys, CL_TRUE, 0, sizeof(int)*length, h_source_keys, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+#endif
 
-    totalTime = radixSort(d_source, length, info);
+    //call radix sort
+    totalTime = radixSort(
+#ifdef RECORDS
+    d_source_keys, true,   
+#endif
+    d_source_values, length, info);
 
     //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_source, CL_TRUE, 0, sizeof(Record)*length, h_source, 0, 0, 0);
+    status = clEnqueueReadBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(int)*length, h_source_values, 0, 0, 0);
     checkErr(status, ERR_READ_BUFFER);
     status = clFinish(info.currentQueue);
+#ifdef RECORDS
+    status = clEnqueueReadBuffer(info.currentQueue, d_source_keys, CL_TRUE, 0, sizeof(int)*length, h_source_keys, 0, 0, 0);
+    checkErr(status, ERR_READ_BUFFER);
+    status = clFinish(info.currentQueue);
+#endif
     
     gettimeofday(&end, NULL);
     
     //check
     SHOW_CHECKING;
-    qsort(cpuInput, length, sizeof(Record), compRecordAsc);
+    sort(cpu_input, cpu_input + length);
     
     for(int i = 0;i<length;i++)    {
-        if (h_source[i].y != cpuInput[i].y) {
+        if (h_source_values[i] != cpu_input[i]) {
             res = false;
             break;
         }
     }
     
-    delete [] h_source;
-    delete [] cpuInput;
+    delete [] h_source_values;
+#ifdef RECORDS
+    delete [] h_source_keys;
+#endif
+    delete [] cpu_input;
     
-    status = clReleaseMemObject(d_source);
+    status = clReleaseMemObject(d_source_values);
     checkErr(status,ERR_RELEASE_MEM);
-    
+#ifdef RECORDS
+    status = clReleaseMemObject(d_source_keys);
+    checkErr(status,ERR_RELEASE_MEM);
+#endif
     FUNC_CHECK(res);
     SHOW_TIME(totalTime);
     SHOW_TOTAL_TIME(diffTime(end, start));

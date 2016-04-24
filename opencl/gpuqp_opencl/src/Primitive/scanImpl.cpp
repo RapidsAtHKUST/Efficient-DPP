@@ -7,12 +7,7 @@
 //
 
 #include "scanImpl.h"
-
-#define BITS        (4)
-#define WARPSIZE    (1<<BITS)
-
-#define ELEMENT_PER_THREAD (2)
-#define MAX_BLOCKSIZE   (1024)      //a block can have at most 1024 threads
+#include "dataDef.h"
 
 using namespace std;
 
@@ -23,7 +18,7 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     cl_int status = 0;
     int argsNum = 0;
 
-    int element_per_block = localSize * ELEMENT_PER_THREAD;
+    int element_per_block = localSize * SCAN_ELE_PER_THREAD;
     //decide how many levels should we handle(at most 3 levels: 8192^3)
     int firstLevelBlockNum = (length + element_per_block - 1 )/ element_per_block;
     int secondLevelBlockNum = (firstLevelBlockNum + element_per_block - 1) / element_per_block;
@@ -52,7 +47,7 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
 
     struct timeval start, end;
 
-    int warpSize = WARPSIZE;
+    int warpSize = SCAN_WARPSIZE;
     int numOfWarps = localSize / warpSize;
     
 
@@ -71,8 +66,8 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), NULL);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &numOfWarps);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * numOfWarps, NULL); 
 
         checkErr(status, ERR_SET_ARGUMENTS);
@@ -102,8 +97,8 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &firstBlockSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &numOfWarps);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * numOfWarps, NULL);       
         checkErr(status, ERR_SET_ARGUMENTS);
         
@@ -132,8 +127,8 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), NULL);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &numOfWarps);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * numOfWarps, NULL);       
         checkErr(status, ERR_SET_ARGUMENTS);
         
@@ -182,8 +177,8 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &firstBlockSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &numOfWarps);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * numOfWarps, NULL);       
         checkErr(status, ERR_SET_ARGUMENTS);
         
@@ -212,8 +207,8 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &secondBlockSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &numOfWarps);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * numOfWarps, NULL);       
         checkErr(status, ERR_SET_ARGUMENTS);
         
@@ -245,8 +240,8 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), NULL);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &numOfWarps);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * numOfWarps, NULL);       
         checkErr(status, ERR_SET_ARGUMENTS);
         
@@ -308,7 +303,7 @@ double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo info, in
     cl_int status = 0;
     int argsNum = 0;
 
-    int element_per_block = localSize * ELEMENT_PER_THREAD;
+    int element_per_block = localSize * SCAN_ELE_PER_THREAD;
     //decide how many levels should we handle(at most 3 levels: 8192^3)
     int firstLevelBlockNum = (length + element_per_block - 1 )/ element_per_block;
     int secondLevelBlockNum = (firstLevelBlockNum + element_per_block - 1) / element_per_block;
@@ -346,8 +341,8 @@ double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo info, in
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isExclusive);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), NULL);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         checkErr(status, ERR_SET_ARGUMENTS);
         
     #ifdef PRINT_KERNEL
@@ -371,8 +366,8 @@ double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo info, in
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isExclusive);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &firstBlockSum);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         checkErr(status, ERR_SET_ARGUMENTS);
         
     #ifdef PRINT_KERNEL
@@ -399,8 +394,8 @@ double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo info, in
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isExclusive);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), NULL);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         checkErr(status, ERR_SET_ARGUMENTS);
         
     #ifdef PRINT_KERNEL
@@ -447,8 +442,8 @@ double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo info, in
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isExclusive);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &firstBlockSum);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         checkErr(status, ERR_SET_ARGUMENTS);
         
     #ifdef PRINT_KERNEL
@@ -475,8 +470,8 @@ double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo info, in
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isExclusive);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &secondBlockSum);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         checkErr(status, ERR_SET_ARGUMENTS);
         
     #ifdef PRINT_KERNEL
@@ -506,8 +501,8 @@ double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo info, in
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isExclusive);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isWriteSum);
         status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), NULL);
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE*ELEMENT_PER_THREAD, NULL);       //host can specify the size for local memory
-        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * MAX_BLOCKSIZE, NULL);      
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE*SCAN_ELE_PER_THREAD, NULL);       //host can specify the size for local memory
+        status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int) * SCAN_MAX_BLOCKSIZE, NULL);      
         checkErr(status, ERR_SET_ARGUMENTS);
         
     #ifdef PRINT_KERNEL
