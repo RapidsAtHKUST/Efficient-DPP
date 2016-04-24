@@ -6,6 +6,7 @@
 //  Copyright (c) 2015-2016 Bryan. All rights reserved.
 //
 #include "kernels.h"
+#include "dataDef.h"
 using namespace std;
 
 /*****************************************************************************/
@@ -15,14 +16,7 @@ using namespace std;
  *
  */
 
-//warp size is 32(2^5)
-#define BITS        (5)
-#define WARPSIZE    (1<<BITS)
-#define MASK        ((1<<BITS)-1)
 
-#define ELEMENT_PER_THREAD (2)
-#define MAX_BLOCKSIZE   (1024)      //a block can have at most 1024 threads
-#define MAX_WARP_NUM        (32)
 //scan_warp: d_source is always been inclusively scanned, the return number is the right output
 //return: corresponding data of each thread index
 //here d_source is already shared memory source
@@ -31,7 +25,7 @@ template<typename T>
  __device__ T scan_warp_warpwise(T *d_source, const uint length, int isExclusive)
 {
     int localId = threadIdx.x;
-    const unsigned int lane = localId & MASK;        //warp size is 32
+    const unsigned int lane = localId & SCAN_MASK;        //warp size is 32
 
     if (localId >= length)  return 0;   
 
@@ -55,51 +49,51 @@ __global__ void scan_block_warpwise(T *d_source, const uint length, int isExclus
     int blockSize = blockDim.x;
     int blockId = blockIdx.x;
 
-    const unsigned int lane = localId & MASK;
-    const unsigned int warpId = localId >> BITS;
+    const unsigned int lane = localId & SCAN_MASK;
+    const unsigned int warpId = localId >> SCAN_BITS;
 
     // extern __shared__ int share[];
-    __shared__ T temp[MAX_BLOCKSIZE*ELEMENT_PER_THREAD];                  //global data used in this block
-    __shared__ T warpSum[MAX_BLOCKSIZE];      
-    __shared__ T sumWarpSum[MAX_WARP_NUM];
+    __shared__ T temp[SCAN_MAX_BLOCKSIZE*SCAN_ELEMENT_PER_THREAD];                  //global data used in this block
+    __shared__ T warpSum[SCAN_MAX_BLOCKSIZE];      
+    __shared__ T sumWarpSum[SCAN_MAX_WARP_NUM];
 
     //global mem to shared mem, coalesced access
-    int startIdx = blockId * blockSize * ELEMENT_PER_THREAD;
-    for(int i = localId; i < ELEMENT_PER_THREAD * blockSize ; i += blockSize) {
+    int startIdx = blockId * blockSize * SCAN_ELEMENT_PER_THREAD;
+    for(int i = localId; i < SCAN_ELEMENT_PER_THREAD * blockSize ; i += blockSize) {
         if (startIdx + i >= length) break;
         temp[i] = d_source[startIdx + i];
     }
     __syncthreads();
 
     //endPlace: ending index of the part this block process
-    int endPlace = (blockId+1)*blockSize*ELEMENT_PER_THREAD >= length?  length : (blockId+1)*blockSize*ELEMENT_PER_THREAD;
+    int endPlace = (blockId+1)*blockSize*SCAN_ELEMENT_PER_THREAD >= length?  length : (blockId+1)*blockSize*SCAN_ELEMENT_PER_THREAD;
     T endEle = 0;
     if ( isWriteSum && (localId == 0) && isExclusive)   endEle = d_source[endPlace-1];
     __syncthreads();
 
     //doing the local scan: each thread does a sequential scan
-    for(int i = localId * ELEMENT_PER_THREAD + 1; i < (localId + 1) * ELEMENT_PER_THREAD ; i++) {
+    for(int i = localId * SCAN_ELEMENT_PER_THREAD + 1; i < (localId + 1) * SCAN_ELEMENT_PER_THREAD ; i++) {
         temp[i] += temp[i - 1];
     }
-    warpSum[localId] = temp[(localId+1) * ELEMENT_PER_THREAD - 1];
+    warpSum[localId] = temp[(localId+1) * SCAN_ELEMENT_PER_THREAD - 1];
     __syncthreads();
 
     int warpVal =  scan_warp_warpwise(warpSum, blockSize, 1);                             //exclusive
     __syncthreads();
 
-    if(lane == MASK)    sumWarpSum[warpId] = warpSum[localId];
+    if(lane == SCAN_MASK)    sumWarpSum[warpId] = warpSum[localId];
     __syncthreads();
 
-    scan_warp_warpwise(sumWarpSum, blockSize/WARPSIZE, 0);           //inclusive: 1024/32 = 32warps
+    scan_warp_warpwise(sumWarpSum, blockSize/SCAN_WARPSIZE, 0);           //inclusive: 1024/32 = 32warps
     __syncthreads();
     
     if (warpId > 0)     warpVal += sumWarpSum[warpId-1]; 
     __syncthreads();
 
     //write back to the global mem
-    for(int i = 0; i < ELEMENT_PER_THREAD ; i++) {
-        int currentLocalId = localId * ELEMENT_PER_THREAD + i;
-        int currentGlobalId = globalId * ELEMENT_PER_THREAD + i;
+    for(int i = 0; i < SCAN_ELEMENT_PER_THREAD ; i++) {
+        int currentLocalId = localId * SCAN_ELEMENT_PER_THREAD + i;
+        int currentGlobalId = globalId * SCAN_ELEMENT_PER_THREAD + i;
         if (currentGlobalId >= length)  break;
         if (isExclusive == 0) 
             d_source[currentGlobalId] = temp[currentLocalId] + warpVal;
@@ -116,8 +110,8 @@ __global__ void scan_block_warpwise(T *d_source, const uint length, int isExclus
 /*************************** End of warpwise scan ***************************************/
 
 /*************************** Blelloch scan ***************************************/
-// #undef ELEMENT_PER_THREAD
-// #define ELEMENT_PER_THREAD (2)
+// #undef SCAN_ELEMENT_PER_THREAD
+// #define SCAN_ELEMENT_PER_THREAD (2)
 //local blelloch scan, by default length = 2^n
 //here d_source is already shared memory source
 //length <= BLOCKSIZE
@@ -186,36 +180,36 @@ __global__ void scan_ble_large(T *d_source, const uint length, int isExclusive, 
     int blockId = blockIdx.x;
 
     // extern __shared__ int share[];
-    __shared__ T temp[MAX_BLOCKSIZE*ELEMENT_PER_THREAD];                  //global data used in this block
-    __shared__ T warpSum[MAX_BLOCKSIZE];      
+    __shared__ T temp[SCAN_MAX_BLOCKSIZE*SCAN_ELEMENT_PER_THREAD];                  //global data used in this block
+    __shared__ T warpSum[SCAN_MAX_BLOCKSIZE];      
 
     //global mem to shared mem, coalesced access
-    int startIdx = blockId * blockSize * ELEMENT_PER_THREAD;
-    for(int i = localId; i < ELEMENT_PER_THREAD * blockSize ; i += blockSize) {
+    int startIdx = blockId * blockSize * SCAN_ELEMENT_PER_THREAD;
+    for(int i = localId; i < SCAN_ELEMENT_PER_THREAD * blockSize ; i += blockSize) {
         if (startIdx + i >= length) break;
         temp[i] = d_source[startIdx + i];
     }
     __syncthreads();
 
     //endPlace: ending index of the part this block process
-    int endPlace = (blockId+1)*blockSize*ELEMENT_PER_THREAD >= length?  length : (blockId+1)*blockSize*ELEMENT_PER_THREAD;
+    int endPlace = (blockId+1)*blockSize*SCAN_ELEMENT_PER_THREAD >= length?  length : (blockId+1)*blockSize*SCAN_ELEMENT_PER_THREAD;
     T endEle = 0;
     if ( isWriteSum && (localId == 0) && isExclusive)   endEle = d_source[endPlace-1];
     __syncthreads();
 
     //doing the local scan: each thread does a sequential scan
-    for(int i = localId * ELEMENT_PER_THREAD + 1; i < (localId + 1) * ELEMENT_PER_THREAD ; i++) {
+    for(int i = localId * SCAN_ELEMENT_PER_THREAD + 1; i < (localId + 1) * SCAN_ELEMENT_PER_THREAD ; i++) {
         temp[i] += temp[i - 1];
     }
-    warpSum[localId] = temp[(localId+1) * ELEMENT_PER_THREAD - 1];
+    warpSum[localId] = temp[(localId+1) * SCAN_ELEMENT_PER_THREAD - 1];
     __syncthreads();
 
     scan_ble_small(warpSum, blockSize, 1);      //exclusive scan
 
     //write back to the global mem
-    for(int i = 0; i < ELEMENT_PER_THREAD ; i++) {
-        int currentLocalId = localId * ELEMENT_PER_THREAD + i;
-        int currentGlobalId = globalId * ELEMENT_PER_THREAD + i;
+    for(int i = 0; i < SCAN_ELEMENT_PER_THREAD ; i++) {
+        int currentLocalId = localId * SCAN_ELEMENT_PER_THREAD + i;
+        int currentGlobalId = globalId * SCAN_ELEMENT_PER_THREAD + i;
         if (currentGlobalId >= length)  break;
         if (isExclusive == 0) 
             d_source[currentGlobalId] = temp[currentLocalId] + warpSum[localId];
@@ -239,16 +233,16 @@ __global__ void scan_addBlock(T* d_source, uint length, T* blockSum)
     int blockId = blockIdx.x;
     int blockSize = blockDim.x;
     
-    int startIdx = blockId * blockSize * ELEMENT_PER_THREAD;
+    int startIdx = blockId * blockSize * SCAN_ELEMENT_PER_THREAD;
     int thisBlockSum = 0;
     if (blockId > 0)    thisBlockSum = blockSum[blockId-1];
 
-    for(int i = localId; i < ELEMENT_PER_THREAD * blockSize ; i += blockSize) {
+    for(int i = localId; i < SCAN_ELEMENT_PER_THREAD * blockSize ; i += blockSize) {
         d_source[startIdx + i] += thisBlockSum;
     }
 }
 
-//can process up to ELEMENT_PER_THREAD * BLOCKSIZE * GRIDSIZE * GRIDSIZE = 1024 * 8 * 1024 * 1024 data
+//can process up to SCAN_ELEMENT_PER_THREAD * BLOCKSIZE * GRIDSIZE * GRIDSIZE = 1024 * 8 * 1024 * 1024 data
 template<typename T>
 float scan_warpwise(T *d_source, int length, int isExclusive, int blockSize)
 {
@@ -259,7 +253,7 @@ float scan_warpwise(T *d_source, int length, int isExclusive, int blockSize)
     cudaEventCreate(&start);
     cudaEventCreate(&end);
 
-    int element_per_block = blockSize * ELEMENT_PER_THREAD;
+    int element_per_block = blockSize * SCAN_ELEMENT_PER_THREAD;
     //decide how many levels should we handle(at most 3 levels: 8192^3)
     int firstLevelBlockNum = (length + element_per_block - 1 )/ element_per_block;
     int secondLevelBlockNum = (firstLevelBlockNum + element_per_block - 1) / element_per_block;
@@ -315,7 +309,7 @@ template float scan_warpwise<float>(float *d_source, int length, int isExclusive
 template float scan_warpwise<double>(double *d_source, int length, int isExclusive, int blockSize);
 
 
-//can process up to ELEMENT_PER_THREAD * BLOCKSIZE * GRIDSIZE * GRIDSIZE = 1024 * 8 * 1024 * 1024 data
+//can process up to SCAN_ELEMENT_PER_THREAD * BLOCKSIZE * GRIDSIZE * GRIDSIZE = 1024 * 8 * 1024 * 1024 data
 template<typename T>
 float scan_ble(T *d_source, int length, int isExclusive, int blockSize)
 {
@@ -326,7 +320,7 @@ float scan_ble(T *d_source, int length, int isExclusive, int blockSize)
     cudaEventCreate(&start);
     cudaEventCreate(&end);
 
-    int element_per_block = blockSize * ELEMENT_PER_THREAD;
+    int element_per_block = blockSize * SCAN_ELEMENT_PER_THREAD;
     //decide how many levels should we handle(at most 3 levels: 8192^3)
     int firstLevelBlockNum = (length + element_per_block - 1 )/ element_per_block;
     int secondLevelBlockNum = (firstLevelBlockNum + element_per_block - 1) / element_per_block;
@@ -385,8 +379,8 @@ template float scan_ble<double>(double *d_source, int length, int isExclusive, i
 /********************************* host functions ****************************/
 //calculate the smallest power of two larger than input
 
-#undef ELEMENT_PER_THREAD
-#define ELEMENT_PER_THREAD (2)
+#undef SCAN_ELEMENT_PER_THREAD
+#define SCAN_ELEMENT_PER_THREAD (2)
 
 __device__
 int ceilPowerOfTwo(uint input) {

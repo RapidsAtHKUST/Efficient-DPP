@@ -56,7 +56,6 @@ kernel void radix_reduce(
     if (localId < SORT_RADIX)    histogram[localId * gridSize + blockId] = hist[localId * blockSize];
 }
 
-
 kernel void radix_scatter(
 #ifdef RECORDS
     global int *d_source_keys, global int *d_dest_keys, 

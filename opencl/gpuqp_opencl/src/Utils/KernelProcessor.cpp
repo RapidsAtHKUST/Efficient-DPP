@@ -59,20 +59,13 @@ void KernelProcessor::compile(cl_context context) {
     strcat(path, PROJECT_ROOT);
     strcat(path, "/inc ");
 
-    // strcat(path, " -I");
-    // strcat(path, PROJECT_ROOT);
-    // strcat(path, "/common ");
     strcat(path,"-DKERNEL ");
 #ifdef RECORDS
     strcat(path,"-DRECORDS");
 #endif
     
-    cout<<"building programs"<<endl;
     err = clBuildProgram(program, cl_int(num), devices,path, 0, 0);
     checkErr(err, "Compilation error.");
-    cout<<"building programs complete"<<endl;
-
-    
 }
 
 cl_kernel &KernelProcessor::getKernel(char* kerName) {

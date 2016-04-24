@@ -12,8 +12,8 @@
  *
  */
 #include "kernels.h"
-#define BITS 4
-#define RADIX (1<<BITS)
+#include "dataDef.h"
+
 using namespace std;
 
 /*
@@ -24,24 +24,13 @@ using namespace std;
  *          3. each block does scatter according to the histograms
  *
  **/
-#define REDUCE_ELE_PER_THREAD       32
-#define REDUCE_BLOCK_SIZE           128
-
-#define SCATTER_ELE_PER_THREAD      8
-#define SCATTER_TILE_THREAD_NUM     16          //SCATTER_TILE_THREAD_NUM threads cooperate in a tile
-//in one loop a TILE of data is processed at the same time
-//IMPORTANT: make sure that SCATTER_ELE_PER_TILE is less than sizeof(unsigned char) because the internal shared variable is uchar at most this large!
-#define SCATTER_ELE_PER_TILE       (SCATTER_ELE_PER_THREAD * SCATTER_TILE_THREAD_NUM)
-#define SCATTER_BLOCK_SIZE          64
- //num of TILES to process for each scatter block
-#define SCATTER_TILES_PER_BLOCK             (SCATTER_BLOCK_SIZE / SCATTER_TILE_THREAD_NUM)
 
 template<typename T>
 __global__ void radix_reduce(   
     T *d_source,
     const int total,        //total element length
     const int blockLen,     //len of elements each block should process
-    int* histogram,        //size: globalSize * RADIX
+    int* histogram,        //size: globalSize * SORT_RADIX
     const int shiftBits)
 {
     extern __shared__ int hist[];       
@@ -53,10 +42,10 @@ __global__ void radix_reduce(
 
     int begin = blockId * blockLen;
     int end = (blockId+1) * blockLen >= total ? total : (blockId+1) * blockLen;
-    int mask = RADIX - 1;
+    int mask = SORT_RADIX - 1;
 
-    //initialization: temp size is blockSize * RADIX
-    for(int i = 0; i < RADIX; i++) {
+    //initialization: temp size is blockSize * SORT_RADIX
+    for(int i = 0; i < SORT_RADIX; i++) {
         hist[i * blockSize + localId ] = 0;
     }
     __syncthreads();
@@ -69,12 +58,12 @@ __global__ void radix_reduce(
     __syncthreads();
 
     //reduce
-    const uint ratio = blockSize / RADIX;
+    const uint ratio = blockSize / SORT_RADIX;
     const uint digit = localId / ratio;
     const uint c = localId & ( ratio - 1 );
 
     uint sum = 0;
-    for(int i = 0; i < RADIX; i++)  sum += hist[digit * blockSize + i * ratio + c];
+    for(int i = 0; i < SORT_RADIX; i++)  sum += hist[digit * blockSize + i * ratio + c];
     __syncthreads();
 
 
@@ -91,7 +80,7 @@ __global__ void radix_reduce(
     }
 
     //memory write
-    if (localId < RADIX)    histogram[localId * gridSize + blockId] = hist[localId * blockSize];
+    if (localId < SORT_RADIX)    histogram[localId * gridSize + blockId] = hist[localId * blockSize];
 }
 
 //data structures for storing information for each TILE in a tile
@@ -99,9 +88,9 @@ template<typename T>
 struct ScatterData{
     unsigned char digits[SCATTER_ELE_PER_TILE];        //store the digits 
     unsigned char shuffle[SCATTER_ELE_PER_TILE];       //the positions that each elements in the TILE should be scattered to
-    unsigned char localHis[SCATTER_TILE_THREAD_NUM * RADIX];    //store the digit counts for a TILE
-    unsigned char countArr[RADIX];
-    uint bias[RADIX];                           //the global offsets of the radixes in this TILE
+    unsigned char localHis[SCATTER_TILE_THREAD_NUM * SORT_RADIX];    //store the digit counts for a TILE
+    unsigned char countArr[SORT_RADIX];
+    uint bias[SORT_RADIX];                           //the global offsets of the radixes in this TILE
     T values[SCATTER_ELE_PER_TILE];
 #ifdef RECORDS
     int keys[SCATTER_ELE_PER_TILE];            //store the keys
@@ -137,11 +126,11 @@ __global__ void radix_scatter(
     uint offset = 0;
 
     /*each threads with lid_in_tile has an offset recording the first place to write the  
-     *element with digit "lid_in_tile" (lid_in_tile < RADIX)
+     *element with digit "lid_in_tile" (lid_in_tile < SORT_RADIX)
      *
-     * with lid_in_tile >= RADIX, their offset is always 0, no use
+     * with lid_in_tile >= SORT_RADIX, their offset is always 0, no use
      */
-    if (lid_in_tile < RADIX)    {
+    if (lid_in_tile < SORT_RADIX)    {
         offset = histogram[lid_in_tile * tileNum + my_tile_id];
     }
 
@@ -174,7 +163,7 @@ __global__ void radix_scatter(
             const T current_value = (addr < end)? d_source_values[addr] : (T)0;
             sharedInfo[tile_in_block].values[lo_id] = current_value;
             
-            sharedInfo[tile_in_block].digits[lo_id] = ( current_value >> shiftBits ) & (RADIX - 1);
+            sharedInfo[tile_in_block].digits[lo_id] = ( current_value >> shiftBits ) & (SORT_RADIX - 1);
         }
 
         //the SCATTER_ELE_PER_TILE threads will cooperate
@@ -182,7 +171,7 @@ __global__ void radix_scatter(
         //Each threads read their own consecutive part, check how many same keys
         
         //initiate the localHis array
-        for(uint i = 0; i < RADIX; i++) sharedInfo[tile_in_block].localHis[i * SCATTER_TILE_THREAD_NUM + lid_in_tile] = 0;
+        for(uint i = 0; i < SORT_RADIX; i++) sharedInfo[tile_in_block].localHis[i * SCATTER_TILE_THREAD_NUM + lid_in_tile] = 0;
         __syncthreads();
 
         //doing the per-TILE histogram counting
@@ -214,7 +203,7 @@ __global__ void radix_scatter(
 //doing the naive scan:--------------------------------------------------------------------------------------------------------------------------------
         int digitCount = 0;
 
-        if (lid_in_tile < RADIX) {
+        if (lid_in_tile < SORT_RADIX) {
             uint localBegin = lid_in_tile * SCATTER_TILE_THREAD_NUM;
             unsigned char prev = sharedInfo[tile_in_block].localHis[localBegin];
             unsigned char now = 0;
@@ -228,14 +217,14 @@ __global__ void radix_scatter(
         }
         __syncthreads();
 
-        if (lid_in_tile < RADIX)    digitCount = sharedInfo[tile_in_block].countArr[lid_in_tile];
+        if (lid_in_tile < SORT_RADIX)    digitCount = sharedInfo[tile_in_block].countArr[lid_in_tile];
 
         if (lid_in_tile == 0) {
             //exclusive scan for the countArr
             unsigned char prev = sharedInfo[tile_in_block].countArr[0];
             unsigned char now = 0;
             sharedInfo[tile_in_block].countArr[0] = 0;
-            for(uint i = 1; i < RADIX; i++) {
+            for(uint i = 1; i < SORT_RADIX; i++) {
                 now = sharedInfo[tile_in_block].countArr[i];
                 sharedInfo[tile_in_block].countArr[i] = sharedInfo[tile_in_block].countArr[i-1] + prev;
                 prev = now;
@@ -243,14 +232,14 @@ __global__ void radix_scatter(
         }
         __syncthreads();
 
-        if ( lid_in_tile < RADIX) {
+        if ( lid_in_tile < SORT_RADIX) {
             //scan add back
             uint localBegin = lid_in_tile * SCATTER_TILE_THREAD_NUM;
             for(uint i = localBegin; i < localBegin + SCATTER_TILE_THREAD_NUM; i++)
                 sharedInfo[tile_in_block].localHis[i] += sharedInfo[tile_in_block].countArr[lid_in_tile];
 
             //now consider the offsets:
-            //lid_in_tile which is < RADIX stores the global offset for this digit in this tile
+            //lid_in_tile which is < SORT_RADIX stores the global offset for this digit in this tile
             //here: updating the global offset
             //PAY ATTENTION: Why offset needs to deduct countArr? See the explaination in the final scatter!!
             sharedInfo[tile_in_block].bias[lid_in_tile] = offset - sharedInfo[tile_in_block].countArr[lid_in_tile];
@@ -338,12 +327,12 @@ float radixSort(
     checkCudaErrors(cudaMalloc(&d_temp_values, sizeof(T)* len));
 
     int *histogram;
-    checkCudaErrors(cudaMalloc(&histogram, sizeof(int)* gridSize * RADIX));
+    checkCudaErrors(cudaMalloc(&histogram, sizeof(int)* gridSize * SORT_RADIX));
 
     cudaEventRecord(start);
-    for(int shiftBits = 0; shiftBits < sizeof(T) * 8; shiftBits += BITS) {
-        radix_reduce<T><<<grid, block, sizeof(int) * REDUCE_BLOCK_SIZE * RADIX>>>(d_source_values, len, blockLen, histogram, shiftBits);
-        scan_warpwise<int>(histogram, gridSize * RADIX, 1, 1024);
+    for(int shiftBits = 0; shiftBits < sizeof(T) * 8; shiftBits += SORT_BITS) {
+        radix_reduce<T><<<grid, block, sizeof(int) * REDUCE_BLOCK_SIZE * SORT_RADIX>>>(d_source_values, len, blockLen, histogram, shiftBits);
+        scan_warpwise<int>(histogram, gridSize * SORT_RADIX, 1, 1024);
         int tileLen = REDUCE_BLOCK_SIZE * REDUCE_ELE_PER_THREAD;
         radix_scatter<T><<<(gridSize+SCATTER_TILES_PER_BLOCK-1)/SCATTER_TILES_PER_BLOCK,SCATTER_BLOCK_SIZE>>>( 
 #ifdef RECORDS
@@ -410,21 +399,21 @@ template float radixSort<long>(
 __global__
 void countHis(const Record* source,
               const int length,
-			  int* histogram,        //size: globalSize * RADIX
+			  int* histogram,        //size: globalSize * SORT_RADIX
               const int shiftBits)
 {
-	extern __shared__ int temp[];		//each group has temp size of BLOCKSIZE * RADIX
+	extern __shared__ int temp[];		//each group has temp size of BLOCKSIZE * SORT_RADIX
 
     int localId = threadIdx.x;
     int globalId = threadIdx.x + blockDim.x * blockIdx.x;
     int globalSize = blockDim.x * gridDim.x;
     
     int elePerThread = (length + globalSize - 1) / globalSize;
-    int offset = localId * RADIX;
-    int mask = RADIX - 1;
+    int offset = localId * SORT_RADIX;
+    int mask = SORT_RADIX - 1;
     
     //initialization
-    for(int i = 0; i < RADIX; i++) {
+    for(int i = 0; i < SORT_RADIX; i++) {
         temp[i + offset] = 0;
     }
     __syncthreads();
@@ -438,7 +427,7 @@ void countHis(const Record* source,
     }
     __syncthreads();
     
-    for(int i = 0; i < RADIX; i++) {
+    for(int i = 0; i < SORT_RADIX; i++) {
         histogram[i*globalSize + globalId] = temp[offset+i];
     }
 }
@@ -450,17 +439,17 @@ void writeHis(const Record* source,
               int* loc,              //size equal to the size of source
               const int shiftBits)               
 {
-	extern __shared__ int temp[];		//each group has temp size of BLOCKSIZE * RADIX
+	extern __shared__ int temp[];		//each group has temp size of BLOCKSIZE * SORT_RADIX
 
     int localId = threadIdx.x;
     int globalId = threadIdx.x + blockDim.x * blockIdx.x;
     int globalSize = blockDim.x * gridDim.x;
     
     int elePerThread = (length + globalSize - 1) / globalSize;     // length for each thread to proceed
-    int offset = localId * RADIX;
-    int mask = RADIX - 1;
+    int offset = localId * SORT_RADIX;
+    int mask = SORT_RADIX - 1;
     
-    for(int i = 0; i < RADIX; i++) {
+    for(int i = 0; i < SORT_RADIX; i++) {
         temp[offset + i] = histogram[i*globalSize + globalId];
     }
     __syncthreads();
@@ -478,21 +467,21 @@ void writeHis(const Record* source,
 __global__
 void countHis_int(const int* source,
               	  const int length,
-			  	  int* histogram,        //size: globalSize * RADIX
+			  	  int* histogram,        //size: globalSize * SORT_RADIX
               	  const int shiftBits)
 {
-	extern __shared__ int temp[];		//each group has temp size of BLOCKSIZE * RADIX
+	extern __shared__ int temp[];		//each group has temp size of BLOCKSIZE * SORT_RADIX
 
     int localId = threadIdx.x;
     int globalId = threadIdx.x + blockDim.x * blockIdx.x;
     int globalSize = blockDim.x * gridDim.x;
     
     int elePerThread = (length + globalSize - 1) / globalSize;
-    int offset = localId * RADIX;
-    int mask = RADIX - 1;
+    int offset = localId * SORT_RADIX;
+    int mask = SORT_RADIX - 1;
     
     //initialization
-    for(int i = 0; i < RADIX; i++) {
+    for(int i = 0; i < SORT_RADIX; i++) {
         temp[i + offset] = 0;
     }
     __syncthreads();
@@ -506,7 +495,7 @@ void countHis_int(const int* source,
     }
     __syncthreads();
     
-    for(int i = 0; i < RADIX; i++) {
+    for(int i = 0; i < SORT_RADIX; i++) {
         histogram[i*globalSize + globalId] = temp[offset+i];
     }
 }
@@ -518,17 +507,17 @@ void writeHis_int(const int* source,
               int* loc,              //size equal to the size of source
               const int shiftBits)               
 {
-	extern __shared__ int temp[];		//each group has temp size of BLOCKSIZE * RADIX
+	extern __shared__ int temp[];		//each group has temp size of BLOCKSIZE * SORT_RADIX
 
     int localId = threadIdx.x;
     int globalId = threadIdx.x + blockDim.x * blockIdx.x;
     int globalSize = blockDim.x * gridDim.x;
     
     int elePerThread = (length + globalSize - 1) / globalSize;     // length for each thread to proceed
-    int offset = localId * RADIX;
-    int mask = RADIX - 1;
+    int offset = localId * SORT_RADIX;
+    int mask = SORT_RADIX - 1;
     
-    for(int i = 0; i < RADIX; i++) {
+    for(int i = 0; i < SORT_RADIX; i++) {
         temp[offset + i] = histogram[i*globalSize + globalId];
     }
     __syncthreads();
@@ -552,9 +541,9 @@ double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize)
 
 	//histogram
 	int *his, *loc, *res_his;
-	checkCudaErrors(cudaMalloc(&his, sizeof(int)*globalSize * RADIX));
+	checkCudaErrors(cudaMalloc(&his, sizeof(int)*globalSize * SORT_RADIX));
 	checkCudaErrors(cudaMalloc(&loc, sizeof(int)*r_len));
-	checkCudaErrors(cudaMalloc(&res_his, sizeof(int)*globalSize * RADIX));
+	checkCudaErrors(cudaMalloc(&res_his, sizeof(int)*globalSize * SORT_RADIX));
 
 	Record *d_temp;
 	checkCudaErrors(cudaMalloc(&d_temp, sizeof(Record)*r_len));
@@ -568,11 +557,11 @@ double radixSortDevice(Record *d_source, int r_len, int blockSize, int gridSize)
 	thrust::device_ptr<int> dev_res_his(res_his);
 
 	gettimeofday(&start,NULL);
-	for(int shiftBits = 0; shiftBits < sizeof(int)*8; shiftBits += BITS) {
+	for(int shiftBits = 0; shiftBits < sizeof(int)*8; shiftBits += SORT_BITS) {
 
-		countHis<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source, r_len, his, shiftBits);
-		scanDevice(his, globalSize*RADIX, 1024, 1024,1);
-		writeHis<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source,r_len,his,loc,shiftBits);
+		countHis<<<grid,block,sizeof(int)*SORT_RADIX*blockSize>>>(d_source, r_len, his, shiftBits);
+		scanDevice(his, globalSize*SORT_RADIX, 1024, 1024,1);
+		writeHis<<<grid,block,sizeof(int)*SORT_RADIX*blockSize>>>(d_source,r_len,his,loc,shiftBits);
 		// scatter(d_source,d_temp, r_len, loc, 1024,32768);
 		cudaMemcpy(d_source, d_temp, sizeof(Record)*r_len, cudaMemcpyDeviceToDevice);
 	}
@@ -596,9 +585,9 @@ double radixSortDevice_int(int *d_source, int r_len, int blockSize, int gridSize
 
 	//histogram
 	int *his, *loc, *res_his;
-	checkCudaErrors(cudaMalloc(&his, sizeof(int)*globalSize * RADIX));
+	checkCudaErrors(cudaMalloc(&his, sizeof(int)*globalSize * SORT_RADIX));
 	checkCudaErrors(cudaMalloc(&loc, sizeof(int)*r_len));
-	checkCudaErrors(cudaMalloc(&res_his, sizeof(int)*globalSize * RADIX));
+	checkCudaErrors(cudaMalloc(&res_his, sizeof(int)*globalSize * SORT_RADIX));
 
 	int *d_temp;
 	checkCudaErrors(cudaMalloc(&d_temp, sizeof(int)*r_len));
@@ -613,12 +602,12 @@ double radixSortDevice_int(int *d_source, int r_len, int blockSize, int gridSize
 
 	gettimeofday(&start,NULL);
 
-	std::cout<<"shared momery size:"<<sizeof(int)*RADIX*blockSize<<std::endl;
-	for(int shiftBits = 0; shiftBits < sizeof(int)*8; shiftBits += BITS) {
+	std::cout<<"shared momery size:"<<sizeof(int)*SORT_RADIX*blockSize<<std::endl;
+	for(int shiftBits = 0; shiftBits < sizeof(int)*8; shiftBits += SORT_BITS) {
 
-		countHis_int<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source, r_len, his, shiftBits);
-		scanDevice(his, globalSize*RADIX, 1024, 1024,1);
-		writeHis_int<<<grid,block,sizeof(int)*RADIX*blockSize>>>(d_source,r_len,his,loc,shiftBits);
+		countHis_int<<<grid,block,sizeof(int)*SORT_RADIX*blockSize>>>(d_source, r_len, his, shiftBits);
+		scanDevice(his, globalSize*SORT_RADIX, 1024, 1024,1);
+		writeHis_int<<<grid,block,sizeof(int)*SORT_RADIX*blockSize>>>(d_source,r_len,his,loc,shiftBits);
 		// scatter(d_source,d_temp, r_len, loc, 1024,32768);
 		int *swapPointer = d_temp;
 		d_temp = d_source;

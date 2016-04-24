@@ -88,43 +88,51 @@ int main(int argc, const char * argv[]) {
     //test primitives
     for(int i= 0 ; i < 10; i++) {
 
-//     testMap(
-// #ifdef RECORDS
-//     fixedKeys,
-// #endif
-//     fixedValues, 
-//     dataSize,  info , totalTime);
+//--------test map------------
+        testMap(
+    #ifdef RECORDS
+        fixedKeys,
+    #endif
+        fixedValues, 
+        dataSize,  info , totalTime);
 
-//     testGather(
-// #ifdef RECORDS
-//     fixedKeys,
-// #endif
-//     fixedValues, 
-//     dataSize,  info , totalTime);
-//     testScatter(
-// #ifdef RECORDS
-//     fixedKeys,
-// #endif
-//     fixedValues, 
-//     dataSize,  info , totalTime);
+//--------test gather------------
+        testGather(
+    #ifdef RECORDS
+        fixedKeys,
+    #endif
+        fixedValues, 
+        dataSize,  info , totalTime);
 
-//     cout<<"finished "<<i<<endl;
-   // testScan(fixedValues, dataSize, info, totalTime, 0);             //0: inclusive
-        
+//--------test scatter------------
+        testScatter(
+    #ifdef RECORDS
+        fixedKeys,
+    #endif
+        fixedValues, 
+        dataSize,  info , totalTime);
+        testScatter(
+    #ifdef RECORDS
+        fixedKeys,
+    #endif
+        fixedValues, 
+        dataSize,  info , totalTime);
+
+//--------test scan------------
+        testScan(fixedValues, dataSize, info, totalTime, 0);             //0: inclusive
+
+//--------test radix sort------------
+        testRadixSort(
+    #ifdef RECORDS
+        fixedKeys,
+    #endif
+        fixedValues, 
+        dataSize, info, totalTime);
     }
     
-   // testMap(fixedRecords, dataSize, info, totalTime);
-    // testGather(fixedRecords, dataSize, info, totalTime);
-    // testScatter(fixedRecords, dataSize, info, totalTime);
-//    testScan(fixedArray, dataSize, info, totalTime, 1);             //1: exclusive
 //    testSplit(fixedRecords, dataSize, info, 20, totalTime);           //fanout: 20
     
-    testRadixSort(
-#ifdef RECORDS
-    fixedKeys,
-#endif
-    fixedValues, 
-    dataSize, info, totalTime);
+
 
     // testBitonitSort(fixedRecords, dataSize, info, 1, totalTime);      //1:  ascendingls
 //    testBitonitSort(fixedRecords, dataSize, info, 0, totalTime);      //0:  descending
