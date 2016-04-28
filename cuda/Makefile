@@ -13,7 +13,7 @@ COMDIR := $(HOME_PATH)/common
 NVCC := nvcc
 CC := g++
 
-CC_FLAGS := -g  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DCUDA_PROJ
+CC_FLAGS := -g -O3 -DPROJECT_ROOT=\"$(HOME_PATH)\" -DCUDA_PROJ
 NVCC_FLAGS := -g  -Xptxas -dlcm=ca -DCUDA_PROJ
 
 PRINT ?= 0
@@ -35,14 +35,10 @@ INCLUDE := 	-I$(INCDIR) \
 LINK := -L /usr/local/cuda/lib64 -lcudart -lcuda
 
 CPP_SRC :=  $(filter-out ._%,$(notdir $(shell find -L $(SRCDIR) $(COMDIR) -name *.cpp)))
-CPP_SRC_FULL :=  $(filter-out ._%, $(shell find -L $(SRCDIR) $(COMDIR) -name *.cpp))
-
 CU_SRC :=  $(filter-out ._%,$(notdir $(shell find -L $(KERNELDIR) -name *.cu)))
-CU_SRC_FULL :=  $(filter-out ._%, $(shell find -L $(KERNELDIR) -name *.cu))
 
 CPP_OBJ := $(CPP_SRC:%.cpp=$(OBJDIR)/%.o)
 CU_OBJ := $(CU_SRC:%.cu=$(OBJDIR)/%.o)
-
 
 PROGRAM := executor
 
@@ -54,14 +50,25 @@ all: $(PROGRAM)
 
 $(PROGRAM):$(CPP_OBJ) $(CU_OBJ) 
 	$(CC) -o $(BINDIR)/$@ $^ $(LINK)
+
+sinclude $(CPP_SRC:%.cpp=$(OBJDIR)/%.d)
+sinclude $(CU_SRC:%.cu=$(OBJDIR)/%.du)
+
 $(CPP_OBJ): $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(OBJDIR)	
+	$(CC) -MM -MP -MT $@ -MF $(@:.o=.d) $< $(INCLUDE)
 	$(CC) $(CC_FLAGS) -c $< -o $@ $(INCLUDE)
 
 $(CU_OBJ): $(OBJDIR)/%.o: %.cu 
 	@mkdir -p $(OBJDIR)	
+	$(NVCC) -E -Xcompiler "-MM -MP -MT $@ -MF $(@:.o=.du)" $< $(INCLUDE)
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(INCLUDE)
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJDIR)/*.o $(BINDIR)/$(PROGRAM)
+	rm -rf $(OBJDIR)/* $(BINDIR)/$(PROGRAM)
+
+
+
+
+

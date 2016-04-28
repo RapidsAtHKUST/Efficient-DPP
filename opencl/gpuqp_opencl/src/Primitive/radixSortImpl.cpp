@@ -83,7 +83,7 @@ double radixSort(
         checkErr(status, ERR_EXEC_KERNEL);
         totalTime += diffTime(end, start);
         
-        totalTime += scan(d_histogram,hisSize,1,info);
+        totalTime += scan_ble(d_histogram,hisSize,1,info);
         
         argsNum = 0;
 #ifdef RECORDS

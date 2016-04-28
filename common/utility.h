@@ -74,7 +74,7 @@
 
 #define MAX_DATA_SIZE 			(160000000)
 #define MAX_NUM					(INT_MAX/2)
-#define BLOCKSIZE 					(1024)
+#define BLOCKSIZE 					(512)
 #define GRIDSIZE					(1024)
 #define SHUFFLE_TIME(TIME)		(TIME * 1.5)
 #define SHARED_MEM_SIZE			(48000)

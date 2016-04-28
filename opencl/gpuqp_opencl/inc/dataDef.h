@@ -2,7 +2,7 @@
 #define __DATA_DEF_H__
 
 //scan definition
-#define SCAN_BITS        			(5)
+#define SCAN_BITS        			(4)
 #define SCAN_MASK        			((1<<SCAN_BITS)-1)
 #define SCAN_ELE_PER_THREAD  		(2)
 #define SCAN_WARPSIZE    			(1<<SCAN_BITS)

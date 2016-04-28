@@ -53,7 +53,10 @@ template<class T> bool testSplit(
 	int fanout, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE); 
 
 template<typename T>
-bool testScan(T *source, int r_len, float& totalTime, int isExclusive,  int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+bool testScan_warp(T *source, int r_len, float& totalTime, int isExclusive,  int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+
+template<typename T>
+bool testScan_ble(T *source, int r_len, float& totalTime, int isExclusive,  int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 
 template<typename T>
 bool testRadixSort(

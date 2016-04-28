@@ -38,14 +38,18 @@ PROGRAM := executor
 vpath %.cpp $(SRCDIR)/Join $(SRCDIR)/Utils $(SRCDIR)/Primitive $(SRCDIR)/Main $(SRCDIR)/Test $(COMDIR)
 vpath %.o $(OBJDIR)
 
+
 all: $(PROGRAM)
-	
+
+sinclude $(SRC:%.cpp=$(OBJDIR)/%.d)
+
 $(PROGRAM):$(OBJ) 
 	$(CC) $(CPPFLAGS) -o $(BINDIR)/$@ $^ $(INCLUDE) $(LINK)
 $(OBJ): $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(OBJDIR)	
+	$(CC) -MM -MP -MT $@ -MF $(@:.o=.d) $< $(INCLUDE)
 	$(CC) $(CPPFLAGS) -c $< -o $@ $(INCLUDE) $(LINK)
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJDIR)/*.o $(BINDIR)/$(PROGRAM)
+	rm -rf $(OBJDIR)/* $(BINDIR)/$(PROGRAM)

@@ -2,4 +2,6 @@
 *.data
 *.o
 *.optrpt
+*.d
+*.du
 

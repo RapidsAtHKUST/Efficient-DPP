@@ -34,11 +34,14 @@ vpath %.cpp $(SRCDIR) $(COMDIR)
 vpath %.o $(OBJDIR)
 
 all: $(PROGRAM)
-	 
+
+sinclude $(CPP_SRC:%.cpp=$(OBJDIR)/%.d)
+
 $(PROGRAM):$(CPP_OBJ)  
 	$(CC) -o $(BINDIR)/$@ $^ $(LINK)
 $(CPP_OBJ): $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(OBJDIR)	
+	$(CC) -MM -MP -MT $@ -MF $(@:.o=.d) $< $(INCLUDE)
 	$(CC) $(CC_FLAGS) -c $< -o $@ $(INCLUDE)
 
 .PHONY: clean

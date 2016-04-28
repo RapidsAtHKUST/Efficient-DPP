@@ -29,10 +29,10 @@ double map(float *source, float *dest, int n /*, FuncType func*/) {
 		#pragma omp parallel for simd
 		for(int i = 0; i < n; i++) {
 			dest[i] = floorOfPower2(source[i]);
-			__m512 vec0, vec1, vec2;
-			vec0 = _mm512_load_ps((float*)source + i);
-			vec1 = _mm512_load_ps((float*)fixed);
-			vec2 = _mm512_sub_ps(vec0, vec1);
+			// __m512 vec0, vec1, vec2;
+			// vec0 = _mm512_load_ps((float*)source + i);
+			// vec1 = _mm512_load_ps((float*)fixed);
+			// vec2 = _mm512_sub_ps(vec0, vec1);
 			// _mm512_packstorelo_ps((void*)dest+i, vec2);
 		}
 		#pragma omp barrier

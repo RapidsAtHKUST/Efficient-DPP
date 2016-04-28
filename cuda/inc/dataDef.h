@@ -4,7 +4,7 @@
 //scan
 //warp size is 32(2^5)
 #define SCAN_BITS        			(5)
-#define SCAN_WARPSIZE    			( 1 << SCAN_BITS)
+#define SCAN_WARPSIZE    			(1 << SCAN_BITS)
 #define SCAN_MASK        			((1<<SCAN_BITS)-1)
 
 #define SCAN_ELEMENT_PER_THREAD 	(2)
@@ -19,6 +19,11 @@
 #define REDUCE_ELE_PER_THREAD       (32)
 #define REDUCE_BLOCK_SIZE           (128)
 
+/*pay attention:
+ * The ScatterData data structure may use char to record number count for speeding up. If the count is >= 256, it will cause problem!
+ *  So a tile should not contain too many elements, i.e, SCATTER_ELE_PER_TILE should not be too large.
+ *
+ */
 #define SCATTER_ELE_PER_THREAD      (8)
 #define SCATTER_TILE_THREAD_NUM     (16)          //SCATTER_TILE_THREAD_NUM threads cooperate in a tile
 //in one loop a TILE of data is processed at the same time

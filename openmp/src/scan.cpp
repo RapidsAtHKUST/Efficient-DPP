@@ -124,8 +124,8 @@ void testScan_tbb(int *a, int *b, int n, int pattern) {
 
 double scan_omp(int *a, int *b, int n, int pattern) {
 
-	kmp_set_defaults("KMP_AFFINITY=compact");
-    kmp_set_defaults("KMP_BLOCKTIME=0");
+	// kmp_set_defaults("KMP_AFFINITY=compact");
+ //    kmp_set_defaults("KMP_BLOCKTIME=0");
 
 	struct timeval start, end;
 

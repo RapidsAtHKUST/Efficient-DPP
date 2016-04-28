@@ -69,7 +69,7 @@ int main() {
 		loc_intr[i] = n - i - 1;
 	}
 
-	int *a = new int[n];
+	unsigned *a = new unsigned[n];
 	int *b = new int[n];
 
 	for(int i = 0; i < n; i++) {
@@ -138,7 +138,7 @@ int main() {
 	// 	cout<<endl;
 
 	// 	cout<<"gather_intr:"<<endl;
-		testGather_intr(source_intr, dest_intr, loc_intr, n);
+	//	testGather_intr(source_intr, dest_intr, loc_intr, n);
 	// 	cout<<endl;
 
 	// 	cout<<"scatter:"<<endl;
@@ -151,8 +151,8 @@ int main() {
 		// testScan_omp(a,b,n,0);
 		// testScan_tbb(a,b,n,0);
 
-		// testRadixSort(a, n);
-		// testRadixSort_tbb(a, n);
+		 // testRadixSort(a, n);
+		 testRadixSort_tbb(a, n);
 
 		// cout<<"output: ";
 		// for(int j = 0; j <n ; j++) {

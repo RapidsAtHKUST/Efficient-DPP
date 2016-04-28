@@ -47,8 +47,8 @@ double radixSort(unsigned *data, size_t n) {
     __attribute__ ((target(mic)))  unsigned *buffer;
     int total_digits = sizeof(unsigned)*8;
  
-    kmp_set_defaults("KMP_AFFINITY=compact");
-    kmp_set_defaults("KMP_BLOCKTIME=0");
+    // kmp_set_defaults("KMP_AFFINITY=compact");
+    // kmp_set_defaults("KMP_BLOCKTIME=0");
 
     struct timeval start, end;
 

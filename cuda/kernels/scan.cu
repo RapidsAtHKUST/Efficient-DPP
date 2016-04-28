@@ -313,7 +313,8 @@ template float scan_warpwise<double>(double *d_source, int length, int isExclusi
 template<typename T>
 float scan_ble(T *d_source, int length, int isExclusive, int blockSize)
 {
-
+// T *another_d_source;
+// cudaMemcpy(another_d_source, d_source, sizeof(T) * length, cudaMemcpyDeviceToDevice);
     float totalTime = 0.0f;
 
     cudaEvent_t start, end;
@@ -365,6 +366,8 @@ float scan_ble(T *d_source, int length, int isExclusive, int blockSize)
     cudaEventSynchronize(end);
 
     cudaEventElapsedTime(&totalTime, start, end);
+
+// scanImpl(another_d_source, length, blockSize, GRIDSIZE, isExclusive);
 
     return totalTime;
 }
@@ -591,9 +594,6 @@ double scanDevice(int *d_source, int r_len, int blockSize, int gridSize, int isE
     scan_large<<<firstGrid,block,tempBitSize>>>(d_source, r_len, isExclusive, firstBlockSum);
     scan_large<<<secondGrid,block,tempBitSize >>>(firstBlockSum, firstLevelBlockNum, 0, secondBlockSum);
     scan_small<<<thirdGrid,block,tempBitSize>>>(secondBlockSum, secondLevelBlockNum, 0);
-    // addBlock<<<secondGrid, block, tempBitSize>>>(firstBlockSum, firstLevelBlockNum, secondBlockSum);
-    // addBlock<<<firstGrid, block, tempBitSize>>>(d_source, r_len, firstBlockSum);
-
     scan_addBlock<int><<<secondGrid, block>>>(firstBlockSum, firstLevelBlockNum, secondBlockSum);
     scan_addBlock<int><<<firstGrid, block>>>(d_source, r_len, firstBlockSum);
     cudaDeviceSynchronize();
