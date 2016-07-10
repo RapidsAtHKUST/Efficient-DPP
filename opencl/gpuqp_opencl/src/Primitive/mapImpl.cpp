@@ -51,20 +51,19 @@ double map(
     size_t local[1] = {(size_t)localSize};
     size_t global[1] = {(size_t)(localSize * gridSize)};
     
-    struct timeval start, end;
     
     //launch the kernel
 #ifdef PRINT_KERNEL
     printExecutingKernel(mapKernel);
 #endif
-    gettimeofday(&start, NULL);
-    status = clEnqueueNDRangeKernel(info.currentQueue, mapKernel, 1, 0, global, local, 0, 0, 0);
+    cl_event event;
     status = clFinish(info.currentQueue);
-    gettimeofday(&end, NULL);
-
-    totalTime += diffTime(end, start);
+    status = clEnqueueNDRangeKernel(info.currentQueue, mapKernel, 1, 0, global, local, 0, 0, &event);
+    clFlush(info.currentQueue);
+    clWaitForEvents(1,&event);
     checkErr(status, ERR_EXEC_KERNEL);
-    
+    totalTime = clEventTime(event);
+
     return totalTime;
 }
 

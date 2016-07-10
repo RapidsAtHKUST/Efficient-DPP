@@ -82,8 +82,8 @@ void PlatInit::initPlat() {
     }
     
     cout<<"Please enter the index of the device to use (0,1,2...) : ";
-    cin >> chosenDevice;
-    // chosenDevice = 1;   //cpu
+    // cin >> chosenDevice;
+    chosenDevice = 1;   //cpu
     if (chosenDevice < 0 || chosenDevice >= numOfDev)   {
         cerr<<"Wrong parameter."<<endl;
         exit(1);
@@ -100,7 +100,7 @@ void PlatInit::initPlat() {
     checkErr(status, "Fail to create the context.");
     
     //step 3 : create the command queue
-    this->queue = clCreateCommandQueue(context, devices[chosenDevice], 0, &status);
+    this->queue = clCreateCommandQueue(context, devices[chosenDevice], CL_QUEUE_PROFILING_ENABLE, &status);
     checkErr(status, "Failed to create the command queue.");
     
     std::cout<<"------ End of hardware checking ------"<<endl<<endl;

@@ -26,7 +26,8 @@ public:
  	template<typename Tag>
  	void operator()( const blocked_range<int>& r, Tag ) {
  		T temp = sum;
- 		for( int i=r.begin(); i<r.end(); ++i ) {
+ 		int end = r.end();
+ 		for( int i=r.begin(); i<end; ++i ) {
  			temp = temp + x[i];
  			if( Tag::is_final_scan() )
  				y[i] = temp;
@@ -49,7 +50,8 @@ public:
  	template<typename Tag>
  	void operator()( const blocked_range<int>& r, Tag ) {
  		T temp = sum;
- 		for( int i=r.begin(); i<r.end(); ++i ) {
+ 		int end = r.end();
+ 		for( int i=r.begin(); i<end; ++i ) {
  			if( Tag::is_final_scan() )
  				y[i] = temp;
  			temp = temp + x[i];
@@ -125,16 +127,22 @@ void testScan_tbb(int *a, int *b, int n, int pattern) {
 double scan_omp(int *a, int *b, int n, int pattern) {
 
 	// kmp_set_defaults("KMP_AFFINITY=compact");
- //    kmp_set_defaults("KMP_BLOCKTIME=0");
+    // kmp_set_defaults("KMP_BLOCKTIME=0");
 
 	struct timeval start, end;
 
-    #pragma offload target(mic) \
-    in(a:length(n) alloc_if(1) free_if(1)) \
- 	out(b:length(n) alloc_if(1) free_if(1))
- 	{
-		gettimeofday(&start, NULL);
 
+    #pragma offload target(mic) \
+    in(a:length(n) alloc_if(1) free_if(0)) \
+    in(b:length(n) alloc_if(1) free_if(0))
+    {}
+
+	gettimeofday(&start, NULL);
+
+    #pragma offload target(mic) \
+    nocopy(a:length(n) ) \
+ 	nocopy(b:length(n) )
+ 	{
  		int reduceSum[MAX_THREAD_NUM] = {0};
  		int reduceSum_scanned[MAX_THREAD_NUM] = {0};
 
@@ -179,13 +187,21 @@ double scan_omp(int *a, int *b, int n, int pattern) {
 	   //          _mm512_store_epi32(b + i, tmp1);
     //     	}
  		}
-		gettimeofday(&end, NULL);
  	}
+
+	gettimeofday(&end, NULL);
+
+ 	#pragma offload target(mic) \
+    out(a:length(n) alloc_if(0) free_if(1)) \
+    out(b:length(n) alloc_if(0) free_if(1))
+    {}
+
+
  	return diffTime(end, start);
 }
 
 //pattern : 0 for inclusive, 1 for exclusive
-void testScan_omp(int *a, int *b, int n, int pattern) {
+double testScan_omp(int *a, int *b, int n, int pattern) {
 	bool res = true;
 	int *temp = new int[n];
 
@@ -221,6 +237,145 @@ void testScan_omp(int *a, int *b, int n, int pattern) {
 		printRes("omp_scan_exclusive", res, myTime);
 	}
 	delete[] temp;
+
+	return myTime;
+}
+
+double scan_ass(int *a, int *b, int n, int pattern) {
+	struct timeval start, end;
+
+    #pragma offload target(mic) \
+    in(a:length(n) alloc_if(1) free_if(0)) \
+    in(b:length(n) alloc_if(1) free_if(0))
+    {}
+
+	gettimeofday(&start, NULL);
+
+    #pragma offload target(mic) \
+    nocopy(a:length(n) ) \
+ 	nocopy(b:length(n) )
+ 	{
+ 		int reduceSum[MAX_THREAD_NUM] = {0};
+ 		int reduceSum_scanned[MAX_THREAD_NUM] = {0};
+
+ 		__m512i zero = _mm512_set1_epi32(0);
+
+ 		#pragma omp parallel 
+ 		{
+ 			int nthreads = omp_get_num_threads();
+            int tid = omp_get_thread_num();
+
+            int localSum = 0;
+            int reducedSum;
+            
+            //reduce & local prefix sum 
+ 			#pragma omp for schedule(static) nowait 
+			for(int i = 0; i < n; i += 16) {
+
+				__m512i origin = _mm512_load_epi32(a + i);
+				__m512i shift = origin;
+		 		__m512i localSumVec = _mm512_set1_epi32(localSum);
+
+		 		//reduction
+		 		reducedSum = _mm512_reduce_add_epi32(origin);	
+		 		
+		 		if (pattern == 1)	//exclusive
+		 			origin = _mm512_alignr_epi32(origin, zero, 15);
+
+		 		shift = _mm512_alignr_epi32(origin,zero, 15);
+				origin = _mm512_add_epi32(origin, shift);
+
+		 		shift = _mm512_alignr_epi32(origin,zero, 14);
+		 		origin = _mm512_add_epi32(origin, shift);
+
+		 		shift = _mm512_alignr_epi32(origin,zero, 12);
+		 		origin = _mm512_add_epi32(origin, shift);
+
+		 		shift = _mm512_alignr_epi32(origin,zero, 8);
+		 		origin = _mm512_add_epi32(origin, shift);
+
+		 		//add previous accumulated sum to the current vector
+		 		origin = _mm512_add_epi32(origin, localSumVec);
+
+				_mm512_store_epi32((void*)(b+i), origin);
+
+				localSum += reducedSum;
+ 			}	
+ 			reduceSum[tid] = localSum;
+ 			
+ 			#pragma omp barrier
+
+ 			//exclusively scan the reduce sum (at most MAX_THREAD_NUM elements)
+ 			#pragma omp single 
+ 			{
+	 			int temp = 0;
+	 			for(int i = 0; i < nthreads; i++) {
+	 				reduceSum_scanned[i] = temp;
+	 				temp = temp + reduceSum[i];
+	 			}
+	 		}
+
+ 			//scatter back
+ 			__m512i localSumVec = _mm512_set1_epi32(reduceSum_scanned[tid]);
+
+ 			#pragma omp for schedule(static) nowait 
+ 			for(int i = 0; i < n; i += 16) {
+				__m512i resVec = _mm512_load_epi32(b + i);
+				resVec = _mm512_add_epi32(resVec,localSumVec);
+				_mm512_store_epi32((void*)(b+i), resVec);
+ 			}
+ 		}
+ 	}
+
+	gettimeofday(&end, NULL);
+
+ 	#pragma offload target(mic) \
+    nocopy(a:length(n) alloc_if(0) free_if(1)) \
+    out(b:length(n) alloc_if(0) free_if(1))
+    {}
+
+ 	return diffTime(end, start);
+}
+
+double testScan_ass(int* a, int* b, int n, int pattern) {
+	
+	bool res = true;
+	int *temp = new int[n];
+
+	double myTime = scan_ass(a,b,n, pattern);
+
+	if (pattern == 0) {
+		//checking inclusive
+		temp[0] = a[0];
+		for(int i = 1; i < n; i++)	{
+			temp[i] = temp[i-1] + a[i];
+			// cout<<b[i]<<' '<<temp[i]<<endl;
+			if (b[i] != temp[i])	{
+				cout<<"different at: "<<i<<endl;
+				res = false;
+				break;
+			}
+		}
+		printRes("ass_scan_inclusive", res, myTime);
+
+	}
+	else {
+		//checking exclusive
+		temp[0] = 0;
+		if (temp[0] != b[0])	res = false;
+		for(int i = 1; i < n; i++) {
+			temp[i] = temp[i-1] + a[i-1];
+			if (b[i] != temp[i])	{
+
+				res = false;
+				break;
+			}
+		}
+		printRes("ass_scan_exclusive", res, myTime);
+	}
+	delete[] temp;
+
+	return myTime;
 }
 
 

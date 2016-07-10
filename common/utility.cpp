@@ -122,6 +122,8 @@ void printbinary(const unsigned int val, int dis) {
     }
 }
 
+
+
 // void generateFixedRecords(Record* fixedRecords, int length, bool write, char *file) {
 //     recordRandom(fixedRecords, length, MAX_NUM);
 //     if (!write) return;
@@ -237,6 +239,14 @@ void checkErr(cl_int status, const char* name) {
         exit(EXIT_FAILURE);
     }
 }
+
+double clEventTime(const cl_event event){
+    cl_ulong start,end;
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(start), &start, NULL);
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(end), &end, NULL);
+    return (end - start) / 1000000.0;
+}
+
 #endif
 
 //templates

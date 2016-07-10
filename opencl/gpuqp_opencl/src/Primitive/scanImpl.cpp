@@ -14,6 +14,7 @@ using namespace std;
 double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int localSize)
 {
     double totalTime = 0.0f;
+    cl_event event;
 
     cl_int status = 0;
     int argsNum = 0;
@@ -30,7 +31,10 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     size_t thirdGlobal[1] = {(size_t)localSize * (size_t)thirdLevelBlockNum};
 
     //length should be less than element_per_block^3
-    assert(thirdLevelBlockNum == 1);    
+    if(thirdLevelBlockNum > 1) {
+        std::cerr<<"dataSize too large for this block size."<<std::endl;    
+        return 1;
+    }
 
     //kernel reading
     char scanPath[100] = PROJECT_ROOT;
@@ -44,8 +48,6 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     
     cl_kernel scanBlockKernel = scanReader.getKernel(scanBlock);
     cl_kernel scanAddBlockKernel = scanReader.getKernel(scanAddBlock);
-
-    struct timeval start, end;
 
     int warpSize = SCAN_WARPSIZE;
     int numOfWarps = localSize / warpSize;
@@ -75,12 +77,13 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanBlockKernel);
     #endif
-        gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, firstGlobal, local, 0, NULL, NULL);
         status = clFinish(info.currentQueue);
-        gettimeofday(&end, NULL);
-        checkErr(status, ERR_EXEC_KERNEL);
-        totalTime += diffTime(end, start);
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, firstGlobal, local, 0, NULL, &event);
+        clFlush(info.currentQueue);
+        clWaitForEvents(1,&event);
+        checkErr(status, ERR_EXEC_KERNEL);        
+        totalTime += clEventTime(event);
 
         status = clEnqueueReadBuffer(info.currentQueue, d_source, CL_TRUE, 0, sizeof(int)*length, firstTempAfter, 0, NULL, NULL);
         checkErr(status, ERR_READ_BUFFER);
@@ -105,12 +108,13 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanBlockKernel);
     #endif
-        gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, firstGlobal, local, 0, NULL, NULL);
         status = clFinish(info.currentQueue);
-        gettimeofday(&end, NULL);
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, firstGlobal, local, 0, NULL, &event);
+        clFlush(info.currentQueue);
+        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
-        totalTime += diffTime(end, start);
+        totalTime += clEventTime(event);
 
         int *firstTemp = new int[firstLevelBlockNum];
         int *firstTempAfter = new int[firstLevelBlockNum];
@@ -135,12 +139,13 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanBlockKernel);
     #endif
-        gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, secondGlobal, local, 0, NULL, NULL);
         status = clFinish(info.currentQueue);
-        gettimeofday(&end, NULL);
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, secondGlobal, local, 0, NULL, &event);
+        clFlush(info.currentQueue);
+        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
-        totalTime += diffTime(end, start);
+        totalTime += clEventTime(event);
 
         status = clEnqueueReadBuffer(info.currentQueue, firstBlockSum, CL_TRUE, 0, sizeof(int)*firstLevelBlockNum, firstTempAfter, 0, NULL, NULL);
         checkErr(status, ERR_READ_BUFFER);
@@ -155,12 +160,13 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanAddBlockKernel);
     #endif
-        gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, scanAddBlockKernel, 1, 0, firstGlobal, local, 0, NULL, NULL);
         status = clFinish(info.currentQueue);
-        gettimeofday(&end, NULL);
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, scanAddBlockKernel, 1, 0, firstGlobal, local, 0, NULL, &event);
+        clFlush(info.currentQueue);
+        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
-        totalTime += diffTime(end, start);
+        totalTime += clEventTime(event);
     }
     else {                              //length <= element_per_block^3, 3 levels are enough
         cl_mem firstBlockSum = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*firstLevelBlockNum, NULL, &status);   //first level block sum
@@ -185,12 +191,13 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanBlockKernel);
     #endif
-        gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, firstGlobal, local, 0, NULL, NULL);
         status = clFinish(info.currentQueue);
-        gettimeofday(&end, NULL);
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, firstGlobal, local, 0, NULL, &event);
+        clFlush(info.currentQueue);
+        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
-        totalTime += diffTime(end, start);
+        totalTime += clEventTime(event);
 
         int *firstTemp = new int[firstLevelBlockNum];
         int *firstTempAfter = new int[firstLevelBlockNum];
@@ -215,12 +222,13 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanBlockKernel);
     #endif
-        gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, secondGlobal, local, 0, NULL, NULL);
+        clFlush(info.currentQueue);
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, secondGlobal, local, 0, NULL, &event);
         status = clFinish(info.currentQueue);
-        gettimeofday(&end, NULL);
+        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
-        totalTime += diffTime(end, start);
+        totalTime += clEventTime(event);
 
         status = clEnqueueReadBuffer(info.currentQueue, firstBlockSum, CL_TRUE, 0, sizeof(int)*firstLevelBlockNum, firstTempAfter, 0, NULL, NULL);
         checkErr(status, ERR_READ_BUFFER);
@@ -248,12 +256,14 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanBlockKernel);
     #endif
-        gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, thirdGlobal, local, 0, NULL, NULL);
+        clFlush(info.currentQueue);
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, thirdGlobal, local, 0, NULL, &event);
         status = clFinish(info.currentQueue);
-        gettimeofday(&end, NULL);
+        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
-        totalTime += diffTime(end, start);
+
+        totalTime += clEventTime(event);
 
         status = clEnqueueReadBuffer(info.currentQueue, secondBlockSum, CL_TRUE, 0, sizeof(int)*secondLevelBlockNum, secondTemp, 0, NULL, NULL);
         checkErr(status, ERR_READ_BUFFER);
@@ -268,12 +278,13 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanAddBlockKernel);
     #endif
-        gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, scanAddBlockKernel, 1, 0, secondGlobal, local, 0, NULL, NULL);
         status = clFinish(info.currentQueue);
-        gettimeofday(&end, NULL);
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, scanAddBlockKernel, 1, 0, secondGlobal, local, 0, NULL, &event);
+        clFlush(info.currentQueue);
+        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
-        totalTime += diffTime(end, start);
+        totalTime += clEventTime(event);
         
         //add block 2nd
         argsNum = 0;
@@ -285,12 +296,13 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanAddBlockKernel);
     #endif
-        gettimeofday(&start, NULL);
-        status = clEnqueueNDRangeKernel(info.currentQueue, scanAddBlockKernel, 1, 0, firstGlobal, local, 0, NULL, NULL);
         status = clFinish(info.currentQueue);
-        gettimeofday(&end, NULL);
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, scanAddBlockKernel, 1, 0, firstGlobal, local, 0, NULL, &event);
+        clFlush(info.currentQueue);
+        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
-        totalTime += diffTime(end, start);
+        totalTime += clEventTime(event);
 
     }
     return totalTime;
@@ -315,7 +327,10 @@ double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo info, in
     size_t thirdGlobal[1] = {(size_t)localSize * (size_t)thirdLevelBlockNum};
 
     //length should be less than element_per_block^3
-    assert(thirdLevelBlockNum == 1);    
+    if(thirdLevelBlockNum > 1) {
+        std::cerr<<"data size too large for current block size."<<std::endl;
+        return 0;
+    }
 
     //kernel reading
     char scanPath[100] = PROJECT_ROOT;

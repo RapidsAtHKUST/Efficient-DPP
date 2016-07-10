@@ -69,7 +69,7 @@ int main() {
 		loc_intr[i] = n - i - 1;
 	}
 
-	unsigned *a = new unsigned[n];
+	int *a = new int[n];
 	int *b = new int[n];
 
 	for(int i = 0; i < n; i++) {
@@ -127,7 +127,9 @@ int main() {
 	// 	}
 	// cout<<endl;
 
-	int num = 10;
+	int num = 100;
+	double lessTime = 9999;
+
 	for(int i = 0; i < num; i++) {
 		// for(int j = 0; j < n; j++) {
 		// 	a[j] = rand() % 10000;
@@ -148,11 +150,14 @@ int main() {
 	// 	cout<<"scatter_intr:"<<endl;
 	// 	testScatter_intr(source_intr, dest_intr, loc_intr, n);
 	// 	cout<<endl;
-		// testScan_omp(a,b,n,0);
+		double myTime = testScan_omp(a,b,n,0);
 		// testScan_tbb(a,b,n,0);
-
+		// double myTime = testScan_ass(source_intr,dest_intr,n,0);
+		if (myTime < lessTime) {
+			lessTime = myTime;
+		}
 		 // testRadixSort(a, n);
-		 testRadixSort_tbb(a, n);
+		 // testRadixSort_tbb(a, n);
 
 		// cout<<"output: ";
 		// for(int j = 0; j <n ; j++) {
@@ -166,7 +171,7 @@ int main() {
 		// cout<<endl;
 	}
 	
-
+	cout<<"Time:"<<lessTime<<" ms"<<endl;
 	delete[] a;
 	delete[] b;
 	// cout<<"Avg time: "<<totalTime /  (num - 1) <<" ms."<<endl;

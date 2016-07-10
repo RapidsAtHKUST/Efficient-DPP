@@ -47,6 +47,7 @@
 
     //OpenCL error checking functions
 	void checkErr(cl_int status, const char* name);
+	double clEventTime(cl_event);
 #endif
 
 #ifdef OPENMP_PROJ
@@ -74,7 +75,7 @@
 
 #define MAX_DATA_SIZE 			(160000000)
 #define MAX_NUM					(INT_MAX/2)
-#define BLOCKSIZE 					(512)
+#define BLOCKSIZE 					(256)
 #define GRIDSIZE					(1024)
 #define SHUFFLE_TIME(TIME)		(TIME * 1.5)
 #define SHARED_MEM_SIZE			(48000)

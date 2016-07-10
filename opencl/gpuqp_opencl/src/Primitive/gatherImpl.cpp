@@ -52,17 +52,24 @@ double gather(
     size_t global[1] = {(size_t)(localSize * gridSize)};
     
     //launch the kernel
-    struct timeval start, end;
     
 #ifdef PRINT_KERNEL
     printExecutingKernel(gatherKernel);
 #endif
-    gettimeofday(&start, NULL);
-    status = clEnqueueNDRangeKernel(info.currentQueue, gatherKernel, 1, 0, global, local, 0, 0, 0);
+
     status = clFinish(info.currentQueue);
-    gettimeofday(&end, NULL);
-    totalTime += diffTime(end, start);
+
+    cl_event event;
+    status = clEnqueueNDRangeKernel(info.currentQueue, gatherKernel, 1, 0, global, local, 0, 0, &event);
+    clFlush(info.currentQueue);
+    clWaitForEvents(1, &event);
     checkErr(status, ERR_EXEC_KERNEL);
-    
+
+    cl_ulong time_start, time_end;
+
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+    totalTime = (time_end - time_start) / 1000000.0;
+
     return totalTime;
 }

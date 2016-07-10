@@ -379,7 +379,7 @@ bool testScan(int *fixedSource, int length, PlatInfo info, double& totalTime, in
     status = clEnqueueWriteBuffer(info.currentQueue, cl_arr, CL_TRUE, 0, sizeof(int)*length, gpu_io, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
     
-    totalTime = scan(cl_arr, length, isExclusive,info, localSize);
+    totalTime = scan_ble(cl_arr, length, isExclusive,info, localSize);
     // totalTime = scan_blelloch(cl_arr, length, isExclusive,info, localSize);
     
     status = clEnqueueReadBuffer(info.currentQueue, cl_arr, CL_TRUE, 0, sizeof(int)*length, gpu_io, 0, NULL, NULL);
@@ -406,9 +406,9 @@ bool testScan(int *fixedSource, int length, PlatInfo info, double& totalTime, in
     for(int i = 0; i < length; i++) {
         if (cpu_output[i] != gpu_io[i])  {
             res = false;
-            std::cout<<cpu_output[i-1]<<' '<<gpu_io[i-1]<<std::endl;
+            // std::cout<<cpu_output[i-1]<<' '<<gpu_io[i-1]<<std::endl;
             
-            std::cout<<cpu_output[i]<<' '<<gpu_io[i]<<std::endl;
+            // std::cout<<cpu_output[i]<<' '<<gpu_io[i]<<std::endl;
 
             break;
         }

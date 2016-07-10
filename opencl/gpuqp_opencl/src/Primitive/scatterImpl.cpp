@@ -11,9 +11,11 @@
 double scatter(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int localSize, int gridSize, PlatInfo info) {
     
     double totalTime = 0;
+
     cl_int status = 0;
     int argsNum = 0;
     
+
     //kernel reading
     char path[100] = PROJECT_ROOT;
     strcat(path, "/Kernels/scatterKernel.cl");
@@ -39,17 +41,22 @@ double scatter(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int lo
     size_t local[1] = {(size_t)localSize};
     size_t global[1] = {(size_t)(localSize * gridSize)};
     
-    struct timeval start, end;
     //launch the kernel
 #ifdef PRINT_KERNEL
     printExecutingKernel(scatterKernel);
 #endif
-    gettimeofday(&start, NULL);
-    status = clEnqueueNDRangeKernel(info.currentQueue, scatterKernel, 1, 0, global, local, 0, 0, 0);
-    status = clFinish(info.currentQueue);
-    gettimeofday(&end, NULL);
-    totalTime += diffTime(end, start);
+
+    cl_event event;
+    status = clEnqueueNDRangeKernel(info.currentQueue, scatterKernel, 1, 0, global, local, 0, 0, &event);
+    clFlush(info.currentQueue);
+    clWaitForEvents(1, &event);
     checkErr(status, ERR_EXEC_KERNEL);
     
+    cl_ulong time_start, time_end;
+
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+    totalTime = (time_end - time_start)/1000000.0;
+
     return totalTime;
 }
