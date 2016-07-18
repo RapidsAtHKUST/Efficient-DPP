@@ -69,11 +69,11 @@ int main() {
 		loc_intr[i] = n - i - 1;
 	}
 
-	int *a = new int[n];
-	int *b = new int[n];
+	// int *a = new int[n];
+	// int *b = new int[n];
 
 	for(int i = 0; i < n; i++) {
-		a[i] = rand();
+		// a[i] = rand();
 		// b[i] = rand() % 100 + 1;
 	}
 
@@ -127,14 +127,24 @@ int main() {
 	// 	}
 	// cout<<endl;
 
-	int num = 100;
+	int num = 10;
 	double lessTime = 9999;
 
 	for(int i = 0; i < num; i++) {
 		// for(int j = 0; j < n; j++) {
 		// 	a[j] = rand() % 10000;
 		// }
-	// 	// double tempTime = map(a,b,n);
+		double myTime = map(source_intr,dest_intr,n);
+
+		bool res = true;
+		for(int i = 0; i < n; i++) {
+			if (dest_intr[i] != floorOfPower2_CPU(source_intr[i]))	{
+				res = false;
+				break;
+			}
+		}
+		if (res)	cout<<"True"<<endl;
+		else 		cout<<"False"<<endl;
 	// 	cout<<"gather:"<<endl;
 		// testGather_intr(source, dest, loc, n);
 	// 	cout<<endl;
@@ -150,7 +160,7 @@ int main() {
 	// 	cout<<"scatter_intr:"<<endl;
 	// 	testScatter_intr(source_intr, dest_intr, loc_intr, n);
 	// 	cout<<endl;
-		double myTime = testScan_omp(a,b,n,0);
+		// double myTime = testScan_omp(a,b,n,0);
 		// testScan_tbb(a,b,n,0);
 		// double myTime = testScan_ass(source_intr,dest_intr,n,0);
 		if (myTime < lessTime) {
@@ -172,8 +182,8 @@ int main() {
 	}
 	
 	cout<<"Time:"<<lessTime<<" ms"<<endl;
-	delete[] a;
-	delete[] b;
+	// delete[] a;
+	// delete[] b;
 	// cout<<"Avg time: "<<totalTime /  (num - 1) <<" ms."<<endl;
 	_mm_free(source_intr);
 	_mm_free(dest_intr);

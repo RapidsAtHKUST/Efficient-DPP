@@ -1,12 +1,23 @@
 #ifndef MAP_KERNEL_CL
 #define MAP_KERNEL_CL
 
-int floorOfPower2(int a) {
+int floorOfPower2_1(int a) {
     int base = 1;
     while (base < a) {
         base <<= 1 ;
     }
     return base >> 1;
+}
+
+int floorOfPower2(int v) {
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v>>1;
 }
 
 //map with coalesced access

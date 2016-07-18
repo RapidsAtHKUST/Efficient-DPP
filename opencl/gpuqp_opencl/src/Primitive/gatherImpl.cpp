@@ -65,11 +65,7 @@ double gather(
     clWaitForEvents(1, &event);
     checkErr(status, ERR_EXEC_KERNEL);
 
-    cl_ulong time_start, time_end;
-
-    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
-    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
-    totalTime = (time_end - time_start) / 1000000.0;
+    totalTime = clEventTime(event);
 
     return totalTime;
 }

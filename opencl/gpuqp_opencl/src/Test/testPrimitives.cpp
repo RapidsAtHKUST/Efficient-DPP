@@ -91,6 +91,7 @@ bool testMap(
 #ifdef RECORDS
         h_source_keys[i] != h_dest_keys[i]    ||
 #endif
+        // h_source_values[i] != h_dest_values[i])
         floorOfPower2_CPU(h_source_values[i]) != h_dest_values[i]) 
             res = false;
     }

@@ -94,13 +94,13 @@ int main(int argc, const char * argv[]) {
     int scatter_blockSize = -1, scatter_gridSize = -1;
     int scan_blockSize = -1;
 
-    int experTime = 10;
+    int experTime = 3;
     double mapTime = 0.0f, gatherTime = 0.0f, scatterTime = 0.0f, scanTime = 0.0f, radixSortTime = 0.0f;
 
-    // mapTime = runMap(experTime, map_blockSize, map_gridSize);
+    mapTime = runMap(experTime, map_blockSize, map_gridSize);
     // gatherTime = runGather(experTime, gather_blockSize, gather_gridSize);
     // scatterTime = runScatter(experTime, scatter_blockSize, scatter_gridSize);
-    scanTime = runScan(experTime, scan_blockSize);
+    // scanTime = runScan(experTime, scan_blockSize);
     // radixSortTime = runRadixSort(experTime);
 
     cout<<"Time for map: "<<mapTime<<" ms."<<'\t'<<"BlockSize: "<<map_blockSize<<'\t'<<"GridSize: "<<map_gridSize<<endl;
@@ -123,9 +123,9 @@ int main(int argc, const char * argv[]) {
 }
 
 //for testing
-#define MIN_BLOCK   (1024)  //64
+#define MIN_BLOCK   (64)  //64
 #define MAX_BLOCK   (1024)
-#define MIN_GRID    (1024)  //256
+#define MIN_GRID    (256)  //256
 #define MAX_GRID    (1024)
 
 double runMap(int experTime, int& bestBlockSize, int& bestGridSize) {
