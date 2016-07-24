@@ -84,7 +84,8 @@ bool testMap(
     
     gettimeofday(&end, NULL);
 
-    //check
+//check
+#ifdef CHECKING
     SHOW_CHECKING;
     for(int i = 0; i < length; i++) {
         if (
@@ -96,7 +97,7 @@ bool testMap(
             res = false;
     }
     FUNC_CHECK(res);
-    
+#endif
     status = clReleaseMemObject(d_source_values);
     checkErr(status, ERR_RELEASE_MEM);
     status = clReleaseMemObject(d_dest_values);

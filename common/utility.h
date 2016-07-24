@@ -80,7 +80,7 @@
 #define SHUFFLE_TIME(TIME)		(TIME * 1.5)
 #define SHARED_MEM_SIZE			(48000)
 #define SHARED_MEM_CHECK(SIZE)		assert(SIZE <= SHARED_MEM_SIZE);
-#define MAX_TIME 				(9999.0f)
+#define MAX_TIME 				(99999.0f)
 
 int compRecordAsc ( const void * a, const void * b);
 int compRecordDec ( const void * a, const void * b);

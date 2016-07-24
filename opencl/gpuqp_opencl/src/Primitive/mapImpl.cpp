@@ -21,7 +21,7 @@ double map(
 {
     
     double totalTime = 0;
-    
+
     cl_int status = 0;
     int argsNum = 0;
     
@@ -56,11 +56,13 @@ double map(
 #ifdef PRINT_KERNEL
     printExecutingKernel(mapKernel);
 #endif
+
     cl_event event;
     status = clFinish(info.currentQueue);
     status = clEnqueueNDRangeKernel(info.currentQueue, mapKernel, 1, 0, global, local, 0, 0, &event);
     clFlush(info.currentQueue);
     clWaitForEvents(1,&event);
+
     checkErr(status, ERR_EXEC_KERNEL);
     totalTime = clEventTime(event);
 

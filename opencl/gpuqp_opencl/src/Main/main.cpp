@@ -24,6 +24,11 @@ int *fixedValues;
 
 int *fixedLoc;
 
+#define NUM_FUNCS   (6)     //map, scatter, gather, reduce, scan, split
+double bytes[NUM_FUNCS];
+
+
+
 double runMap(int expeTime, int& blockSize, int& gridSize);
 double runGather(int experTime, int& blockSize, int& gridSize);
 double runScatter(int experTime, int& blockSize, int& gridSize);
@@ -103,11 +108,18 @@ int main(int argc, const char * argv[]) {
     // scanTime = runScan(experTime, scan_blockSize);
     // radixSortTime = runRadixSort(experTime);
 
-    cout<<"Time for map: "<<mapTime<<" ms."<<'\t'<<"BlockSize: "<<map_blockSize<<'\t'<<"GridSize: "<<map_gridSize<<endl;
-    cout<<"Time for gather: "<<gatherTime<<" ms."<<'\t'<<"BlockSize: "<<gather_blockSize<<'\t'<<"GridSize: "<<gather_gridSize<<endl;
-    cout<<"Time for scatter: "<<scatterTime<<" ms."<<'\t'<<"BlockSize: "<<scatter_blockSize<<'\t'<<"GridSize: "<<scatter_gridSize<<endl;
-    cout<<"Time for scan: "<<scanTime<<" ms."<<'\t'<<"BlockSize: "<<scan_blockSize<<endl;
-    cout<<"Time for radix sort: "<<radixSortTime<<" ms."<<endl;
+//bandwidth calculation
+    bytes[0] = dataSize * sizeof(int) * 2;
+
+    cout<<"Time for map: "<<mapTime<<" ms."<<'\t'
+        <<"BlockSize: "<<map_blockSize<<'\t'
+        <<"GridSize: "<<map_gridSize<<'\t'
+        <<"Bandwidth:"<<1.0E-06 * bytes[0] / mapTime<<" GB/s." 
+        <<endl;
+    // cout<<"Time for gather: "<<gatherTime<<" ms."<<'\t'<<"BlockSize: "<<gather_blockSize<<'\t'<<"GridSize: "<<gather_gridSize<<endl;
+    // cout<<"Time for scatter: "<<scatterTime<<" ms."<<'\t'<<"BlockSize: "<<scatter_blockSize<<'\t'<<"GridSize: "<<scatter_gridSize<<endl;
+    // cout<<"Time for scan: "<<scanTime<<" ms."<<'\t'<<"BlockSize: "<<scan_blockSize<<endl;
+    // cout<<"Time for radix sort: "<<radixSortTime<<" ms."<<endl;
     
 //    testSplit(fixedRecords, dataSize, info, 20, totalTime);           //fanout: 20
 //    testBitonitSort(fixedRecords, dataSize, info, 1, totalTime);      //1:  ascendingls
@@ -119,13 +131,15 @@ int main(int argc, const char * argv[]) {
 //    testSmj(num, num, info, totalTime);
 //    testHj(num, num, info, 16, totalTime);         //16: lower 16 bits to generate the buckets
 
+
+
     return 0;
 }
 
 //for testing
-#define MIN_BLOCK   (64)  //64
+#define MIN_BLOCK   (512)  //64
 #define MAX_BLOCK   (1024)
-#define MIN_GRID    (256)  //256
+#define MIN_GRID    (1024)  //256
 #define MAX_GRID    (1024)
 
 double runMap(int experTime, int& bestBlockSize, int& bestGridSize) {

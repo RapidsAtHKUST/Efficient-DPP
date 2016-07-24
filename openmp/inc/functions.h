@@ -18,7 +18,8 @@ void testScatter_intr(int *source, int *dest, int* loc, int n);
 void testScan_tbb(int* a, int* b, int n, int pattern);
 double testScan_omp(int *a, int *b, int n, int pattern);
 
-double map(int *source, int *dest, int n);
+double map_CPU(int *source, int *dest, int n);
+double map_MIC(int *source, int *dest, int n);
 
 double testScan_ass(int* a, int* b, int n, int pattern);
 

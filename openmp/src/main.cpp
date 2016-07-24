@@ -1,113 +1,48 @@
 #include "utility.h"
+#include <stdlib.h>
 #include "functions.h"
 #include <immintrin.h>
 
-#pragma offload_attribute(push, target(mic))
-#include <iostream>
-#include <stdio.h>
-#include "tbb/task_scheduler_init.h"
-#include "tbb/blocked_range.h"
-#include "tbb/parallel_for.h"
-// #include <dvec.h>
-
-class __attribute__ ((target(mic))) ApplyFoo;
-
-#pragma offload_attribute(pop)
-
-#include "functions.h"
-
-// #include "functions.h"
+// #pragma offload_attribute(push, target(mic))
+// #include <iostream>
+// #include <stdio.h>
 // #include "tbb/task_scheduler_init.h"
 // #include "tbb/blocked_range.h"
 // #include "tbb/parallel_for.h"
 
+
+// #pragma offload_attribute(pop)
+#define NUM_FUCTIONS	(6)		//map, scatter, gather, reduce, scan, split
+#define MAX_TIME_INIT 		(99999.0)
+#define MIN_TIME_INIT		(0.0)
+
 using namespace std;
-// using namespace tbb;
 
+double bytes[NUM_FUCTIONS];
+double minTime[NUM_FUCTIONS]={MAX_TIME_INIT};
+double maxTime[NUM_FUCTIONS]={MIN_TIME_INIT};
+double avgTime[NUM_FUCTIONS];
 
-// __attribute__ ((target(mic))) int floorOfPower2_CPU1(int a) {
-// 	int base = 1;
-// 	while(base < a) {
-// 		base <<=1;
-// 	}
-// 	return base >> 1;
-// }
-
-// class __attribute__ ((target(mic))) ApplyFoo
-// {
-// 	int * my_res;
-// 	int * const my_a;
-// public: 
-// 	void operator() (const blocked_range<size_t> &r) const
-// 	{
-// 		int *a = my_a;
-// 		size_t ended = r.end();
-// 		for(size_t i = r.begin(); i < ended; i++ )	
-// 			my_res[i] = floorOfPower2_CPU1(a[i]);
-// 	}
-	
-// 	__attribute__ ((target(mic))) ApplyFoo(int a[], int res[]): my_a(a), my_res(res) {}
-// };
-
-int main() {
+int main(int argc, char* argv[]) {
 
 	double totalTime = 0.0f;
-	int n = 16000000;
+	int n = atoi(argv[1]);
 
-	int *source_intr = (int*)_mm_malloc(sizeof(int)*n, 64);
-	int *dest_intr = (int*)_mm_malloc(sizeof(int)*n, 64);
-	int *loc_intr = (int*)_mm_malloc(sizeof(int)*n, 64);
+	int *source, *dest;
 
-	int * source = new int[n];
-	int * dest = new int[n];
-	int *loc = new int[n];
+	// source = (int*)_mm_malloc(sizeof(int)*n, 64);
+	// dest = (int*)_mm_malloc(sizeof(int)*n, 64);
 
+	source = new int[n];
+	dest = new int[n];
+
+	//initialization
 	for(int i = 0; i < n; i++) {
-		source[i] = i;
-		source_intr[i] = i;
-		loc[i] = n - i - 1;
-		loc_intr[i] = n - i - 1;
+		source[i] = 1;
+		dest[i] = -1;
 	}
 
-	// int *a = new int[n];
-	// int *b = new int[n];
-
-	for(int i = 0; i < n; i++) {
-		// a[i] = rand();
-		// b[i] = rand() % 100 + 1;
-	}
-
-	// cout<<endl;
-	// task_scheduler_init init;
-	// struct timeval start, end;
-	// int *a = new int[n];
-	// int *res = new int[n];
-
-	// for(int i = 0; i < n; i++) {
-	// 	a[i] = i;
-	// }
-	// 	printf("starting for,\n");
-
-	// #pragma offload target(mic) in(a:length(n)) out(res:length(n))
-	// {
-	// 	gettimeofday(&start, NULL);
-	// 	printf("start for,\n");
-	// 	parallel_for(blocked_range<size_t>(0,n), ApplyFoo(a, res), simple_partitioner());
-	// 	printf("end for,\n");
-
-	// 	gettimeofday(&end, NULL);
-	// }
-
-	// cout<<"Output:"<<endl;
-
-	// for(int i = 0; i < n ; i++) {
-	// 	cout<<a[i]<<' '<<res[i]<<endl;
-	// }
-
-	// return diffTime(end, start);
-
-	// cout<<"Elapsed time for mapping "<<n<<" elements: "<<diffTime(end, start)<<" ms."<<endl;
-
+int typeOfDevice = atoi(argv[2]);
 
 	// cout<<"1------------------------------------------"<<endl;
 	// totalTime = testScan(a, b, n);
@@ -127,24 +62,68 @@ int main() {
 	// 	}
 	// cout<<endl;
 
-	int num = 10;
-	double lessTime = 9999;
+	//warm up
+if (typeOfDevice == 0)	//cpu
+	map_CPU(source,dest,n);
+else if (typeOfDevice == 1)
+	map_MIC(source,dest,n);
+else {
+	cerr<<"Invalid type!"<<endl;
+	return 1;	
+}
 
-	for(int i = 0; i < num; i++) {
-		// for(int j = 0; j < n; j++) {
-		// 	a[j] = rand() % 10000;
-		// }
-		double myTime = map(source_intr,dest_intr,n);
+	int numOfTests = 5;
 
-		bool res = true;
-		for(int i = 0; i < n; i++) {
-			if (dest_intr[i] != floorOfPower2_CPU(source_intr[i]))	{
-				res = false;
-				break;
-			}
+	bytes[0] = n * sizeof(float) * 2;
+
+	for(int i = 0; i < numOfTests; i++) {
+
+		double tempTime;		
+		if (typeOfDevice == 0)	//cpu
+			tempTime = map_CPU(source,dest,n);
+		else if (typeOfDevice == 1)
+			tempTime = map_MIC(source,dest,n);
+
+		if (tempTime < minTime[0])	minTime[0] = tempTime;
+		if (tempTime > maxTime[0])	maxTime[0] = tempTime;
+		avgTime[0] += tempTime;
+	}
+	avgTime[0] /= numOfTests;
+
+	//checking
+	bool res = true;
+	for(int i = 0; i < n; i++) {
+		if (dest[i] != source[i] + 1) {
+			res = false;
+			break;
 		}
-		if (res)	cout<<"True"<<endl;
-		else 		cout<<"False"<<endl;
+	}
+	cout<<endl;
+
+	cout<<"------------------------------------"<<endl;
+	cout<<"Summary:"<<endl;
+	if (typeOfDevice == 0)
+		cout<<"Platrform: CPU"<<endl;
+	else if (typeOfDevice == 1)
+		cout<<"Platrform: MIC"<<endl;
+	if (res)	cout<<"Output:right"<<endl;
+	else 		cout<<"Output:wrong"<<endl;
+
+	cout<<"Number of tuples: "<<n<<endl;
+	cout<<"Avg Time: "<<avgTime[0]<<" ms."<<endl;
+	cout<<"Min Time: "<<minTime[0]<<" ms."<<endl;
+	cout<<"Max Time: "<<maxTime[0]<<" ms."<<endl;
+	cout<<"Rate: "<<bytes[0] / minTime[0] * 1.0E-06<<" GB/s."<<endl;
+
+		// bool res = true;
+		// for(int i = 0; i < n; i++) {
+		// 	if (dest[i] != floorOfPower2_CPU(source[i]) )	{
+		// 		res = false;
+		// 		break;
+		// 	}
+		// }
+		// if (res)	cout<<"True"<<endl;
+		// else 		cout<<"False"<<endl;
 	// 	cout<<"gather:"<<endl;
 		// testGather_intr(source, dest, loc, n);
 	// 	cout<<endl;
@@ -163,9 +142,10 @@ int main() {
 		// double myTime = testScan_omp(a,b,n,0);
 		// testScan_tbb(a,b,n,0);
 		// double myTime = testScan_ass(source_intr,dest_intr,n,0);
-		if (myTime < lessTime) {
-			lessTime = myTime;
-		}
+		// for(int i=0; i < 240; i++) {
+		// 	cout<<i<<':'<<dest[i]<<endl;
+		// }
+
 		 // testRadixSort(a, n);
 		 // testRadixSort_tbb(a, n);
 
@@ -179,19 +159,18 @@ int main() {
 		// 	cout<<a[j]<<' ';
 		// }
 		// cout<<endl;
-	}
 	
-	cout<<"Time:"<<lessTime<<" ms"<<endl;
 	// delete[] a;
 	// delete[] b;
 	// cout<<"Avg time: "<<totalTime /  (num - 1) <<" ms."<<endl;
-	_mm_free(source_intr);
-	_mm_free(dest_intr);
-	_mm_free(loc_intr);
+	
+	// _mm_free(loc_intr);
 
+	// _mm_free(source);
+	// _mm_free(dest);
 	delete[] source;
 	delete[] dest;
-	delete[] loc;
+	// delete[] loc;
 	
 	return 0;
 }
