@@ -24,7 +24,7 @@ using namespace std;
 //     return v>>1;
 // }
 
-double map_MIC(int *source, int *dest, int n) {
+double map_MIC(int *source, int *dest, int n, int k) {
 	
     struct timeval start, end;
 
@@ -33,27 +33,26 @@ double map_MIC(int *source, int *dest, int n) {
     nocopy(dest:length(n) alloc_if(1) free_if(0))  
     {}	
 
-	gettimeofday(&start, NULL);
-
     #pragma offload target(mic) \
     nocopy(source:length(n) alloc_if(0) free_if(0)) \
     nocopy(dest:length(n) alloc_if(0) free_if(0))  
     {	
+		gettimeofday(&start, NULL);
     	#pragma omp parallel 
     	{
 			#pragma omp for schedule(auto) nowait
 			for(int i = 0; i < n; i++) {
 				float pi = 0;
 				int v = source[i];
-				for(int k = 0; k <= 250; k++){
-					pi += (k+v)/(2*v+1);
+				for(int ki = 0; ki <= k; ki++){
+					pi += (ki+v)/(2*k*0.29+1.33);
 				}
 				pi *= 4;
 				dest[i] = (int)pi;
 			}
 		}
+		gettimeofday(&end, NULL);
 	}
-	gettimeofday(&end, NULL);
 
 	#pragma offload target(mic) \
     out(dest:length(n))  

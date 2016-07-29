@@ -8,6 +8,11 @@
 
 #include "mapImpl.h"
 
+#define NUM_FUCTIONS    (25)        //map, scatter, gather, reduce, scan, split
+#define STEP            (10)
+#define MAX_TIME_INIT       (99999.0)
+#define MIN_TIME_INIT       (0.0)
+
 /* Record *clSource
  * int * dest1
  * int * dest2
@@ -35,36 +40,44 @@ double map(
     cl_kernel mapKernel = reader.getKernel(kerName);
 
     //set kernel arguments
-    argsNum = 0;
-    
-#ifdef RECORDS
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_source_keys);
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_dest_keys);
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(bool), &isRecord);
-#endif
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_source_values);
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_dest_values);
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(int), &length);
-    checkErr(status, ERR_SET_ARGUMENTS);
 
-    //set work group and NDRange sizes
-    size_t local[1] = {(size_t)localSize};
-    size_t global[1] = {(size_t)(localSize * gridSize)};
-    
-    
-    //launch the kernel
-#ifdef PRINT_KERNEL
-    printExecutingKernel(mapKernel);
-#endif
+    double minTime[NUM_FUCTIONS]={MAX_TIME_INIT};
+    double maxTime[NUM_FUCTIONS]={MIN_TIME_INIT};
+    double avgTime[NUM_FUCTIONS]={0};
 
-    cl_event event;
-    status = clFinish(info.currentQueue);
-    status = clEnqueueNDRangeKernel(info.currentQueue, mapKernel, 1, 0, global, local, 0, 0, &event);
-    clFlush(info.currentQueue);
-    clWaitForEvents(1,&event);
+    for(int k = 0; k < NUM_FUCTIONS; k++) {
+            argsNum = 0;
+        #ifdef RECORDS
+            status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_source_keys);
+            status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_dest_keys);
+            status |= clSetKernelArg(mapKernel, argsNum++, sizeof(bool), &isRecord);
+        #endif
+            status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_source_values);
+            status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+            status |= clSetKernelArg(mapKernel, argsNum++, sizeof(int), &length);
+            status |= clSetKernelArg(mapKernel, argsNum++, sizeof(int), &k);
+            
+            checkErr(status, ERR_SET_ARGUMENTS);
 
-    checkErr(status, ERR_EXEC_KERNEL);
-    totalTime = clEventTime(event);
+            //set work group and NDRange sizes
+            size_t local[1] = {(size_t)localSize};
+            size_t global[1] = {(size_t)(localSize * gridSize)};
+            
+            
+            //launch the kernel
+        #ifdef PRINT_KERNEL
+            printExecutingKernel(mapKernel);
+        #endif
+
+            cl_event event;
+            status = clFinish(info.currentQueue);
+            status = clEnqueueNDRangeKernel(info.currentQueue, mapKernel, 1, 0, global, local, 0, 0, &event);
+            clFlush(info.currentQueue);
+            clWaitForEvents(1,&event);
+
+            checkErr(status, ERR_EXEC_KERNEL);
+            totalTime = clEventTime(event);
+    }
 
     return totalTime;
 }

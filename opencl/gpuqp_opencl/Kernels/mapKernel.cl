@@ -41,7 +41,8 @@ kernel void mapKernel (
 #endif
     global int* d_source_values,
     global int* d_dest_values,
-    int length)
+    int length,
+    int k)
 {
     int globalId = get_global_id(0);
     int globalSize = get_global_size(0);
@@ -58,16 +59,16 @@ kernel void mapKernel (
         // d_dest_values[globalId] = globalId + 11;
 
         //only read
-        // v += d_source_values[globalId];
+        v = 2 * globalId + 3;
 
         //complicate calculate
-        float pi = 0;
-        int v = d_source_values[globalId];
-        for(int k = 0; k <= 250; k++){
-            pi += (k+v)/(2*v+1);
-        }
-        pi *= 4;
-        d_dest_values[globalId] = (int)pi;
+        // float pi = 0;
+        // int v = d_source_values[globalId];
+        // for(int ki = 0; ki <= 0; ki++){
+        //     pi += (ki+v)/(2*k*0.29+1.33);
+        // }
+        // pi *= 4;
+        // d_dest_values[globalId] = (int)pi;
 
     #ifdef RECORDS
         if (isRecord)

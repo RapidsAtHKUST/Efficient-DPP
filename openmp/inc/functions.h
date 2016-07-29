@@ -4,6 +4,9 @@
 #include "utility.h"
 
 
+//basic operations
+double mad_test(float *hostMem, int n, int repeatTime);
+
 
 void testRadixSort(unsigned *arr, int len) ;
 void testRadixSort_tbb(unsigned *arr_tbb, int len) ;
@@ -19,7 +22,7 @@ void testScan_tbb(int* a, int* b, int n, int pattern);
 double testScan_omp(int *a, int *b, int n, int pattern);
 
 double map_CPU(int *source, int *dest, int n);
-double map_MIC(int *source, int *dest, int n);
+double map_MIC(int *source, int *dest, int n, int k);
 
 double testScan_ass(int* a, int* b, int n, int pattern);
 
