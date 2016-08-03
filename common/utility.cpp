@@ -231,6 +231,27 @@ void printRes(std::string funcName, bool res, float elaspsedTime) {
     else        std::cout<<"Failed!"<<std::endl;
 }
 
+void my_itoa(int num, char *buffer, int base) {
+    int len=0, p=num;
+    while(p/=base)
+    {
+        len++;
+    }
+    len++;
+    for(p=0;p<len;p++)
+    {
+        int x=1;
+        for(int t=p+1;t<len;t++)
+        {
+            x*=base;
+        }
+        buffer[p] = num/x + '0';
+        num -=( buffer[p] - '0' ) * x;
+    }
+    buffer[len] = '\0';
+}
+
+
 #ifdef OPENCL_PROJ
 //OpenCL error checking functions
 void checkErr(cl_int status, const char* name) {
@@ -246,6 +267,8 @@ double clEventTime(const cl_event event){
     clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(end), &end, NULL);
     return (end - start) / 1000000.0;
 }
+
+
 
 #endif
 

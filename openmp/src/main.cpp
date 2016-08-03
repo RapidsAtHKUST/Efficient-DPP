@@ -42,15 +42,21 @@ cout<<"---------------- begin test ----------------"<<endl;
 	
 	double lessTime = 9999999;
 
-	int expr = 2;
-	int repeatTime = 1;
+	int expr = 5;
+	int repeatTime = 60;
 
 	for(int i = 0; i < expr; i++) {
-		totalTime = mad_test(input,n,1);
+		totalTime = mad_test(input,n,repeatTime);
 		if (totalTime < lessTime) lessTime = totalTime;
 	}
 	cout<<"totalTime:"<<lessTime<<" ms."<<endl;
 	cout<<"Throughput: "<< (double)n * 2 * repeatTime * 240 / lessTime * 0.001 * 0.001<<" GFLPS"<<endl;
+
+	cout<<"output:";
+	for(int i = 1456; i < 1567; i++) {
+		cout<<input[i]<<' ';
+	}
+	cout<<endl;
 
 	_mm_free(input);
 

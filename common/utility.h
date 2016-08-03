@@ -80,7 +80,7 @@
 #define SHUFFLE_TIME(TIME)		(TIME * 1.5)
 #define SHARED_MEM_SIZE			(48000)
 #define SHARED_MEM_CHECK(SIZE)		assert(SIZE <= SHARED_MEM_SIZE);
-#define MAX_TIME 				(99999.0f)
+#define MAX_TIME 				(999999.0f)
 
 int compRecordAsc ( const void * a, const void * b);
 int compRecordDec ( const void * a, const void * b);
@@ -117,5 +117,7 @@ double diffTime(struct timeval end, struct timeval start);	//calculate
 int floorOfPower2_CPU(int a);
 void printRes(std::string funcName, bool res, double elaspsedTime);
 void printRes(std::string funcName, bool res, float elaspsedTime);
+
+void my_itoa(int num, char *buffer, int base);
 
 #endif
