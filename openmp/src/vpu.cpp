@@ -6,7 +6,8 @@
 
 using namespace std;
 
-// s = s * con + con = 1.89 * s + 1.89
+#define FACTOR      (1.0001)
+// s = s * con + con = FACTOR * s + FACTOR
 #define MADD1_OP  s = _mm512_fmadd233_ps(s, con);
 
 #define MADD1_MOP20  \
@@ -14,7 +15,7 @@ using namespace std;
      MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP \
      MADD1_OP MADD1_OP MADD1_OP MADD1_OP
 
-double mad_test(float *data, int n, int repeatTime){
+double vpu_test(float *data, int n, int repeatTime){
 
     struct timeval start, end;
 
@@ -31,7 +32,7 @@ double mad_test(float *data, int n, int repeatTime){
 	    for (int gid = 0; gid < n/16; gid++)
 	    {
 	       	__declspec(target(mic)) register __m512 s = _mm512_load_ps(&data[gid*16]);
-	       	__declspec(target(mic)) register __m512 con = _mm512_set1_ps(1.89);
+	       	__declspec(target(mic)) register __m512 con = _mm512_set1_ps(FACTOR);
 
 	        for (int j=0 ; j<repeatTime ; ++j)
 	        {

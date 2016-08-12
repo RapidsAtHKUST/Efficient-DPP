@@ -1,0 +1,842 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 500000000
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Many Integrated Core Acceleration Card
+------ End of hardware checking ------
+
+-----  Memory Bandwidth Write Test ----- 
+blockSize=64	gridSize=256	float1	120.871 ms	16.5466 GB/s	done!
+blockSize=64	gridSize=256	float2	120.672 ms	16.5738 GB/s	done!
+blockSize=64	gridSize=256	float4	99.1042 ms	20.1808 GB/s	done!
+blockSize=64	gridSize=256	float8	84.712 ms	23.6094 GB/s	done!
+blockSize=64	gridSize=256	float16	68.5147 ms	29.1908 GB/s	done!
+blockSize=64	gridSize=512	float1	109.008 ms	18.3473 GB/s	done!
+blockSize=64	gridSize=512	float2	96.8693 ms	20.6464 GB/s	done!
+blockSize=64	gridSize=512	float4	82.7714 ms	24.1629 GB/s	done!
+blockSize=64	gridSize=512	float8	72.5018 ms	27.5855 GB/s	done!
+blockSize=64	gridSize=512	float16	60.7411 ms	32.9266 GB/s	done!
+blockSize=64	gridSize=1024	float1	91.328 ms	21.8991 GB/s	done!
+blockSize=64	gridSize=1024	float2	87.6997 ms	22.8051 GB/s	done!
+blockSize=64	gridSize=1024	float4	75.2427 ms	26.5806 GB/s	done!
+blockSize=64	gridSize=1024	float8	61.1724 ms	32.6945 GB/s	done!
+blockSize=64	gridSize=1024	float16	53.3392 ms	37.4959 GB/s	done!
+blockSize=64	gridSize=2048	float1	79.1749 ms	25.2605 GB/s	done!
+blockSize=64	gridSize=2048	float2	80.1516 ms	24.9527 GB/s	done!
+blockSize=64	gridSize=2048	float4	69.7918 ms	28.6567 GB/s	done!
+blockSize=64	gridSize=2048	float8	61.0566 ms	32.7565 GB/s	done!
+blockSize=64	gridSize=2048	float16	52.8669 ms	37.8309 GB/s	done!
+blockSize=64	gridSize=4096	float1	75.7099 ms	26.4166 GB/s	done!
+blockSize=64	gridSize=4096	float2	75.8946 ms	26.3523 GB/s	done!
+blockSize=64	gridSize=4096	float4	69.9006 ms	28.612 GB/s	done!
+blockSize=64	gridSize=4096	float8	56.9592 ms	35.1128 GB/s	done!
+blockSize=64	gridSize=4096	float16	47.7988 ms	41.842 GB/s	done!
+blockSize=64	gridSize=8192	float1	80.3168 ms	24.9014 GB/s	done!
+blockSize=64	gridSize=8192	float2	72.5553 ms	27.5652 GB/s	done!
+blockSize=64	gridSize=8192	float4	68.4262 ms	29.2286 GB/s	done!
+blockSize=64	gridSize=8192	float8	55.0158 ms	36.3532 GB/s	done!
+blockSize=64	gridSize=8192	float16	46.8375 ms	42.7008 GB/s	done!
+blockSize=64	gridSize=16384	float1	74.6506 ms	26.7915 GB/s	done!
+blockSize=64	gridSize=16384	float2	72.1981 ms	27.7016 GB/s	done!
+blockSize=64	gridSize=16384	float4	63.9067 ms	31.2956 GB/s	done!
+blockSize=64	gridSize=16384	float8	54.7659 ms	36.5191 GB/s	done!
+blockSize=64	gridSize=16384	float16	47.747 ms	41.8875 GB/s	done!
+blockSize=128	gridSize=256	float1	124.48 ms	16.0668 GB/s	done!
+blockSize=128	gridSize=256	float2	120.322 ms	16.6221 GB/s	done!
+blockSize=128	gridSize=256	float4	103.832 ms	19.2619 GB/s	done!
+blockSize=128	gridSize=256	float8	81.9629 ms	24.4013 GB/s	done!
+blockSize=128	gridSize=256	float16	72.3545 ms	27.6417 GB/s	done!
+blockSize=128	gridSize=512	float1	95.9117 ms	20.8525 GB/s	done!
+blockSize=128	gridSize=512	float2	95.0539 ms	21.0407 GB/s	done!
+blockSize=128	gridSize=512	float4	80.7917 ms	24.755 GB/s	done!
+blockSize=128	gridSize=512	float8	66.4757 ms	30.0862 GB/s	done!
+blockSize=128	gridSize=512	float16	57.034 ms	35.0668 GB/s	done!
+blockSize=128	gridSize=1024	float1	86.0732 ms	23.236 GB/s	done!
+blockSize=128	gridSize=1024	float2	81.5602 ms	24.5218 GB/s	done!
+blockSize=128	gridSize=1024	float4	72.6397 ms	27.5332 GB/s	done!
+blockSize=128	gridSize=1024	float8	62.0143 ms	32.2506 GB/s	done!
+blockSize=128	gridSize=1024	float16	52.3263 ms	38.2217 GB/s	done!
+blockSize=128	gridSize=2048	float1	78.9967 ms	25.3175 GB/s	done!
+blockSize=128	gridSize=2048	float2	76.5594 ms	26.1235 GB/s	done!
+blockSize=128	gridSize=2048	float4	68.8197 ms	29.0615 GB/s	done!
+blockSize=128	gridSize=2048	float8	56.1252 ms	35.6346 GB/s	done!
+blockSize=128	gridSize=2048	float16	50.0965 ms	39.923 GB/s	done!
+blockSize=128	gridSize=4096	float1	76.2038 ms	26.2454 GB/s	done!
+blockSize=128	gridSize=4096	float2	73.627 ms	27.1639 GB/s	done!
+blockSize=128	gridSize=4096	float4	64.7728 ms	30.8771 GB/s	done!
+blockSize=128	gridSize=4096	float8	55.6713 ms	35.9251 GB/s	done!
+blockSize=128	gridSize=4096	float16	48.0314 ms	41.6394 GB/s	done!
+blockSize=128	gridSize=8192	float1	75.5102 ms	26.4865 GB/s	done!
+blockSize=128	gridSize=8192	float2	71.3062 ms	28.048 GB/s	done!
+blockSize=128	gridSize=8192	float4	69.3869 ms	28.8239 GB/s	done!
+blockSize=128	gridSize=8192	float8	55.4555 ms	36.065 GB/s	done!
+blockSize=128	gridSize=8192	float16	48.5039 ms	41.2338 GB/s	done!
+blockSize=128	gridSize=16384	float1	76.8333 ms	26.0304 GB/s	done!
+blockSize=128	gridSize=16384	float2	74.4844 ms	26.8513 GB/s	done!
+blockSize=128	gridSize=16384	float4	63.658 ms	31.4179 GB/s	done!
+blockSize=128	gridSize=16384	float8	53.8833 ms	37.1173 GB/s	done!
+blockSize=128	gridSize=16384	float16	47.6737 ms	41.9518 GB/s	done!
+blockSize=256	gridSize=256	float1	128.183 ms	15.6027 GB/s	done!
+blockSize=256	gridSize=256	float2	120.677 ms	16.5731 GB/s	done!
+blockSize=256	gridSize=256	float4	101.087 ms	19.785 GB/s	done!
+blockSize=256	gridSize=256	float8	85.2128 ms	23.4707 GB/s	done!
+blockSize=256	gridSize=256	float16	74.9288 ms	26.692 GB/s	done!
+blockSize=256	gridSize=512	float1	96.7577 ms	20.6702 GB/s	done!
+blockSize=256	gridSize=512	float2	87.2474 ms	22.9233 GB/s	done!
+blockSize=256	gridSize=512	float4	80.6095 ms	24.811 GB/s	done!
+blockSize=256	gridSize=512	float8	63.7582 ms	31.3685 GB/s	done!
+blockSize=256	gridSize=512	float16	52.7236 ms	37.9337 GB/s	done!
+blockSize=256	gridSize=1024	float1	83.6483 ms	23.9096 GB/s	done!
+blockSize=256	gridSize=1024	float2	79.1283 ms	25.2754 GB/s	done!
+blockSize=256	gridSize=1024	float4	70.6119 ms	28.3238 GB/s	done!
+blockSize=256	gridSize=1024	float8	60.7566 ms	32.9182 GB/s	done!
+blockSize=256	gridSize=1024	float16	51.849 ms	38.5736 GB/s	done!
+blockSize=256	gridSize=2048	float1	77.9928 ms	25.6434 GB/s	done!
+blockSize=256	gridSize=2048	float2	74.0375 ms	27.0133 GB/s	done!
+blockSize=256	gridSize=2048	float4	66.5324 ms	30.0605 GB/s	done!
+blockSize=256	gridSize=2048	float8	55.193 ms	36.2365 GB/s	done!
+blockSize=256	gridSize=2048	float16	49.6436 ms	40.2871 GB/s	done!
+blockSize=256	gridSize=4096	float1	75.4807 ms	26.4968 GB/s	done!
+blockSize=256	gridSize=4096	float2	73.0155 ms	27.3915 GB/s	done!
+blockSize=256	gridSize=4096	float4	63.9816 ms	31.259 GB/s	done!
+blockSize=256	gridSize=4096	float8	55.0734 ms	36.3152 GB/s	done!
+blockSize=256	gridSize=4096	float16	48.4571 ms	41.2736 GB/s	done!
+blockSize=256	gridSize=8192	float1	78.7921 ms	25.3833 GB/s	done!
+blockSize=256	gridSize=8192	float2	71.5252 ms	27.9622 GB/s	done!
+blockSize=256	gridSize=8192	float4	64.7024 ms	30.9108 GB/s	done!
+blockSize=256	gridSize=8192	float8	55.001 ms	36.363 GB/s	done!
+blockSize=256	gridSize=8192	float16	47.5124 ms	42.0942 GB/s	done!
+blockSize=256	gridSize=16384	float1	78.4487 ms	25.4944 GB/s	done!
+blockSize=256	gridSize=16384	float2	71.0222 ms	28.1602 GB/s	done!
+blockSize=256	gridSize=16384	float4	64.0274 ms	31.2366 GB/s	done!
+blockSize=256	gridSize=16384	float8	52.5646 ms	38.0484 GB/s	done!
+blockSize=256	gridSize=16384	float16	43.1653 ms	46.3335 GB/s	done!
+blockSize=512	gridSize=256	float1	121.533 ms	16.4564 GB/s	done!
+blockSize=512	gridSize=256	float2	116.299 ms	17.197 GB/s	done!
+blockSize=512	gridSize=256	float4	105.322 ms	18.9893 GB/s	done!
+blockSize=512	gridSize=256	float8	91.3109 ms	21.9032 GB/s	done!
+blockSize=512	gridSize=256	float16	80.1916 ms	24.9403 GB/s	done!
+blockSize=512	gridSize=512	float1	96.91 ms	20.6377 GB/s	done!
+blockSize=512	gridSize=512	float2	88.185 ms	22.6796 GB/s	done!
+blockSize=512	gridSize=512	float4	80.0873 ms	24.9728 GB/s	done!
+blockSize=512	gridSize=512	float8	64.8075 ms	30.8606 GB/s	done!
+blockSize=512	gridSize=512	float16	54.9968 ms	36.3657 GB/s	done!
+blockSize=512	gridSize=1024	float1	82.9402 ms	24.1138 GB/s	done!
+blockSize=512	gridSize=1024	float2	78.4826 ms	25.4834 GB/s	done!
+blockSize=512	gridSize=1024	float4	69.2308 ms	28.8889 GB/s	done!
+blockSize=512	gridSize=1024	float8	57.6562 ms	34.6883 GB/s	done!
+blockSize=512	gridSize=1024	float16	49.1042 ms	40.7297 GB/s	done!
+blockSize=512	gridSize=2048	float1	80.0176 ms	24.9945 GB/s	done!
+blockSize=512	gridSize=2048	float2	72.4654 ms	27.5994 GB/s	done!
+blockSize=512	gridSize=2048	float4	66.534 ms	30.0598 GB/s	done!
+blockSize=512	gridSize=2048	float8	54.5128 ms	36.6887 GB/s	done!
+blockSize=512	gridSize=2048	float16	49.0245 ms	40.7959 GB/s	done!
+blockSize=512	gridSize=4096	float1	79.1824 ms	25.2582 GB/s	done!
+blockSize=512	gridSize=4096	float2	71.7748 ms	27.8649 GB/s	done!
+blockSize=512	gridSize=4096	float4	65.0482 ms	30.7464 GB/s	done!
+blockSize=512	gridSize=4096	float8	56.248 ms	35.5568 GB/s	done!
+blockSize=512	gridSize=4096	float16	46.4741 ms	43.0347 GB/s	done!
+blockSize=512	gridSize=8192	float1	77.4803 ms	25.813 GB/s	done!
+blockSize=512	gridSize=8192	float2	73.0999 ms	27.3598 GB/s	done!
+blockSize=512	gridSize=8192	float4	67.0863 ms	29.8124 GB/s	done!
+blockSize=512	gridSize=8192	float8	53.0285 ms	37.7156 GB/s	done!
+blockSize=512	gridSize=8192	float16	42.1094 ms	47.4954 GB/s	done!
+blockSize=512	gridSize=16384	float1	78.2119 ms	25.5715 GB/s	done!
+blockSize=512	gridSize=16384	float2	69.9743 ms	28.5819 GB/s	done!
+blockSize=512	gridSize=16384	float4	63.7808 ms	31.3574 GB/s	done!
+blockSize=512	gridSize=16384	float8	41.6829 ms	47.9813 GB/s	done!
+blockSize=512	gridSize=16384	float16	40.1119 ms	49.8605 GB/s	done!
+blockSize=1024	gridSize=256	float1	126.05 ms	15.8667 GB/s	done!
+blockSize=1024	gridSize=256	float2	121.361 ms	16.4798 GB/s	done!
+blockSize=1024	gridSize=256	float4	112.131 ms	17.8363 GB/s	done!
+blockSize=1024	gridSize=256	float8	103.896 ms	19.25 GB/s	done!
+blockSize=1024	gridSize=256	float16	71.7438 ms	27.877 GB/s	done!
+blockSize=1024	gridSize=512	float1	96.3215 ms	20.7638 GB/s	done!
+blockSize=1024	gridSize=512	float2	90.2489 ms	22.1609 GB/s	done!
+blockSize=1024	gridSize=512	float4	78.1822 ms	25.5813 GB/s	done!
+blockSize=1024	gridSize=512	float8	68.3597 ms	29.257 GB/s	done!
+blockSize=1024	gridSize=512	float16	54.1527 ms	36.9326 GB/s	done!
+blockSize=1024	gridSize=1024	float1	84.8329 ms	23.5758 GB/s	done!
+blockSize=1024	gridSize=1024	float2	78.4251 ms	25.502 GB/s	done!
+blockSize=1024	gridSize=1024	float4	67.2584 ms	29.7361 GB/s	done!
+blockSize=1024	gridSize=1024	float8	57.4524 ms	34.8114 GB/s	done!
+blockSize=1024	gridSize=1024	float16	48.5448 ms	41.1991 GB/s	done!
+blockSize=1024	gridSize=2048	float1	79.5726 ms	25.1343 GB/s	done!
+blockSize=1024	gridSize=2048	float2	74.2011 ms	26.9538 GB/s	done!
+blockSize=1024	gridSize=2048	float4	65.4863 ms	30.5408 GB/s	done!
+blockSize=1024	gridSize=2048	float8	54.8555 ms	36.4594 GB/s	done!
+blockSize=1024	gridSize=2048	float16	48.1515 ms	41.5356 GB/s	done!
+blockSize=1024	gridSize=4096	float1	78.7 ms	25.413 GB/s	done!
+blockSize=1024	gridSize=4096	float2	72.7131 ms	27.5054 GB/s	done!
+blockSize=1024	gridSize=4096	float4	64.8362 ms	30.847 GB/s	done!
+blockSize=1024	gridSize=4096	float8	55.2826 ms	36.1777 GB/s	done!
+blockSize=1024	gridSize=4096	float16	42.7835 ms	46.747 GB/s	done!
+blockSize=1024	gridSize=8192	float1	79.1867 ms	25.2568 GB/s	done!
+blockSize=1024	gridSize=8192	float2	71.9907 ms	27.7813 GB/s	done!
+blockSize=1024	gridSize=8192	float4	64.1719 ms	31.1663 GB/s	done!
+blockSize=1024	gridSize=8192	float8	42.9474 ms	46.5686 GB/s	done!
+blockSize=1024	gridSize=8192	float16	38.6815 ms	51.7043 GB/s	done!
+blockSize=1024	gridSize=16384	float1	80.0192 ms	24.994 GB/s	done!
+blockSize=1024	gridSize=16384	float2	69.2135 ms	28.8961 GB/s	done!
+blockSize=1024	gridSize=16384	float4	45.3575 ms	44.0942 GB/s	done!
+blockSize=1024	gridSize=16384	float8	37.4359 ms	53.4246 GB/s	done!
+blockSize=1024	gridSize=16384	float16	36.4279 ms	54.903 GB/s	done!
+
+----------- Original ------------
+# 64	256	float1	120.871 ms	16.5466 GB/s
+# 64	256	float2	120.672 ms	16.5738 GB/s
+# 64	256	float4	99.1042 ms	20.1808 GB/s
+# 64	256	float8	84.712 ms	23.6094 GB/s
+# 64	256	float16	68.5147 ms	29.1908 GB/s
+# 64	512	float1	109.008 ms	18.3473 GB/s
+# 64	512	float2	96.8693 ms	20.6464 GB/s
+# 64	512	float4	82.7714 ms	24.1629 GB/s
+# 64	512	float8	72.5018 ms	27.5855 GB/s
+# 64	512	float16	60.7411 ms	32.9266 GB/s
+# 64	1024	float1	91.328 ms	21.8991 GB/s
+# 64	1024	float2	87.6997 ms	22.8051 GB/s
+# 64	1024	float4	75.2427 ms	26.5806 GB/s
+# 64	1024	float8	61.1724 ms	32.6945 GB/s
+# 64	1024	float16	53.3392 ms	37.4959 GB/s
+# 64	2048	float1	79.1749 ms	25.2605 GB/s
+# 64	2048	float2	80.1516 ms	24.9527 GB/s
+# 64	2048	float4	69.7918 ms	28.6567 GB/s
+# 64	2048	float8	61.0566 ms	32.7565 GB/s
+# 64	2048	float16	52.8669 ms	37.8309 GB/s
+# 64	4096	float1	75.7099 ms	26.4166 GB/s
+# 64	4096	float2	75.8946 ms	26.3523 GB/s
+# 64	4096	float4	69.9006 ms	28.612 GB/s
+# 64	4096	float8	56.9592 ms	35.1128 GB/s
+# 64	4096	float16	47.7988 ms	41.842 GB/s
+# 64	8192	float1	80.3168 ms	24.9014 GB/s
+# 64	8192	float2	72.5553 ms	27.5652 GB/s
+# 64	8192	float4	68.4262 ms	29.2286 GB/s
+# 64	8192	float8	55.0158 ms	36.3532 GB/s
+# 64	8192	float16	46.8375 ms	42.7008 GB/s
+# 64	16384	float1	74.6506 ms	26.7915 GB/s
+# 64	16384	float2	72.1981 ms	27.7016 GB/s
+# 64	16384	float4	63.9067 ms	31.2956 GB/s
+# 64	16384	float8	54.7659 ms	36.5191 GB/s
+# 64	16384	float16	47.747 ms	41.8875 GB/s
+# 128	256	float1	124.48 ms	16.0668 GB/s
+# 128	256	float2	120.322 ms	16.6221 GB/s
+# 128	256	float4	103.832 ms	19.2619 GB/s
+# 128	256	float8	81.9629 ms	24.4013 GB/s
+# 128	256	float16	72.3545 ms	27.6417 GB/s
+# 128	512	float1	95.9117 ms	20.8525 GB/s
+# 128	512	float2	95.0539 ms	21.0407 GB/s
+# 128	512	float4	80.7917 ms	24.755 GB/s
+# 128	512	float8	66.4757 ms	30.0862 GB/s
+# 128	512	float16	57.034 ms	35.0668 GB/s
+# 128	1024	float1	86.0732 ms	23.236 GB/s
+# 128	1024	float2	81.5602 ms	24.5218 GB/s
+# 128	1024	float4	72.6397 ms	27.5332 GB/s
+# 128	1024	float8	62.0143 ms	32.2506 GB/s
+# 128	1024	float16	52.3263 ms	38.2217 GB/s
+# 128	2048	float1	78.9967 ms	25.3175 GB/s
+# 128	2048	float2	76.5594 ms	26.1235 GB/s
+# 128	2048	float4	68.8197 ms	29.0615 GB/s
+# 128	2048	float8	56.1252 ms	35.6346 GB/s
+# 128	2048	float16	50.0965 ms	39.923 GB/s
+# 128	4096	float1	76.2038 ms	26.2454 GB/s
+# 128	4096	float2	73.627 ms	27.1639 GB/s
+# 128	4096	float4	64.7728 ms	30.8771 GB/s
+# 128	4096	float8	55.6713 ms	35.9251 GB/s
+# 128	4096	float16	48.0314 ms	41.6394 GB/s
+# 128	8192	float1	75.5102 ms	26.4865 GB/s
+# 128	8192	float2	71.3062 ms	28.048 GB/s
+# 128	8192	float4	69.3869 ms	28.8239 GB/s
+# 128	8192	float8	55.4555 ms	36.065 GB/s
+# 128	8192	float16	48.5039 ms	41.2338 GB/s
+# 128	16384	float1	76.8333 ms	26.0304 GB/s
+# 128	16384	float2	74.4844 ms	26.8513 GB/s
+# 128	16384	float4	63.658 ms	31.4179 GB/s
+# 128	16384	float8	53.8833 ms	37.1173 GB/s
+# 128	16384	float16	47.6737 ms	41.9518 GB/s
+# 256	256	float1	128.183 ms	15.6027 GB/s
+# 256	256	float2	120.677 ms	16.5731 GB/s
+# 256	256	float4	101.087 ms	19.785 GB/s
+# 256	256	float8	85.2128 ms	23.4707 GB/s
+# 256	256	float16	74.9288 ms	26.692 GB/s
+# 256	512	float1	96.7577 ms	20.6702 GB/s
+# 256	512	float2	87.2474 ms	22.9233 GB/s
+# 256	512	float4	80.6095 ms	24.811 GB/s
+# 256	512	float8	63.7582 ms	31.3685 GB/s
+# 256	512	float16	52.7236 ms	37.9337 GB/s
+# 256	1024	float1	83.6483 ms	23.9096 GB/s
+# 256	1024	float2	79.1283 ms	25.2754 GB/s
+# 256	1024	float4	70.6119 ms	28.3238 GB/s
+# 256	1024	float8	60.7566 ms	32.9182 GB/s
+# 256	1024	float16	51.849 ms	38.5736 GB/s
+# 256	2048	float1	77.9928 ms	25.6434 GB/s
+# 256	2048	float2	74.0375 ms	27.0133 GB/s
+# 256	2048	float4	66.5324 ms	30.0605 GB/s
+# 256	2048	float8	55.193 ms	36.2365 GB/s
+# 256	2048	float16	49.6436 ms	40.2871 GB/s
+# 256	4096	float1	75.4807 ms	26.4968 GB/s
+# 256	4096	float2	73.0155 ms	27.3915 GB/s
+# 256	4096	float4	63.9816 ms	31.259 GB/s
+# 256	4096	float8	55.0734 ms	36.3152 GB/s
+# 256	4096	float16	48.4571 ms	41.2736 GB/s
+# 256	8192	float1	78.7921 ms	25.3833 GB/s
+# 256	8192	float2	71.5252 ms	27.9622 GB/s
+# 256	8192	float4	64.7024 ms	30.9108 GB/s
+# 256	8192	float8	55.001 ms	36.363 GB/s
+# 256	8192	float16	47.5124 ms	42.0942 GB/s
+# 256	16384	float1	78.4487 ms	25.4944 GB/s
+# 256	16384	float2	71.0222 ms	28.1602 GB/s
+# 256	16384	float4	64.0274 ms	31.2366 GB/s
+# 256	16384	float8	52.5646 ms	38.0484 GB/s
+# 256	16384	float16	43.1653 ms	46.3335 GB/s
+# 512	256	float1	121.533 ms	16.4564 GB/s
+# 512	256	float2	116.299 ms	17.197 GB/s
+# 512	256	float4	105.322 ms	18.9893 GB/s
+# 512	256	float8	91.3109 ms	21.9032 GB/s
+# 512	256	float16	80.1916 ms	24.9403 GB/s
+# 512	512	float1	96.91 ms	20.6377 GB/s
+# 512	512	float2	88.185 ms	22.6796 GB/s
+# 512	512	float4	80.0873 ms	24.9728 GB/s
+# 512	512	float8	64.8075 ms	30.8606 GB/s
+# 512	512	float16	54.9968 ms	36.3657 GB/s
+# 512	1024	float1	82.9402 ms	24.1138 GB/s
+# 512	1024	float2	78.4826 ms	25.4834 GB/s
+# 512	1024	float4	69.2308 ms	28.8889 GB/s
+# 512	1024	float8	57.6562 ms	34.6883 GB/s
+# 512	1024	float16	49.1042 ms	40.7297 GB/s
+# 512	2048	float1	80.0176 ms	24.9945 GB/s
+# 512	2048	float2	72.4654 ms	27.5994 GB/s
+# 512	2048	float4	66.534 ms	30.0598 GB/s
+# 512	2048	float8	54.5128 ms	36.6887 GB/s
+# 512	2048	float16	49.0245 ms	40.7959 GB/s
+# 512	4096	float1	79.1824 ms	25.2582 GB/s
+# 512	4096	float2	71.7748 ms	27.8649 GB/s
+# 512	4096	float4	65.0482 ms	30.7464 GB/s
+# 512	4096	float8	56.248 ms	35.5568 GB/s
+# 512	4096	float16	46.4741 ms	43.0347 GB/s
+# 512	8192	float1	77.4803 ms	25.813 GB/s
+# 512	8192	float2	73.0999 ms	27.3598 GB/s
+# 512	8192	float4	67.0863 ms	29.8124 GB/s
+# 512	8192	float8	53.0285 ms	37.7156 GB/s
+# 512	8192	float16	42.1094 ms	47.4954 GB/s
+# 512	16384	float1	78.2119 ms	25.5715 GB/s
+# 512	16384	float2	69.9743 ms	28.5819 GB/s
+# 512	16384	float4	63.7808 ms	31.3574 GB/s
+# 512	16384	float8	41.6829 ms	47.9813 GB/s
+# 512	16384	float16	40.1119 ms	49.8605 GB/s
+# 1024	256	float1	126.05 ms	15.8667 GB/s
+# 1024	256	float2	121.361 ms	16.4798 GB/s
+# 1024	256	float4	112.131 ms	17.8363 GB/s
+# 1024	256	float8	103.896 ms	19.25 GB/s
+# 1024	256	float16	71.7438 ms	27.877 GB/s
+# 1024	512	float1	96.3215 ms	20.7638 GB/s
+# 1024	512	float2	90.2489 ms	22.1609 GB/s
+# 1024	512	float4	78.1822 ms	25.5813 GB/s
+# 1024	512	float8	68.3597 ms	29.257 GB/s
+# 1024	512	float16	54.1527 ms	36.9326 GB/s
+# 1024	1024	float1	84.8329 ms	23.5758 GB/s
+# 1024	1024	float2	78.4251 ms	25.502 GB/s
+# 1024	1024	float4	67.2584 ms	29.7361 GB/s
+# 1024	1024	float8	57.4524 ms	34.8114 GB/s
+# 1024	1024	float16	48.5448 ms	41.1991 GB/s
+# 1024	2048	float1	79.5726 ms	25.1343 GB/s
+# 1024	2048	float2	74.2011 ms	26.9538 GB/s
+# 1024	2048	float4	65.4863 ms	30.5408 GB/s
+# 1024	2048	float8	54.8555 ms	36.4594 GB/s
+# 1024	2048	float16	48.1515 ms	41.5356 GB/s
+# 1024	4096	float1	78.7 ms	25.413 GB/s
+# 1024	4096	float2	72.7131 ms	27.5054 GB/s
+# 1024	4096	float4	64.8362 ms	30.847 GB/s
+# 1024	4096	float8	55.2826 ms	36.1777 GB/s
+# 1024	4096	float16	42.7835 ms	46.747 GB/s
+# 1024	8192	float1	79.1867 ms	25.2568 GB/s
+# 1024	8192	float2	71.9907 ms	27.7813 GB/s
+# 1024	8192	float4	64.1719 ms	31.1663 GB/s
+# 1024	8192	float8	42.9474 ms	46.5686 GB/s
+# 1024	8192	float16	38.6815 ms	51.7043 GB/s
+# 1024	16384	float1	80.0192 ms	24.994 GB/s
+# 1024	16384	float2	69.2135 ms	28.8961 GB/s
+# 1024	16384	float4	45.3575 ms	44.0942 GB/s
+# 1024	16384	float8	37.4359 ms	53.4246 GB/s
+# 1024	16384	float16	36.4279 ms	54.903 GB/s
+
+----------- Aggregated at vec_size ------------
+# float1	64	256	120.871 ms	16.5466 GB/s
+# float1	64	512	109.008 ms	18.3473 GB/s
+# float1	64	1024	91.328 ms	21.8991 GB/s
+# float1	64	2048	79.1749 ms	25.2605 GB/s
+# float1	64	4096	75.7099 ms	26.4166 GB/s
+# float1	64	8192	80.3168 ms	24.9014 GB/s
+# float1	64	16384	74.6506 ms	26.7915 GB/s
+# float1	128	256	124.48 ms	16.0668 GB/s
+# float1	128	512	95.9117 ms	20.8525 GB/s
+# float1	128	1024	86.0732 ms	23.236 GB/s
+# float1	128	2048	78.9967 ms	25.3175 GB/s
+# float1	128	4096	76.2038 ms	26.2454 GB/s
+# float1	128	8192	75.5102 ms	26.4865 GB/s
+# float1	128	16384	76.8333 ms	26.0304 GB/s
+# float1	256	256	128.183 ms	15.6027 GB/s
+# float1	256	512	96.7577 ms	20.6702 GB/s
+# float1	256	1024	83.6483 ms	23.9096 GB/s
+# float1	256	2048	77.9928 ms	25.6434 GB/s
+# float1	256	4096	75.4807 ms	26.4968 GB/s
+# float1	256	8192	78.7921 ms	25.3833 GB/s
+# float1	256	16384	78.4487 ms	25.4944 GB/s
+# float1	512	256	121.533 ms	16.4564 GB/s
+# float1	512	512	96.91 ms	20.6377 GB/s
+# float1	512	1024	82.9402 ms	24.1138 GB/s
+# float1	512	2048	80.0176 ms	24.9945 GB/s
+# float1	512	4096	79.1824 ms	25.2582 GB/s
+# float1	512	8192	77.4803 ms	25.813 GB/s
+# float1	512	16384	78.2119 ms	25.5715 GB/s
+# float1	1024	256	126.05 ms	15.8667 GB/s
+# float1	1024	512	96.3215 ms	20.7638 GB/s
+# float1	1024	1024	84.8329 ms	23.5758 GB/s
+# float1	1024	2048	79.5726 ms	25.1343 GB/s
+# float1	1024	4096	78.7 ms	25.413 GB/s
+# float1	1024	8192	79.1867 ms	25.2568 GB/s
+# float1	1024	16384	80.0192 ms	24.994 GB/s
+
+summary: float1	74.6506 ms	26.7915 GB/s	64	16384
+--------------------------------------------
+# float2	64	256	120.672 ms	16.5738 GB/s
+# float2	64	512	96.8693 ms	20.6464 GB/s
+# float2	64	1024	87.6997 ms	22.8051 GB/s
+# float2	64	2048	80.1516 ms	24.9527 GB/s
+# float2	64	4096	75.8946 ms	26.3523 GB/s
+# float2	64	8192	72.5553 ms	27.5652 GB/s
+# float2	64	16384	72.1981 ms	27.7016 GB/s
+# float2	128	256	120.322 ms	16.6221 GB/s
+# float2	128	512	95.0539 ms	21.0407 GB/s
+# float2	128	1024	81.5602 ms	24.5218 GB/s
+# float2	128	2048	76.5594 ms	26.1235 GB/s
+# float2	128	4096	73.627 ms	27.1639 GB/s
+# float2	128	8192	71.3062 ms	28.048 GB/s
+# float2	128	16384	74.4844 ms	26.8513 GB/s
+# float2	256	256	120.677 ms	16.5731 GB/s
+# float2	256	512	87.2474 ms	22.9233 GB/s
+# float2	256	1024	79.1283 ms	25.2754 GB/s
+# float2	256	2048	74.0375 ms	27.0133 GB/s
+# float2	256	4096	73.0155 ms	27.3915 GB/s
+# float2	256	8192	71.5252 ms	27.9622 GB/s
+# float2	256	16384	71.0222 ms	28.1602 GB/s
+# float2	512	256	116.299 ms	17.197 GB/s
+# float2	512	512	88.185 ms	22.6796 GB/s
+# float2	512	1024	78.4826 ms	25.4834 GB/s
+# float2	512	2048	72.4654 ms	27.5994 GB/s
+# float2	512	4096	71.7748 ms	27.8649 GB/s
+# float2	512	8192	73.0999 ms	27.3598 GB/s
+# float2	512	16384	69.9743 ms	28.5819 GB/s
+# float2	1024	256	121.361 ms	16.4798 GB/s
+# float2	1024	512	90.2489 ms	22.1609 GB/s
+# float2	1024	1024	78.4251 ms	25.502 GB/s
+# float2	1024	2048	74.2011 ms	26.9538 GB/s
+# float2	1024	4096	72.7131 ms	27.5054 GB/s
+# float2	1024	8192	71.9907 ms	27.7813 GB/s
+# float2	1024	16384	69.2135 ms	28.8961 GB/s
+
+summary: float2	69.2135 ms	28.8961 GB/s	1024	16384
+--------------------------------------------
+# float4	64	256	99.1042 ms	20.1808 GB/s
+# float4	64	512	82.7714 ms	24.1629 GB/s
+# float4	64	1024	75.2427 ms	26.5806 GB/s
+# float4	64	2048	69.7918 ms	28.6567 GB/s
+# float4	64	4096	69.9006 ms	28.612 GB/s
+# float4	64	8192	68.4262 ms	29.2286 GB/s
+# float4	64	16384	63.9067 ms	31.2956 GB/s
+# float4	128	256	103.832 ms	19.2619 GB/s
+# float4	128	512	80.7917 ms	24.755 GB/s
+# float4	128	1024	72.6397 ms	27.5332 GB/s
+# float4	128	2048	68.8197 ms	29.0615 GB/s
+# float4	128	4096	64.7728 ms	30.8771 GB/s
+# float4	128	8192	69.3869 ms	28.8239 GB/s
+# float4	128	16384	63.658 ms	31.4179 GB/s
+# float4	256	256	101.087 ms	19.785 GB/s
+# float4	256	512	80.6095 ms	24.811 GB/s
+# float4	256	1024	70.6119 ms	28.3238 GB/s
+# float4	256	2048	66.5324 ms	30.0605 GB/s
+# float4	256	4096	63.9816 ms	31.259 GB/s
+# float4	256	8192	64.7024 ms	30.9108 GB/s
+# float4	256	16384	64.0274 ms	31.2366 GB/s
+# float4	512	256	105.322 ms	18.9893 GB/s
+# float4	512	512	80.0873 ms	24.9728 GB/s
+# float4	512	1024	69.2308 ms	28.8889 GB/s
+# float4	512	2048	66.534 ms	30.0598 GB/s
+# float4	512	4096	65.0482 ms	30.7464 GB/s
+# float4	512	8192	67.0863 ms	29.8124 GB/s
+# float4	512	16384	63.7808 ms	31.3574 GB/s
+# float4	1024	256	112.131 ms	17.8363 GB/s
+# float4	1024	512	78.1822 ms	25.5813 GB/s
+# float4	1024	1024	67.2584 ms	29.7361 GB/s
+# float4	1024	2048	65.4863 ms	30.5408 GB/s
+# float4	1024	4096	64.8362 ms	30.847 GB/s
+# float4	1024	8192	64.1719 ms	31.1663 GB/s
+# float4	1024	16384	45.3575 ms	44.0942 GB/s
+
+summary: float4	45.3575 ms	44.0942 GB/s	1024	16384
+--------------------------------------------
+# float8	64	256	84.712 ms	23.6094 GB/s
+# float8	64	512	72.5018 ms	27.5855 GB/s
+# float8	64	1024	61.1724 ms	32.6945 GB/s
+# float8	64	2048	61.0566 ms	32.7565 GB/s
+# float8	64	4096	56.9592 ms	35.1128 GB/s
+# float8	64	8192	55.0158 ms	36.3532 GB/s
+# float8	64	16384	54.7659 ms	36.5191 GB/s
+# float8	128	256	81.9629 ms	24.4013 GB/s
+# float8	128	512	66.4757 ms	30.0862 GB/s
+# float8	128	1024	62.0143 ms	32.2506 GB/s
+# float8	128	2048	56.1252 ms	35.6346 GB/s
+# float8	128	4096	55.6713 ms	35.9251 GB/s
+# float8	128	8192	55.4555 ms	36.065 GB/s
+# float8	128	16384	53.8833 ms	37.1173 GB/s
+# float8	256	256	85.2128 ms	23.4707 GB/s
+# float8	256	512	63.7582 ms	31.3685 GB/s
+# float8	256	1024	60.7566 ms	32.9182 GB/s
+# float8	256	2048	55.193 ms	36.2365 GB/s
+# float8	256	4096	55.0734 ms	36.3152 GB/s
+# float8	256	8192	55.001 ms	36.363 GB/s
+# float8	256	16384	52.5646 ms	38.0484 GB/s
+# float8	512	256	91.3109 ms	21.9032 GB/s
+# float8	512	512	64.8075 ms	30.8606 GB/s
+# float8	512	1024	57.6562 ms	34.6883 GB/s
+# float8	512	2048	54.5128 ms	36.6887 GB/s
+# float8	512	4096	56.248 ms	35.5568 GB/s
+# float8	512	8192	53.0285 ms	37.7156 GB/s
+# float8	512	16384	41.6829 ms	47.9813 GB/s
+# float8	1024	256	103.896 ms	19.25 GB/s
+# float8	1024	512	68.3597 ms	29.257 GB/s
+# float8	1024	1024	57.4524 ms	34.8114 GB/s
+# float8	1024	2048	54.8555 ms	36.4594 GB/s
+# float8	1024	4096	55.2826 ms	36.1777 GB/s
+# float8	1024	8192	42.9474 ms	46.5686 GB/s
+# float8	1024	16384	37.4359 ms	53.4246 GB/s
+
+summary: float8	37.4359 ms	53.4246 GB/s	1024	16384
+--------------------------------------------
+# float16	64	256	68.5147 ms	29.1908 GB/s
+# float16	64	512	60.7411 ms	32.9266 GB/s
+# float16	64	1024	53.3392 ms	37.4959 GB/s
+# float16	64	2048	52.8669 ms	37.8309 GB/s
+# float16	64	4096	47.7988 ms	41.842 GB/s
+# float16	64	8192	46.8375 ms	42.7008 GB/s
+# float16	64	16384	47.747 ms	41.8875 GB/s
+# float16	128	256	72.3545 ms	27.6417 GB/s
+# float16	128	512	57.034 ms	35.0668 GB/s
+# float16	128	1024	52.3263 ms	38.2217 GB/s
+# float16	128	2048	50.0965 ms	39.923 GB/s
+# float16	128	4096	48.0314 ms	41.6394 GB/s
+# float16	128	8192	48.5039 ms	41.2338 GB/s
+# float16	128	16384	47.6737 ms	41.9518 GB/s
+# float16	256	256	74.9288 ms	26.692 GB/s
+# float16	256	512	52.7236 ms	37.9337 GB/s
+# float16	256	1024	51.849 ms	38.5736 GB/s
+# float16	256	2048	49.6436 ms	40.2871 GB/s
+# float16	256	4096	48.4571 ms	41.2736 GB/s
+# float16	256	8192	47.5124 ms	42.0942 GB/s
+# float16	256	16384	43.1653 ms	46.3335 GB/s
+# float16	512	256	80.1916 ms	24.9403 GB/s
+# float16	512	512	54.9968 ms	36.3657 GB/s
+# float16	512	1024	49.1042 ms	40.7297 GB/s
+# float16	512	2048	49.0245 ms	40.7959 GB/s
+# float16	512	4096	46.4741 ms	43.0347 GB/s
+# float16	512	8192	42.1094 ms	47.4954 GB/s
+# float16	512	16384	40.1119 ms	49.8605 GB/s
+# float16	1024	256	71.7438 ms	27.877 GB/s
+# float16	1024	512	54.1527 ms	36.9326 GB/s
+# float16	1024	1024	48.5448 ms	41.1991 GB/s
+# float16	1024	2048	48.1515 ms	41.5356 GB/s
+# float16	1024	4096	42.7835 ms	46.747 GB/s
+# float16	1024	8192	38.6815 ms	51.7043 GB/s
+# float16	1024	16384	36.4279 ms	54.903 GB/s
+
+summary: float16	36.4279 ms	54.903 GB/s	1024	16384
+--------------------------------------------
+
+----------- Aggregated at block & grid size ------------
+# 64	256	float1	120.871 ms	16.5466 GB/s
+# 64	256	float2	120.672 ms	16.5738 GB/s
+# 64	256	float4	99.1042 ms	20.1808 GB/s
+# 64	256	float8	84.712 ms	23.6094 GB/s
+# 64	256	float16	68.5147 ms	29.1908 GB/s
+
+summary: 64	256	68.5147 ms	29.1908 GB/s	float16
+--------------------------------------------
+# 64	512	float1	109.008 ms	18.3473 GB/s
+# 64	512	float2	96.8693 ms	20.6464 GB/s
+# 64	512	float4	82.7714 ms	24.1629 GB/s
+# 64	512	float8	72.5018 ms	27.5855 GB/s
+# 64	512	float16	60.7411 ms	32.9266 GB/s
+
+summary: 64	512	60.7411 ms	32.9266 GB/s	float16
+--------------------------------------------
+# 64	1024	float1	91.328 ms	21.8991 GB/s
+# 64	1024	float2	87.6997 ms	22.8051 GB/s
+# 64	1024	float4	75.2427 ms	26.5806 GB/s
+# 64	1024	float8	61.1724 ms	32.6945 GB/s
+# 64	1024	float16	53.3392 ms	37.4959 GB/s
+
+summary: 64	1024	53.3392 ms	37.4959 GB/s	float16
+--------------------------------------------
+# 64	2048	float1	79.1749 ms	25.2605 GB/s
+# 64	2048	float2	80.1516 ms	24.9527 GB/s
+# 64	2048	float4	69.7918 ms	28.6567 GB/s
+# 64	2048	float8	61.0566 ms	32.7565 GB/s
+# 64	2048	float16	52.8669 ms	37.8309 GB/s
+
+summary: 64	2048	52.8669 ms	37.8309 GB/s	float16
+--------------------------------------------
+# 64	4096	float1	75.7099 ms	26.4166 GB/s
+# 64	4096	float2	75.8946 ms	26.3523 GB/s
+# 64	4096	float4	69.9006 ms	28.612 GB/s
+# 64	4096	float8	56.9592 ms	35.1128 GB/s
+# 64	4096	float16	47.7988 ms	41.842 GB/s
+
+summary: 64	4096	47.7988 ms	41.842 GB/s	float16
+--------------------------------------------
+# 64	8192	float1	80.3168 ms	24.9014 GB/s
+# 64	8192	float2	72.5553 ms	27.5652 GB/s
+# 64	8192	float4	68.4262 ms	29.2286 GB/s
+# 64	8192	float8	55.0158 ms	36.3532 GB/s
+# 64	8192	float16	46.8375 ms	42.7008 GB/s
+
+summary: 64	8192	46.8375 ms	42.7008 GB/s	float16
+--------------------------------------------
+# 64	16384	float1	74.6506 ms	26.7915 GB/s
+# 64	16384	float2	72.1981 ms	27.7016 GB/s
+# 64	16384	float4	63.9067 ms	31.2956 GB/s
+# 64	16384	float8	54.7659 ms	36.5191 GB/s
+# 64	16384	float16	47.747 ms	41.8875 GB/s
+
+summary: 64	16384	47.747 ms	41.8875 GB/s	float16
+--------------------------------------------
+# 128	256	float1	124.48 ms	16.0668 GB/s
+# 128	256	float2	120.322 ms	16.6221 GB/s
+# 128	256	float4	103.832 ms	19.2619 GB/s
+# 128	256	float8	81.9629 ms	24.4013 GB/s
+# 128	256	float16	72.3545 ms	27.6417 GB/s
+
+summary: 128	256	72.3545 ms	27.6417 GB/s	float16
+--------------------------------------------
+# 128	512	float1	95.9117 ms	20.8525 GB/s
+# 128	512	float2	95.0539 ms	21.0407 GB/s
+# 128	512	float4	80.7917 ms	24.755 GB/s
+# 128	512	float8	66.4757 ms	30.0862 GB/s
+# 128	512	float16	57.034 ms	35.0668 GB/s
+
+summary: 128	512	57.034 ms	35.0668 GB/s	float16
+--------------------------------------------
+# 128	1024	float1	86.0732 ms	23.236 GB/s
+# 128	1024	float2	81.5602 ms	24.5218 GB/s
+# 128	1024	float4	72.6397 ms	27.5332 GB/s
+# 128	1024	float8	62.0143 ms	32.2506 GB/s
+# 128	1024	float16	52.3263 ms	38.2217 GB/s
+
+summary: 128	1024	52.3263 ms	38.2217 GB/s	float16
+--------------------------------------------
+# 128	2048	float1	78.9967 ms	25.3175 GB/s
+# 128	2048	float2	76.5594 ms	26.1235 GB/s
+# 128	2048	float4	68.8197 ms	29.0615 GB/s
+# 128	2048	float8	56.1252 ms	35.6346 GB/s
+# 128	2048	float16	50.0965 ms	39.923 GB/s
+
+summary: 128	2048	50.0965 ms	39.923 GB/s	float16
+--------------------------------------------
+# 128	4096	float1	76.2038 ms	26.2454 GB/s
+# 128	4096	float2	73.627 ms	27.1639 GB/s
+# 128	4096	float4	64.7728 ms	30.8771 GB/s
+# 128	4096	float8	55.6713 ms	35.9251 GB/s
+# 128	4096	float16	48.0314 ms	41.6394 GB/s
+
+summary: 128	4096	48.0314 ms	41.6394 GB/s	float16
+--------------------------------------------
+# 128	8192	float1	75.5102 ms	26.4865 GB/s
+# 128	8192	float2	71.3062 ms	28.048 GB/s
+# 128	8192	float4	69.3869 ms	28.8239 GB/s
+# 128	8192	float8	55.4555 ms	36.065 GB/s
+# 128	8192	float16	48.5039 ms	41.2338 GB/s
+
+summary: 128	8192	48.5039 ms	41.2338 GB/s	float16
+--------------------------------------------
+# 128	16384	float1	76.8333 ms	26.0304 GB/s
+# 128	16384	float2	74.4844 ms	26.8513 GB/s
+# 128	16384	float4	63.658 ms	31.4179 GB/s
+# 128	16384	float8	53.8833 ms	37.1173 GB/s
+# 128	16384	float16	47.6737 ms	41.9518 GB/s
+
+summary: 128	16384	47.6737 ms	41.9518 GB/s	float16
+--------------------------------------------
+# 256	256	float1	128.183 ms	15.6027 GB/s
+# 256	256	float2	120.677 ms	16.5731 GB/s
+# 256	256	float4	101.087 ms	19.785 GB/s
+# 256	256	float8	85.2128 ms	23.4707 GB/s
+# 256	256	float16	74.9288 ms	26.692 GB/s
+
+summary: 256	256	74.9288 ms	26.692 GB/s	float16
+--------------------------------------------
+# 256	512	float1	96.7577 ms	20.6702 GB/s
+# 256	512	float2	87.2474 ms	22.9233 GB/s
+# 256	512	float4	80.6095 ms	24.811 GB/s
+# 256	512	float8	63.7582 ms	31.3685 GB/s
+# 256	512	float16	52.7236 ms	37.9337 GB/s
+
+summary: 256	512	52.7236 ms	37.9337 GB/s	float16
+--------------------------------------------
+# 256	1024	float1	83.6483 ms	23.9096 GB/s
+# 256	1024	float2	79.1283 ms	25.2754 GB/s
+# 256	1024	float4	70.6119 ms	28.3238 GB/s
+# 256	1024	float8	60.7566 ms	32.9182 GB/s
+# 256	1024	float16	51.849 ms	38.5736 GB/s
+
+summary: 256	1024	51.849 ms	38.5736 GB/s	float16
+--------------------------------------------
+# 256	2048	float1	77.9928 ms	25.6434 GB/s
+# 256	2048	float2	74.0375 ms	27.0133 GB/s
+# 256	2048	float4	66.5324 ms	30.0605 GB/s
+# 256	2048	float8	55.193 ms	36.2365 GB/s
+# 256	2048	float16	49.6436 ms	40.2871 GB/s
+
+summary: 256	2048	49.6436 ms	40.2871 GB/s	float16
+--------------------------------------------
+# 256	4096	float1	75.4807 ms	26.4968 GB/s
+# 256	4096	float2	73.0155 ms	27.3915 GB/s
+# 256	4096	float4	63.9816 ms	31.259 GB/s
+# 256	4096	float8	55.0734 ms	36.3152 GB/s
+# 256	4096	float16	48.4571 ms	41.2736 GB/s
+
+summary: 256	4096	48.4571 ms	41.2736 GB/s	float16
+--------------------------------------------
+# 256	8192	float1	78.7921 ms	25.3833 GB/s
+# 256	8192	float2	71.5252 ms	27.9622 GB/s
+# 256	8192	float4	64.7024 ms	30.9108 GB/s
+# 256	8192	float8	55.001 ms	36.363 GB/s
+# 256	8192	float16	47.5124 ms	42.0942 GB/s
+
+summary: 256	8192	47.5124 ms	42.0942 GB/s	float16
+--------------------------------------------
+# 256	16384	float1	78.4487 ms	25.4944 GB/s
+# 256	16384	float2	71.0222 ms	28.1602 GB/s
+# 256	16384	float4	64.0274 ms	31.2366 GB/s
+# 256	16384	float8	52.5646 ms	38.0484 GB/s
+# 256	16384	float16	43.1653 ms	46.3335 GB/s
+
+summary: 256	16384	43.1653 ms	46.3335 GB/s	float16
+--------------------------------------------
+# 512	256	float1	121.533 ms	16.4564 GB/s
+# 512	256	float2	116.299 ms	17.197 GB/s
+# 512	256	float4	105.322 ms	18.9893 GB/s
+# 512	256	float8	91.3109 ms	21.9032 GB/s
+# 512	256	float16	80.1916 ms	24.9403 GB/s
+
+summary: 512	256	80.1916 ms	24.9403 GB/s	float16
+--------------------------------------------
+# 512	512	float1	96.91 ms	20.6377 GB/s
+# 512	512	float2	88.185 ms	22.6796 GB/s
+# 512	512	float4	80.0873 ms	24.9728 GB/s
+# 512	512	float8	64.8075 ms	30.8606 GB/s
+# 512	512	float16	54.9968 ms	36.3657 GB/s
+
+summary: 512	512	54.9968 ms	36.3657 GB/s	float16
+--------------------------------------------
+# 512	1024	float1	82.9402 ms	24.1138 GB/s
+# 512	1024	float2	78.4826 ms	25.4834 GB/s
+# 512	1024	float4	69.2308 ms	28.8889 GB/s
+# 512	1024	float8	57.6562 ms	34.6883 GB/s
+# 512	1024	float16	49.1042 ms	40.7297 GB/s
+
+summary: 512	1024	49.1042 ms	40.7297 GB/s	float16
+--------------------------------------------
+# 512	2048	float1	80.0176 ms	24.9945 GB/s
+# 512	2048	float2	72.4654 ms	27.5994 GB/s
+# 512	2048	float4	66.534 ms	30.0598 GB/s
+# 512	2048	float8	54.5128 ms	36.6887 GB/s
+# 512	2048	float16	49.0245 ms	40.7959 GB/s
+
+summary: 512	2048	49.0245 ms	40.7959 GB/s	float16
+--------------------------------------------
+# 512	4096	float1	79.1824 ms	25.2582 GB/s
+# 512	4096	float2	71.7748 ms	27.8649 GB/s
+# 512	4096	float4	65.0482 ms	30.7464 GB/s
+# 512	4096	float8	56.248 ms	35.5568 GB/s
+# 512	4096	float16	46.4741 ms	43.0347 GB/s
+
+summary: 512	4096	46.4741 ms	43.0347 GB/s	float16
+--------------------------------------------
+# 512	8192	float1	77.4803 ms	25.813 GB/s
+# 512	8192	float2	73.0999 ms	27.3598 GB/s
+# 512	8192	float4	67.0863 ms	29.8124 GB/s
+# 512	8192	float8	53.0285 ms	37.7156 GB/s
+# 512	8192	float16	42.1094 ms	47.4954 GB/s
+
+summary: 512	8192	42.1094 ms	47.4954 GB/s	float16
+--------------------------------------------
+# 512	16384	float1	78.2119 ms	25.5715 GB/s
+# 512	16384	float2	69.9743 ms	28.5819 GB/s
+# 512	16384	float4	63.7808 ms	31.3574 GB/s
+# 512	16384	float8	41.6829 ms	47.9813 GB/s
+# 512	16384	float16	40.1119 ms	49.8605 GB/s
+
+summary: 512	16384	40.1119 ms	49.8605 GB/s	float16
+--------------------------------------------
+# 1024	256	float1	126.05 ms	15.8667 GB/s
+# 1024	256	float2	121.361 ms	16.4798 GB/s
+# 1024	256	float4	112.131 ms	17.8363 GB/s
+# 1024	256	float8	103.896 ms	19.25 GB/s
+# 1024	256	float16	71.7438 ms	27.877 GB/s
+
+summary: 1024	256	71.7438 ms	27.877 GB/s	float16
+--------------------------------------------
+# 1024	512	float1	96.3215 ms	20.7638 GB/s
+# 1024	512	float2	90.2489 ms	22.1609 GB/s
+# 1024	512	float4	78.1822 ms	25.5813 GB/s
+# 1024	512	float8	68.3597 ms	29.257 GB/s
+# 1024	512	float16	54.1527 ms	36.9326 GB/s
+
+summary: 1024	512	54.1527 ms	36.9326 GB/s	float16
+--------------------------------------------
+# 1024	1024	float1	84.8329 ms	23.5758 GB/s
+# 1024	1024	float2	78.4251 ms	25.502 GB/s
+# 1024	1024	float4	67.2584 ms	29.7361 GB/s
+# 1024	1024	float8	57.4524 ms	34.8114 GB/s
+# 1024	1024	float16	48.5448 ms	41.1991 GB/s
+
+summary: 1024	1024	48.5448 ms	41.1991 GB/s	float16
+--------------------------------------------
+# 1024	2048	float1	79.5726 ms	25.1343 GB/s
+# 1024	2048	float2	74.2011 ms	26.9538 GB/s
+# 1024	2048	float4	65.4863 ms	30.5408 GB/s
+# 1024	2048	float8	54.8555 ms	36.4594 GB/s
+# 1024	2048	float16	48.1515 ms	41.5356 GB/s
+
+summary: 1024	2048	48.1515 ms	41.5356 GB/s	float16
+--------------------------------------------
+# 1024	4096	float1	78.7 ms	25.413 GB/s
+# 1024	4096	float2	72.7131 ms	27.5054 GB/s
+# 1024	4096	float4	64.8362 ms	30.847 GB/s
+# 1024	4096	float8	55.2826 ms	36.1777 GB/s
+# 1024	4096	float16	42.7835 ms	46.747 GB/s
+
+summary: 1024	4096	42.7835 ms	46.747 GB/s	float16
+--------------------------------------------
+# 1024	8192	float1	79.1867 ms	25.2568 GB/s
+# 1024	8192	float2	71.9907 ms	27.7813 GB/s
+# 1024	8192	float4	64.1719 ms	31.1663 GB/s
+# 1024	8192	float8	42.9474 ms	46.5686 GB/s
+# 1024	8192	float16	38.6815 ms	51.7043 GB/s
+
+summary: 1024	8192	38.6815 ms	51.7043 GB/s	float16
+--------------------------------------------
+# 1024	16384	float1	80.0192 ms	24.994 GB/s
+# 1024	16384	float2	69.2135 ms	28.8961 GB/s
+# 1024	16384	float4	45.3575 ms	44.0942 GB/s
+# 1024	16384	float8	37.4359 ms	53.4246 GB/s
+# 1024	16384	float16	36.4279 ms	54.903 GB/s
+
+summary: 1024	16384	36.4279 ms	54.903 GB/s	float16
+--------------------------------------------
+Time for memory write: 36.4279 ms.	BlockSize: 1024	GridSize: 16384	Bandwidth: 54.903 GB/s

@@ -45,7 +45,8 @@ void KernelProcessor::compile(cl_context context) {
     cl_int err;
     this->program = clCreateProgramWithSource(context, this->num, (const char**)this->source, 0, &err);
     checkErr(err, "Failed to creat program.");
-    
+
+
     size_t totalSize;
     clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &totalSize);
     
@@ -60,12 +61,37 @@ void KernelProcessor::compile(cl_context context) {
     strcat(path, "/inc ");
 
     strcat(path,"-DKERNEL ");
+
+    strcat(path, "-auto-prefetch-level=3 ");
 #ifdef RECORDS
     strcat(path,"-DRECORDS");
 #endif
     
     err = clBuildProgram(program, cl_int(num), devices,path, 0, 0);
     checkErr(err, "Compilation error.");
+
+    // //extract the assembly programs
+    // size_t ass_size;
+    // err = clGetProgramInfo(this->program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &ass_size, NULL);
+    // checkErr(err,"Failed to get the size of the assembly program.");
+
+    // cout<<"ass size: "<<ass_size<<endl;
+    // unsigned char *binary = new unsigned char[ass_size];
+    // err = clGetProgramInfo(this->program, CL_PROGRAM_BINARIES, ass_size, &binary, NULL);
+    // checkErr(err,"Failed to generate the assembly program.");
+
+    // FILE * fpbin = fopen( "assembly.ass", "wb" );
+    // if( fpbin == NULL )
+    // {
+    //     fprintf( stderr, "Cannot create '%s'\n", "assembly.ass" );
+    // }
+    // else
+    // {
+    //     fwrite( binary, 1, ass_size, fpbin );
+    //     fclose( fpbin );
+    // }
+    // delete [] binary;
+
 }
 
 cl_kernel &KernelProcessor::getKernel(char* kerName) {
@@ -74,6 +100,7 @@ cl_kernel &KernelProcessor::getKernel(char* kerName) {
     cl_kernel *kernel = new cl_kernel;
     *kernel = clCreateKernel(this->program, kerName, &err);
     checkErr(err, "Kernel function name not found.");
+
     return *kernel;
 }
 

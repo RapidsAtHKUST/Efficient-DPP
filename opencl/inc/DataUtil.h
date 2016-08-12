@@ -49,7 +49,6 @@
 #define  checkLocalMemOverflow(localMem)    if (localMem > MAX_LOCAL_MEM_SIZE)  \
                                             std::cerr<<ERR_LOCAL_MEM_OVERFLOW<<"( "<<localMem<<" > "<<MAX_LOCAL_MEM_SIZE<<" )"<<std::endl
 
-#define MAX_LOCAL_MEM_SIZE 	(47 * 1000)              //local memory size of 47KB
-#define MAX_TIME 			(9999.0f)                                           
+#define MAX_LOCAL_MEM_SIZE 	(47 * 1000)              //local memory size of 47KB                                          
 
 #endif /* defined(__gpuqp_opencl__DataUtil__) */

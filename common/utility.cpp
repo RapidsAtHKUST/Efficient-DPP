@@ -223,14 +223,6 @@ void printRes(std::string funcName, bool res, double elaspsedTime) {
     else        std::cout<<"Failed!"<<std::endl;
 }
 
-void printRes(std::string funcName, bool res, float elaspsedTime) {
-    std::cout<<funcName<<": \t\t";
-    
-    std::cout<<"Time: "<<elaspsedTime<<" ms."<<"\t\t\t";
-    if (res)    std::cout<<"Pass!"<<std::endl;
-    else        std::cout<<"Failed!"<<std::endl;
-}
-
 void my_itoa(int num, char *buffer, int base) {
     int len=0, p=num;
     while(p/=base)
@@ -251,6 +243,17 @@ void my_itoa(int num, char *buffer, int base) {
     buffer[len] = '\0';
 }
 
+//calculating the processor throughput
+//elapsed time: in ms using diffTime
+double computeGFLOPS(int dataSize, double elaspedTime, bool isMADD, int repeatTime, int numPerRun) {
+    return (double)dataSize * (isMADD?2:1) * repeatTime * numPerRun / elaspedTime * 1e-6;
+}
+
+//calculating the memory bandwidth
+//elasped time: in ms using diffTime
+double computeMem(int dataSize, int wordSize, double elapsedTime) {
+    return (double)dataSize * wordSize / elapsedTime * 1e-6 ;
+}
 
 #ifdef OPENCL_PROJ
 //OpenCL error checking functions

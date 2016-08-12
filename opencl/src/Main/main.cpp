@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
 #include "Foundation.h"
+#include <cmath>
 using namespace std;
 
 int dataSize;           //max: MAX_DATA_SIZE
@@ -26,8 +27,28 @@ int *fixedLoc;
 #define NUM_FUNCS   (6)     //map, scatter, gather, reduce, scan, split
 double bytes[NUM_FUNCS];
 
+//for basic operation testing
+#define MIN_BLOCK   (1024)  //64
+#define MAX_BLOCK   (1024)
+#define MIN_GRID    (32768)  //256
+#define MAX_GRID    (32768)
 
-double runVPU(int experTime, int& bestBlockSize, int& bestGridSize, int& bestVecSize);
+#define NUM_BLOCK_VAR   (5)
+#define NUM_GRID_VAR    (7)
+#define NUM_VEC_SIZE    (1)
+
+// int vec[NUM_VEC_SIZE] = {1,2,4,8,16};
+int vec[NUM_VEC_SIZE] = {1};
+
+
+//device basic operation performance matrix
+Device_perf_info perfInfo[NUM_BLOCK_VAR][NUM_GRID_VAR][NUM_VEC_SIZE];
+Device_perf_info bestInfo;
+
+void runVPU(int experTime, int& bestBlockSize, int& bestGridSize, int& bestVecSize, Device_perf_info& bestInfo);
+void  runMemRead(int experTime, int& bestBlockSize, int& bestGridSize, int& bestVecSize, Device_perf_info& bestInfo);
+void runMemWrite(int experTime, int& bestBlockSize, int& bestGridSize, int& bestVecSize, Device_perf_info& bestInfo);
+
 double runMap(int expeTime, int& blockSize, int& gridSize);
 double runGather(int experTime, int& blockSize, int& gridSize);
 double runScatter(int experTime, int& blockSize, int& gridSize);
@@ -44,7 +65,7 @@ double runRadixSort(int experTime);
  * INPUT_LOC_DIR : input directory of the location data if needed
  */
 int main(int argc, const char * argv[]) {
-    
+
     //platform initialization
     PlatInit* myPlatform = PlatInit::getInstance(0);
     cl_command_queue queue = myPlatform->getQueue();
@@ -67,42 +88,51 @@ int main(int argc, const char * argv[]) {
             break;
     }
     
-    if (is_input) {
-        strcat(input_rec_dir, argv[1]);
-        strcat(input_arr_dir, argv[2]);
-        strcat(input_loc_dir, argv[3]);
-        std::cout<<"Start reading data..."<<std::endl;
-        readFixedRecords(fixedRecords, input_rec_dir, dataSize);
-        readFixedArray(fixedLoc, input_loc_dir, dataSize);
-        std::cout<<"Finish reading data..."<<std::endl;
-    }
-    else {
-        dataSize = atoi(argv[1]);
+    // if (is_input) {
+    //     strcat(input_rec_dir, argv[1]);
+    //     strcat(input_arr_dir, argv[2]);
+    //     strcat(input_loc_dir, argv[3]);
+    //     std::cout<<"Start reading data..."<<std::endl;
+    //     readFixedRecords(fixedRecords, input_rec_dir, dataSize);
+    //     readFixedArray(fixedLoc, input_loc_dir, dataSize);
+    //     std::cout<<"Finish reading data..."<<std::endl;
+    // }
+    // else {
+        dataSize = 33554322;
 
-    #ifdef RECORDS
-        fixedKeys = new int[dataSize];
-    #endif
-        fixedValues = new int[dataSize];
-        fixedLoc = new int[dataSize];
-    #ifdef RECORDS
-        recordRandom<int>(fixedKeys, fixedValues, dataSize);
-    #else
-        valRandom<int>(fixedValues,dataSize, MAX_NUM);
-    #endif
-        valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
-    }
+    // #ifdef RECORDS
+    //     fixedKeys = new int[dataSize];
+    // #endif
+    //     fixedValues = new int[dataSize];
+    //     fixedLoc = new int[dataSize];
+    // #ifdef RECORDS
+    //     recordRandom<int>(fixedKeys, fixedValues, dataSize);
+    // #else
+    //     valRandom<int>(fixedValues,dataSize, MAX_NUM);
+    // #endif
+    //     valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
+    // }
     
     int vpu_vec_size = -1;  //for VPU test
+    int mem_read_vec_size = -1;
+    int mem_write_vec_size = -1;
+
     int vpu_blockSize = -1, vpu_gridSize = -1;
+    int mem_read_blockSize = -1, mem_read_gridSize = -1;
+    int mem_write_blockSize = -1, mem_write_gridSize = -1;
+
     int map_blockSize = -1, map_gridSize = -1;
     int gather_blockSize = -1, gather_gridSize = -1;
     int scatter_blockSize = -1, scatter_gridSize = -1;
     int scan_blockSize = -1;
 
-    int experTime = 5;
-    double vpuTime = 0.0f, mapTime = 0.0f, gatherTime = 0.0f, scatterTime = 0.0f, scanTime = 0.0f, radixSortTime = 0.0f;
+    int experTime = 10;
+    double vpuTime = 0.0f, memReadTime = 0.0f, mapTime = 0.0f, gatherTime = 0.0f, scatterTime = 0.0f, scanTime = 0.0f, radixSortTime = 0.0f;
 
-    vpuTime = runVPU(experTime, vpu_blockSize, vpu_gridSize, vpu_vec_size);
+    // runVPU(experTime, vpu_blockSize, vpu_gridSize, vpu_vec_size, bestInfo);
+    runMemRead(experTime, mem_read_blockSize, mem_read_gridSize, mem_read_vec_size, bestInfo);
+    // runMemWrite(experTime, mem_write_blockSize, mem_write_gridSize, mem_write_vec_size, bestInfo);
+
     // mapTime = runMap(experTime, map_blockSize, map_gridSize);
     // gatherTime = runGather(experTime, gather_blockSize, gather_gridSize);
     // scatterTime = runScatter(experTime, scatter_blockSize, scatter_gridSize);
@@ -119,11 +149,22 @@ int main(int argc, const char * argv[]) {
     //     <<endl;
     
 
-    cout<<"Time for VPU: "<<vpuTime<<" ms."<<'\t'
-        <<"BlockSize: "<<vpu_blockSize<<'\t'
-        <<"GridSize: "<<vpu_gridSize<<'\t'
-        <<"VecSize: "<<vpu_vec_size<<'\t'
-        <<"Bandwidth: "<<(double)dataSize * 2 * 60 * 240 / vpuTime * 0.001 * 0.001<<"GFLOPS"<<endl;
+    // cout<<"Time for VPU: "<<vpuTime<<" ms."<<'\t'
+    //     <<"BlockSize: "<<vpu_blockSize<<'\t'
+    //     <<"GridSize: "<<vpu_gridSize<<'\t'
+    //     <<"VecSize: "<<vpu_vec_size<<'\t'
+    //     <<"Bandwidth: "<<computeGFLOPS(dataSize, vpuTime, true, VPU_REPEAT_TIME,240)<<"GFLOPS"<<endl;
+
+    cout<<"Time for memory read: "<<bestInfo.float_info.mem_read_time<<" ms."<<'\t'
+        <<"BlockSize: "<<mem_read_blockSize<<'\t'
+        <<"GridSize: "<<mem_read_gridSize<<'\t'
+        <<"Bandwidth: "<<bestInfo.float_info.mem_read_throughput<<" GB/s"<<endl;
+
+    // cout<<"Time for memory write: "<<bestInfo.float_info.mem_write_time<<" ms."<<'\t'
+    //     <<"BlockSize: "<<mem_write_blockSize<<'\t'
+    //     <<"GridSize: "<<mem_write_gridSize<<'\t'
+    //     <<"Bandwidth: "<<bestInfo.float_info.mem_write_throughput<<" GB/s"<<endl;
+
 
     // cout<<"Time for gather: "<<gatherTime<<" ms."<<'\t'<<"BlockSize: "<<gather_blockSize<<'\t'<<"GridSize: "<<gather_gridSize<<endl;
     // cout<<"Time for scatter: "<<scatterTime<<" ms."<<'\t'<<"BlockSize: "<<scatter_blockSize<<'\t'<<"GridSize: "<<scatter_gridSize<<endl;
@@ -145,50 +186,490 @@ int main(int argc, const char * argv[]) {
     return 0;
 }
 
-//for testing
-#define MIN_BLOCK   (64)  //64
-#define MAX_BLOCK   (1024)
-#define MIN_GRID    (256)  //256
-#define MAX_GRID    (8192*2)
+void runVPU(int experTime, int& bestBlockSize, int& bestGridSize, int& bestVecSize, Device_perf_info& bestInfo) {
 
-double runVPU(int experTime, int& bestBlockSize, int& bestGridSize, int& bestVecSize) {
+    std::cout<<"----- Vector Instruction Throughput Test -----"<<std::endl;
+
     double bestTime = MAX_TIME;
+    double bestThroughput = 0.0;
     bestBlockSize = -1;
     bestGridSize = -1;
     bestVecSize = -1;
-
-    int vec[5] = {1,2,4,8,16};
 
     float *input = (float*)malloc(sizeof(float)*dataSize);
     for(int i = 0; i < dataSize;i++) {
         input[i] = 0;
     }
 
+    int blockIdx = 0, gridIdx = 0;
     for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+        gridIdx = 0;
         for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
-            for(int vecIdx = 0; vecIdx < 5; vecIdx++) {
+            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
                 int vecSize = vec[vecIdx];
-                double tempTime = MAX_TIME;
+                double localTime = 0;
+                double localThroughput = 0;
+
                 for(int i = 0 ; i < experTime; i++) {       
                     //--------test vpu------------
+                    double tempTime = 0.0;
                     testVPU(                
                     input,
                     dataSize,info,tempTime, blockSize, gridSize, vecSize);
+                    localTime += tempTime;
                 }
-                if (tempTime < bestTime) {
-                    bestTime = tempTime;
+                localTime /= experTime;
+                localThroughput = computeGFLOPS(dataSize, localTime, true, VPU_REPEAT_TIME,240);
+
+                //print done!
+                cout<<"blockSize="<<blockSize<<'\t'<<"gridSize="<<gridSize<<'\t'<<"float"<<vecSize<<'\t'<<localTime<<" ms"<<'\t'<<localThroughput<<" GFlops"<<"\tdone!"<<endl;
+
+                //global update
+                if (localTime < bestTime) {
+                    bestTime = localTime;
+                    bestThroughput = localThroughput;
                     bestBlockSize = blockSize;
                     bestGridSize = gridSize;
                     bestVecSize = vecSize;
                 }
+
+                //recording time and throughput
+                perfInfo[blockIdx][gridIdx][vecIdx].float_info.vpu_time = localTime;
+                perfInfo[blockIdx][gridIdx][vecIdx].float_info.vpu_throughput = localThroughput;
             }   
+            gridIdx++;
         }
+        blockIdx++;
+    }
+
+    //show information
+    cout<<endl;
+    cout<<"----------- Original ------------"<<endl;
+    blockIdx = 0, gridIdx = 0;
+    for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+        gridIdx = 0;
+        for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+                int vecSize = vec[vecIdx];
+                
+                //show information
+                cout<<"# "
+                    <<blockSize<<'\t'
+                    <<gridSize<<'\t'
+                    <<"float"<<vecSize<<'\t'
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.vpu_time<<" ms"<<'\t'
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.vpu_throughput<<" GFlops"<<endl;
+            }
+            gridIdx++;
+        }
+        blockIdx++;
+    }
+
+    cout<<endl;
+    cout<<"----------- Aggregated at vec_size ------------"<<endl;
+    for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+        blockIdx = 0, gridIdx = 0;
+        double bestTime = MAX_TIME;
+        double bestThroughput = 0;
+        double bestBlock = -1, bestGrid = -1;
+
+        for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+            gridIdx = 0;
+            for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+                double elapsedTime = perfInfo[blockIdx][gridIdx][vecIdx].float_info.vpu_time;
+                double throughput = perfInfo[blockIdx][gridIdx][vecIdx].float_info.vpu_throughput;
+                cout<<"# "
+                    <<"float"<<vec[vecIdx]<<'\t'
+                    <<blockSize<<'\t'
+                    <<gridSize<<'\t'
+                    <<elapsedTime<<" ms\t"
+                    <<throughput<<" GFlops"<<endl;
+                if (elapsedTime < bestTime) {
+                    bestThroughput = throughput;
+                    bestTime = elapsedTime;
+                    bestBlock = blockSize;
+                    bestGrid = gridSize;
+                }
+                gridIdx++;   
+            }
+            blockIdx++;
+        }
+        cout<<endl;
+        cout<<"summary: "<<"float"<<vec[vecIdx]<<'\t'<<bestTime<<" ms\t"<<bestThroughput<<" GFlops\t"<<bestBlock<<'\t'<<bestGrid<<endl;
+        cout<<"--------------------------------------------"<<endl;
+    }
+
+    cout<<endl;
+    cout<<"----------- Aggregated at block & grid size ------------"<<endl;
+    blockIdx = 0, gridIdx = 0;
+    for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+        gridIdx = 0;
+        for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+
+            double bestTime = MAX_TIME;
+            double bestThroughput = 0;
+            int bestVecIdx = -1;
+
+            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+                double elapsedTime = perfInfo[blockIdx][gridIdx][vecIdx].float_info.vpu_time;
+                double throughput = perfInfo[blockIdx][gridIdx][vecIdx].float_info.vpu_throughput;
+                
+                //show information
+                cout<<"# "
+                    <<blockSize<<'\t'
+                    <<gridSize<<'\t'
+                    <<"float"<<vec[vecIdx]<<'\t'
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.vpu_time<<" ms\t"
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.vpu_throughput<<" GFlops"<<endl;
+
+                if (elapsedTime < bestTime) {
+                    bestThroughput = throughput;
+                    bestTime = elapsedTime;
+                    bestVecIdx = vecIdx;
+                }
+            }
+            cout<<endl;
+            cout<<"summary: "
+                <<blockSize<<'\t'
+                <<gridSize<<'\t'
+                <<bestTime<<" ms\t"
+                <<bestThroughput<<" GFlops\t"
+                <<"float"<<vec[bestVecIdx]<<endl;
+            cout<<"--------------------------------------------"<<endl;
+            gridIdx++;
+        }
+        blockIdx++;
     }
 
     delete[] input;
 
-    return bestTime;
+    bestInfo.float_info.vpu_time = bestTime;
+    bestInfo.float_info.vpu_throughput = bestThroughput;
 }
+
+//when testing memory bandwidth, the dataSize should be sufficiently large, eg: 500M (2GB), larger than the LLC
+void runMemRead(int experTime, int& bestBlockSize, int& bestGridSize, int& bestVecSize, Device_perf_info& bestInfo) {
+
+    std::cout<<"-----  Memory Bandwidth Read Test ----- "<<std::endl;
+
+    double bestTime = MAX_TIME;
+    double bestThroughput = 0.0;
+    bestBlockSize = -1;
+    bestGridSize = -1;
+    bestVecSize = -1;
+
+    float *input = (float*)malloc(sizeof(float)*dataSize);
+    for(int i = 0; i < dataSize;i++) {
+        input[i] = 1.7682;
+    }
+
+    int blockIdx = 0, gridIdx = 0;
+    for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+        gridIdx = 0;
+        for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+                int vecSize = vec[vecIdx];
+                double localTime = 0;
+                double localThroughput = 0;
+
+                for(int i = 0 ; i < experTime; i++) {       
+                    //--------test memery read------------
+                    double tempTime = 0.0;
+                    testTriad(                
+                    input,
+                    dataSize,info,tempTime, blockSize, gridSize, vecSize);
+                    localTime += tempTime;
+                    cout<<"tempTime: "<<tempTime<<" ms."<<endl;
+                }
+                localTime /= experTime;
+                localThroughput = computeMem(dataSize*3, sizeof(float), localTime);
+
+                //print done!
+                cout<<"blockSize="<<blockSize<<'\t'<<"gridSize="<<gridSize<<'\t'<<"float"<<vecSize<<'\t'<<localTime<<" ms\t"<<localThroughput<<" GB/s\tdone!"<<endl;
+
+                //global update
+                if (localTime < bestTime) {
+                    bestTime = localTime;
+                    bestThroughput = localThroughput;
+                    bestBlockSize = blockSize;
+                    bestGridSize = gridSize;
+                    bestVecSize = vecSize;
+                }
+
+                //recording time and throughput
+                perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_read_time = localTime;
+                perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_read_throughput = localThroughput;
+            }   
+            gridIdx++;
+        }
+        blockIdx++;
+    }
+
+    //show information
+    cout<<endl;
+    cout<<"----------- Original ------------"<<endl;
+    blockIdx = 0, gridIdx = 0;
+    for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+        gridIdx = 0;
+        for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+                int vecSize = vec[vecIdx];
+                
+                //show information
+                cout<<"# "
+                    <<blockSize<<'\t'
+                    <<gridSize<<'\t'
+                    <<"float"<<vecSize<<'\t'
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_read_time<<" ms\t"
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_read_throughput<<" GB/s"<<endl;
+            }
+            gridIdx++;
+        }
+        blockIdx++;
+    }
+
+    cout<<endl;
+    cout<<"----------- Aggregated at vec_size ------------"<<endl;
+    for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+        blockIdx = 0, gridIdx = 0;
+        double bestTime = MAX_TIME;
+        double bestThroughput = 0;
+        double bestBlock = -1, bestGrid = -1;
+
+        for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+            gridIdx = 0;
+            for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+                double elapsedTime = perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_read_time;
+                double throughput = perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_read_throughput;
+                cout<<"# "
+                    <<"float"<<vec[vecIdx]<<'\t'
+                    <<blockSize<<'\t'
+                    <<gridSize<<'\t'
+                    <<elapsedTime<<" ms\t"
+                    <<throughput<<" GB/s"<<endl;
+                if (elapsedTime < bestTime) {
+                    bestThroughput = throughput;
+                    bestTime = elapsedTime;
+                    bestBlock = blockSize;
+                    bestGrid = gridSize;
+                }
+                gridIdx++;   
+            }
+            blockIdx++;
+        }
+        cout<<endl;
+        cout<<"summary: "<<"float"<<vec[vecIdx]<<'\t'<<bestTime<<" ms\t"<<bestThroughput<<" GB/s\t"<<bestBlock<<'\t'<<bestGrid<<endl;
+        cout<<"--------------------------------------------"<<endl;
+    }
+
+    cout<<endl;
+    cout<<"----------- Aggregated at block & grid size ------------"<<endl;
+    blockIdx = 0, gridIdx = 0;
+    for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+        gridIdx = 0;
+        for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+
+            double bestTime = MAX_TIME;
+            double bestThroughput = 0;
+            int bestVecIdx = -1;
+
+            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+                double elapsedTime = perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_read_time;
+                double throughput = perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_read_throughput;
+                
+                //show information
+                cout<<"# "
+                    <<blockSize<<'\t'
+                    <<gridSize<<'\t'
+                    <<"float"<<vec[vecIdx]<<'\t'
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_read_time<<" ms\t"
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_read_throughput<<" GB/s"<<endl;
+
+                if (elapsedTime < bestTime) {
+                    bestThroughput = throughput;
+                    bestTime = elapsedTime;
+                    bestVecIdx = vecIdx;
+                }
+            }
+            cout<<endl;
+            cout<<"summary: "
+                <<blockSize<<'\t'
+                <<gridSize<<'\t'
+                <<bestTime<<" ms\t"
+                <<bestThroughput<<" GB/s\t"
+                <<"float"<<vec[bestVecIdx]<<endl;
+            cout<<"--------------------------------------------"<<endl;
+            gridIdx++;
+        }
+        blockIdx++;
+    }
+
+    delete[] input;
+
+    bestInfo.float_info.mem_read_time = bestTime;
+    bestInfo.float_info.mem_read_throughput = bestThroughput;
+}
+
+void runMemWrite(int experTime, int& bestBlockSize, int& bestGridSize, int& bestVecSize, Device_perf_info& bestInfo) {
+
+    std::cout<<"-----  Memory Bandwidth Write Test ----- "<<std::endl;
+
+    double bestTime = MAX_TIME;
+    double bestThroughput = 0.0;
+    bestBlockSize = -1;
+    bestGridSize = -1;
+    bestVecSize = -1;
+
+    float *input = (float*)malloc(sizeof(float)*dataSize);
+    for(int i = 0; i < dataSize;i++) {
+        input[i] = 0;
+    }
+
+    int blockIdx = 0, gridIdx = 0;
+    for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+        gridIdx = 0;
+        for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+                int vecSize = vec[vecIdx];
+                double localTime = 0;
+                double localThroughput = 0;
+
+                for(int i = 0 ; i < experTime; i++) {       
+                    //--------test memery write------------
+                    double tempTime = 0.0;
+                    testMemWrite(                
+                    dataSize,info,tempTime, blockSize, gridSize, vecSize);
+                    localTime += tempTime;
+                }
+                localTime /= experTime;
+                localThroughput = computeMem(dataSize, sizeof(float), localTime);
+
+                //print done!
+                cout<<"blockSize="<<blockSize<<'\t'<<"gridSize="<<gridSize<<'\t'<<"float"<<vecSize<<'\t'<<localTime<<" ms\t"<<localThroughput<<" GB/s\tdone!"<<endl;
+
+                //global update
+                if (localTime < bestTime) {
+                    bestTime = localTime;
+                    bestThroughput = localThroughput;
+                    bestBlockSize = blockSize;
+                    bestGridSize = gridSize;
+                    bestVecSize = vecSize;
+                }
+
+                //recording time and throughput
+                perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_write_time = localTime;
+                perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_write_throughput = localThroughput;
+            }   
+            gridIdx++;
+        }
+        blockIdx++;
+    }
+
+    //show information
+    cout<<endl;
+    cout<<"----------- Original ------------"<<endl;
+    blockIdx = 0, gridIdx = 0;
+    for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+        gridIdx = 0;
+        for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+                int vecSize = vec[vecIdx];
+                
+                //show information
+                cout<<"# "
+                    <<blockSize<<'\t'
+                    <<gridSize<<'\t'
+                    <<"float"<<vecSize<<'\t'
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_write_time<<" ms\t"
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_write_throughput<<" GB/s"<<endl;
+            }
+            gridIdx++;
+        }
+        blockIdx++;
+    }
+
+    cout<<endl;
+    cout<<"----------- Aggregated at vec_size ------------"<<endl;
+    for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+        blockIdx = 0, gridIdx = 0;
+        double bestTime = MAX_TIME;
+        double bestThroughput = 0;
+        double bestBlock = -1, bestGrid = -1;
+
+        for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+            gridIdx = 0;
+            for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+                double elapsedTime = perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_write_time;
+                double throughput = perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_write_throughput;
+                cout<<"# "
+                    <<"float"<<vec[vecIdx]<<'\t'
+                    <<blockSize<<'\t'
+                    <<gridSize<<'\t'
+                    <<elapsedTime<<" ms\t"
+                    <<throughput<<" GB/s"<<endl;
+                if (elapsedTime < bestTime) {
+                    bestThroughput = throughput;
+                    bestTime = elapsedTime;
+                    bestBlock = blockSize;
+                    bestGrid = gridSize;
+                }
+                gridIdx++;   
+            }
+            blockIdx++;
+        }
+        cout<<endl;
+        cout<<"summary: "<<"float"<<vec[vecIdx]<<'\t'<<bestTime<<" ms\t"<<bestThroughput<<" GB/s\t"<<bestBlock<<'\t'<<bestGrid<<endl;
+        cout<<"--------------------------------------------"<<endl;
+    }
+
+    cout<<endl;
+    cout<<"----------- Aggregated at block & grid size ------------"<<endl;
+    blockIdx = 0, gridIdx = 0;
+    for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {
+        gridIdx = 0;
+        for(int gridSize = MIN_GRID; gridSize <= MAX_GRID; gridSize <<= 1) {
+
+            double bestTime = MAX_TIME;
+            double bestThroughput = 0;
+            int bestVecIdx = -1;
+
+            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
+                double elapsedTime = perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_write_time;
+                double throughput = perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_write_throughput;
+                
+                //show information
+                cout<<"# "
+                    <<blockSize<<'\t'
+                    <<gridSize<<'\t'
+                    <<"float"<<vec[vecIdx]<<'\t'
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_write_time<<" ms\t"
+                    <<perfInfo[blockIdx][gridIdx][vecIdx].float_info.mem_write_throughput<<" GB/s"<<endl;
+
+                if (elapsedTime < bestTime) {
+                    bestThroughput = throughput;
+                    bestTime = elapsedTime;
+                    bestVecIdx = vecIdx;
+                }
+            }
+            cout<<endl;
+            cout<<"summary: "
+                <<blockSize<<'\t'
+                <<gridSize<<'\t'
+                <<bestTime<<" ms\t"
+                <<bestThroughput<<" GB/s\t"
+                <<"float"<<vec[bestVecIdx]<<endl;
+            cout<<"--------------------------------------------"<<endl;
+            gridIdx++;
+        }
+        blockIdx++;
+    }
+
+    delete[] input;
+
+    bestInfo.float_info.mem_write_time = bestTime;
+    bestInfo.float_info.mem_write_throughput = bestThroughput;
+}
+
 
 double runMap(int experTime, int& bestBlockSize, int& bestGridSize) {
     double bestTime = MAX_TIME;
@@ -289,7 +770,7 @@ double runScan(int experTime, int& bestBlockSize) {
     double bestTime = MAX_TIME;
     bestBlockSize = -1;
     bool res;
-    // for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {   
+     
     for(int blockSize = MIN_BLOCK; blockSize <= MAX_BLOCK; blockSize<<=1) {   
         double tempTime = MAX_TIME;
         for(int i = 0 ; i < experTime; i++) {       

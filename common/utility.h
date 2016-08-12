@@ -120,4 +120,7 @@ void printRes(std::string funcName, bool res, float elaspsedTime);
 
 void my_itoa(int num, char *buffer, int base);
 
+double computeGFLOPS(int dataSize, double elaspedTime, bool isMADD, int repeatTime, int numPerRun);
+double computeMem(int dataSize, int wordSize, double elapsedTime);
+
 #endif

@@ -1,6 +1,11 @@
 #ifndef __DATA_DEF_H__
 #define __DATA_DEF_H__
 
+//throughput processing
+#define VPU_REPEAT_TIME             (120)               //repeat time for madd operation
+#define FACTOR                      (1.0001)            //madd: s = s * FACTOR + FACTOR
+
+
 //scan definition
 #define SCAN_BITS        			(4)
 #define SCAN_MASK        			((1<<SCAN_BITS)-1)
@@ -46,5 +51,23 @@ typedef struct CSS_Tree_Info {
 	int numOfInternalNodes;
 	int mark;
 } CSS_Tree_Info;
+
+//Basic test information
+typedef struct Basic_info {
+    //vpu testing
+    double vpu_time;
+    double vpu_throughput;
+
+    //memory bandwidth
+    double mem_read_time;
+    double mem_read_throughput;
+    double mem_write_time;
+    double mem_write_throughput;
+} Basic_info;
+
+typedef struct Device_perf_info {
+    Basic_info float_info;
+    Basic_info double_info;
+} Device_perf_info;
 
 #endif

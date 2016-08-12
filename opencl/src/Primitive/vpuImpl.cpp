@@ -44,11 +44,6 @@ double vpu(
     cl_kernel vpuKernel = reader.getKernel(kerName);
 
     //set kernel arguments
-
-    double minTime[NUM_FUCTIONS]={MAX_TIME_INIT};
-    double maxTime[NUM_FUCTIONS]={MIN_TIME_INIT};
-    double avgTime[NUM_FUCTIONS]={0};
-
     argsNum = 0;
     status |= clSetKernelArg(vpuKernel, argsNum++, sizeof(cl_mem), &d_source_values);
     status |= clSetKernelArg(vpuKernel, argsNum++, sizeof(int), &length);

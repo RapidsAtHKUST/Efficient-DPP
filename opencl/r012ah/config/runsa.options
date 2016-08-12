@@ -1,0 +1,12 @@
+--event-mux
+--data-limit-mb=500
+--target=mic-0
+--sample-after-multiplier=1.0
+--stack-stitching
+--event-config=CPU_CLK_UNHALTED:sa=2300000,INSTRUCTIONS_EXECUTED:sa=2300000
+--itt-config=frame
+-r
+/d2/zlai/workspace/comparison_gpu/opencl/r012ah
+--
+/ghome/zlai/workspace/comparison_gpu/opencl/bin/executor
+500000000

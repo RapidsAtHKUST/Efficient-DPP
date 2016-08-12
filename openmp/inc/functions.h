@@ -5,7 +5,9 @@
 
 
 //basic operations
-double mad_test(float *hostMem, int n, int repeatTime);
+double vpu_test(float *hostMem, int n, int repeatTime);
+double mem_read_test(float *data, int n, int repeatTime);
+double mem_write_test(float *data, int n, int repeatTime);
 
 
 void testRadixSort(unsigned *arr, int len) ;

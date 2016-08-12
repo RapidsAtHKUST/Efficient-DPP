@@ -3,15 +3,7 @@
 #include "functions.h"
 #include <immintrin.h>
 
-// #pragma offload_attribute(push, target(mic))
-// #include <iostream>
-// #include <stdio.h>
-// #include "tbb/task_scheduler_init.h"
-// #include "tbb/blocked_range.h"
-// #include "tbb/parallel_for.h"
 
-
-// #pragma offload_attribute(pop)
 #define NUM_FUCTIONS	(25)		//map, scatter, gather, reduce, scan, split
 #define STEP			(10)
 #define MAX_TIME_INIT 		(99999.0)
@@ -32,7 +24,8 @@ int main(int argc, char* argv[]) {
 
 	cout<<"num:"<<n<<endl;
 
-	float *input = (float*)_mm_malloc(sizeof(float)*n, 64);
+	// float *input = (float*)_mm_malloc(sizeof(float)*n, 64);
+	float *input = new float[n];
 	for(int i = 0; i < n;i++) {
 		input[i] = 0;
 	}
@@ -42,23 +35,24 @@ cout<<"---------------- begin test ----------------"<<endl;
 	
 	double lessTime = 9999999;
 
-	int expr = 5;
-	int repeatTime = 60;
-
+	int expr = 10;
+	int repeatTime = 1;
+	
 	for(int i = 0; i < expr; i++) {
-		totalTime = mad_test(input,n,repeatTime);
+		totalTime = mem_read_test(input,n,repeatTime);
 		if (totalTime < lessTime) lessTime = totalTime;
 	}
 	cout<<"totalTime:"<<lessTime<<" ms."<<endl;
-	cout<<"Throughput: "<< (double)n * 2 * repeatTime * 240 / lessTime * 0.001 * 0.001<<" GFLPS"<<endl;
+	cout<<"Mem Throughput: "<< computeMem(n, sizeof(float), lessTime)<<" GB/s"<<endl;
 
-	cout<<"output:";
-	for(int i = 1456; i < 1567; i++) {
-		cout<<input[i]<<' ';
-	}
-	cout<<endl;
+	// cout<<"output:";
+	// for(int i = 1456; i < 1567; i++) {
+	// 	cout<<input[i]<<' ';
+	// }
+	// cout<<endl;
 
-	_mm_free(input);
+	// _mm_free(input);
+	delete[] input;
 
 	return 0;
 

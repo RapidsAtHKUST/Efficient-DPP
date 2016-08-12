@@ -20,6 +20,18 @@ double vpu(
     cl_mem d_source_values, int length, 
     int localSize, int gridSize, PlatInfo info, int con, int repeatTime, int basicSize) ;
 
+double mem_read(
+    cl_mem d_source_values, cl_mem d_dest_values, int length, 
+    int localSize, int gridSize, PlatInfo info, int con, int basicSize);
+
+double mem_write(
+    cl_mem d_source_values, int length, 
+    int localSize, int gridSize, PlatInfo info, int con, int basicSize);
+
+double triad(
+    cl_mem d_source_values_b, cl_mem d_source_values_c, cl_mem d_dest_values_a,int length, 
+    int localSize, int gridSize, PlatInfo info, int basicSize);
+
 double map(
 #ifdef RECORDS
     cl_mem d_source_keys, cl_mem d_dest_keys, bool isRecord,
@@ -65,12 +77,24 @@ void testVPU(
     float *fixedValues, 
     int length, PlatInfo info , double& totalTime, int localSize, int gridSize, int basicSize) ;
 
+void testMemRead(
+    float *fixedValues, 
+    int length, PlatInfo info , double& totalTime, int localSize, int gridSize, int basicSize);
+
+void testMemWrite(int length, PlatInfo info , double& totalTime, int localSize, int gridSize, int basicSize);
+
+void testTriad(
+    float *fixedValues, 
+    int length, PlatInfo info , double& totalTime, int localSize, int gridSize, int basicSize);
+
 bool testMap(
 #ifdef RECORDS
     int *fixedKeys,
 #endif
     float *fixedValues, 
     int length, PlatInfo info , double& totalTime, int localSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+
+
 
 bool testGather(
 #ifdef RECORDS

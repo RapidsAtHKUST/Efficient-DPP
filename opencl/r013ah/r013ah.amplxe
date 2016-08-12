@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+ <rdmgr>
+  <timestamp type="u64_t">1470886164</timestamp>
+  <hostname type="string">gpu-ib-23</hostname>
+  <os type="string">linux</os>
+  <product type="string">Intel® VTune™ Amplifier XE 2016</product>
+  <buildNumber type="s32_t">424694</buildNumber>
+  <logicalCPUCount type="s32_t">40</logicalCPUCount>
+  <CPUFrequency type="s64_t">2300000000</CPUFrequency>
+  <collectionTimeBegin type="u64_t">1470886164</collectionTimeBegin>
+  <variables>
+   <at type="string">ah</at>
+  </variables>
+ </rdmgr>
+</root>

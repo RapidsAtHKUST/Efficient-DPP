@@ -11,7 +11,7 @@ COMDIR := $(HOME_PATH)/common
 
 CC := icc
 
-CC_FLAGS := -O3 -DPROJECT_ROOT=\"$(HOME_PATH)\" -DOPENMP_PROJ -fopenmp -qopt-report=3 -qopt-report-phase=vec
+CC_FLAGS := -O3 -DPROJECT_ROOT=\"$(HOME_PATH)\" -DOPENMP_PROJ -fopenmp -qopt-report=3 -qopt-report-phase=vec #-qopt-streaming-stores always
 
 PRINT ?= 0
 ifeq ($(PRINT), 1)
