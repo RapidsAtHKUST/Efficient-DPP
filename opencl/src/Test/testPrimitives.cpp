@@ -16,7 +16,7 @@ bool testMap(
     int *fixedKeys,
 #endif
     float *fixedValues, 
-    int length, PlatInfo info , double& totalTime, int localSize, int gridSize) {
+    int length, PlatInfo& info , double& totalTime, int localSize, int gridSize) {
     
     bool res = true;
     FUNC_BEGIN;
@@ -129,7 +129,7 @@ bool testGather(
 #ifdef RECORDS
     int *fixedKeys,
 #endif
-    int *fixedValues, int length, PlatInfo info , double& totalTime, int localSize, int gridSize) {
+    int *fixedValues, int length, PlatInfo& info , double& totalTime, int localSize, int gridSize) {
     
     bool res = true;
     FUNC_BEGIN;
@@ -242,7 +242,7 @@ bool testScatter(
 #ifdef RECORDS
     int *fixedKeys,
 #endif
-    int *fixedValues, int length, PlatInfo info , double& totalTime, int localSize, int gridSize) {
+    int *fixedValues, int length, PlatInfo& info , double& totalTime, int localSize, int gridSize) {
     
     bool res = true;
     FUNC_BEGIN;
@@ -352,7 +352,7 @@ bool testScatter(
     return res;
 }
 
-bool testScan(int *fixedSource, int length, PlatInfo info, double& totalTime, int isExclusive, int localSize) {
+bool testScan(int *fixedSource, int length, PlatInfo& info, double& totalTime, int isExclusive, int localSize) {
     
     bool res = true;
     FUNC_BEGIN;
@@ -435,7 +435,7 @@ bool testScan(int *fixedSource, int length, PlatInfo info, double& totalTime, in
     return res;
 }
 
-bool testSplit(Record *fixedSource, int length, PlatInfo info , int fanout, double& totalTime, int localSize, int gridSize) {
+bool testSplit(Record *fixedSource, int length, PlatInfo& info , int fanout, double& totalTime, int localSize, int gridSize) {
     
     bool res = true;
     FUNC_BEGIN;
@@ -507,7 +507,7 @@ bool testRadixSort(
     int *fixedKeys,
 #endif
     int *fixedValues, 
-    int length, PlatInfo info, double& totalTime) {
+    int length, PlatInfo& info, double& totalTime) {
     
     bool res = true;
     FUNC_BEGIN;
@@ -599,7 +599,7 @@ bool testRadixSort(
     return res;
 }
 
-bool testBitonitSort(Record *fixedSource, int length, PlatInfo info, int dir, double& totalTime, int localSize, int gridSize) {
+bool testBitonitSort(Record *fixedSource, int length, PlatInfo& info, int dir, double& totalTime, int localSize, int gridSize) {
     
     bool res = true;
     FUNC_BEGIN;

@@ -8,7 +8,7 @@
 
 #include "Foundation.h"
 
-double split(cl_mem d_source, cl_mem &d_dest, int length, int fanout, PlatInfo info, int localSize, int gridSize) {
+double split(cl_mem d_source, cl_mem &d_dest, int length, int fanout, PlatInfo& info, int localSize, int gridSize) {
     
     double totalTime = 0;
     

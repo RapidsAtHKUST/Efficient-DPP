@@ -14,7 +14,7 @@ double radixSort(
     cl_mem& d_source_keys, bool isRecords,
 #endif
     cl_mem& d_source_values,
-    int length, PlatInfo info) {
+    int length, PlatInfo& info) {
     
     double totalTime = 0;
     

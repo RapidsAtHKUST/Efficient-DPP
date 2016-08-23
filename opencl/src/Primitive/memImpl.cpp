@@ -8,10 +8,11 @@
 
 #include "Foundation.h"
 
+#define MEM_REPEAT_TIME     (10)
 
 double mem_read(
     cl_mem d_source_values, cl_mem d_dest_values, int length, 
-    int localSize, int gridSize, PlatInfo info, int con, int basicSize)
+    int localSize, int gridSize, PlatInfo& info, int con, int basicSize)
 {
     double totalTime = 0;
 
@@ -49,21 +50,28 @@ double mem_read(
 #endif
 
     cl_event event;
-    status = clFinish(info.currentQueue);
-    status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);
     clFlush(info.currentQueue);
-    clWaitForEvents(1,&event);
+    status = clFinish(info.currentQueue);
 
-    checkErr(status, ERR_EXEC_KERNEL);
-    totalTime = clEventTime(event);
-    
+    for(int i = 0; i < MEM_REPEAT_TIME; i++) {
+        status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);
+        clFlush(info.currentQueue);
+        status = clFinish(info.currentQueue);
+        
+        checkErr(status, ERR_EXEC_KERNEL);
+        double tempTime = clEventTime(event);
+
+        //throw away the first result
+        if (i != 0)     totalTime += tempTime;
+    }    
+    totalTime /= (MEM_REPEAT_TIME - 1);
 
     return totalTime;
 }
 
 double mem_write(
     cl_mem d_source_values, int length, 
-    int localSize, int gridSize, PlatInfo info, int con, int basicSize)
+    int localSize, int gridSize, PlatInfo& info, int con, int basicSize)
 {
     double totalTime = 0;
 
@@ -99,19 +107,27 @@ double mem_write(
 #endif
 
     cl_event event;
-    status = clFinish(info.currentQueue);
-    status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);
     clFlush(info.currentQueue);
-    clWaitForEvents(1,&event);
+    status = clFinish(info.currentQueue);
 
-    checkErr(status, ERR_EXEC_KERNEL);
-    totalTime = clEventTime(event);
+    for(int i = 0; i < MEM_REPEAT_TIME; i++) {
+        status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);
+        clFlush(info.currentQueue);
+        status = clFinish(info.currentQueue);
+        
+        checkErr(status, ERR_EXEC_KERNEL);
+        double tempTime = clEventTime(event);
+
+        //throw away the first result
+        if (i != 0)     totalTime += tempTime;
+    }    
+    totalTime /= (MEM_REPEAT_TIME - 1);
 
     return totalTime;
 }
 
 double triad(
-    cl_mem d_source_values_b, cl_mem d_source_values_c, cl_mem d_dest_values_a,int length, int localSize, int gridSize, PlatInfo info, int basicSize)
+    cl_mem d_source_values_b, cl_mem d_source_values_c, cl_mem d_dest_values_a,int length, int localSize, int gridSize, PlatInfo& info, int basicSize)
 {
     double totalTime = 0;
 
@@ -126,6 +142,7 @@ double triad(
     my_itoa(basicSize, basicSizeName, 10);
     char kerName[100] = "triad_float";
     strcat(kerName, basicSizeName);
+
     KernelProcessor reader(&kerAddr,1,info.context);
     cl_kernel kernel = reader.getKernel(kerName);
 
@@ -134,7 +151,7 @@ double triad(
     status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_dest_values_a);
     status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_source_values_b);
     status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_source_values_c);
-    // status |= clSetKernelArg(kernel, argsNum++, sizeof(int), &length);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(int), &length);
     
     checkErr(status, ERR_SET_ARGUMENTS);
 
@@ -142,22 +159,27 @@ double triad(
     size_t local[1] = {(size_t)localSize};
     size_t global[1] = {(size_t)(localSize * gridSize)};
     
-    
     //launch the kernel
 #ifdef PRINT_KERNEL
     printExecutingKernel(kernel);
 #endif
-
     cl_event event;
-    status = clFinish(info.currentQueue);
-    status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);
     clFlush(info.currentQueue);
-    clWaitForEvents(1,&event);
+    status = clFinish(info.currentQueue);
 
-    checkErr(status, ERR_EXEC_KERNEL);
-    totalTime = clEventTime(event);
+    for(int i = 0; i < MEM_REPEAT_TIME; i++) {
+        status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);
+        clFlush(info.currentQueue);
+        status = clFinish(info.currentQueue);
+        
+        checkErr(status, ERR_EXEC_KERNEL);
+        double tempTime = clEventTime(event);
 
-    std::cout<<"tempTime: "<<totalTime<<" ms."<<std::endl;
+        //throw away the first result
+        if (i != 0)     totalTime += tempTime;
+    }    
+    totalTime /= (MEM_REPEAT_TIME - 1);
+
     return totalTime;
 }
 

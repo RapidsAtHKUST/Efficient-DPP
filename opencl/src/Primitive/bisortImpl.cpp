@@ -15,7 +15,7 @@ int getNearestLarger2Power(int input) {
 }
 
 //dir: 1 for asc, 0 for des
-double bisort(cl_mem &d_source, int length, int dir, PlatInfo info, int localSize, int gridSize) {
+double bisort(cl_mem &d_source, int length, int dir, PlatInfo& info, int localSize, int gridSize) {
     
     double totalTime = 0;
     

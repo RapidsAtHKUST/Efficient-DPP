@@ -8,7 +8,7 @@
 
 #include "Foundation.h"
 
-double scatter(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int localSize, int gridSize, PlatInfo info) {
+double scatter(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int localSize, int gridSize, PlatInfo& info) {
     
     double totalTime = 0;
 

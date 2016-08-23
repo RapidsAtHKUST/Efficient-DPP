@@ -188,13 +188,17 @@ kernel void mem_write_float16 (
 kernel void triad_float1(
     global float * restrict a,
     global const float * restrict b,
-    global const float * restrict c)
+    global const float * restrict c,
+    const int length)
   {
-    const size_t i = get_global_id(0);
-    a[i] = b[i] + 0.3 * c[i];
+     int globalId = get_global_id(0);
+     int globalSize = get_global_size(0);
+
+    while (globalId < length) {
+        a[globalId] = b[globalId] + 0.3 * c[globalId];
+        globalId += globalSize;
+    }
   }
-
-
 
 kernel void triad_float2(
     global float2 *restrict a,
@@ -212,6 +216,23 @@ kernel void triad_float2(
     }
 }
 
+// kernel void triad_float2(
+//     global float *restrict a,
+//     global const float *restrict b,
+//     global const float *restrict c,
+//     const int length)
+// {
+//     int globalId = 2*get_global_id(0);
+//     int globalSize = 2*get_global_size(0);
+//     const float scalar = 0.3;
+
+//     while (globalId < length) {
+//         a[globalId] = b[globalId] + scalar * c[globalId]; 
+//         a[globalId+1] = b[globalId+1] + scalar * c[globalId+1]; 
+//         globalId += globalSize;
+//     }
+// }
+
 kernel void triad_float4(
     global float4 *restrict a,
     global const float4 *restrict b,
@@ -227,6 +248,26 @@ kernel void triad_float4(
         globalId += globalSize;
     }
 }
+
+// kernel void triad_float4(
+//     global float *restrict a,
+//     global const float *restrict b,
+//     global const float *restrict c,
+//     const int length)
+// {
+//     int globalId = 4*get_global_id(0);
+//     int globalSize = 4*get_global_size(0);
+//     const float scalar = 0.3;
+
+//     while (globalId < length) {
+//         a[globalId] = b[globalId] + scalar * c[globalId]; 
+//         a[globalId+1] = b[globalId+1] + scalar * c[globalId+1]; 
+//         a[globalId+2] = b[globalId+2] + scalar * c[globalId+2];
+//         a[globalId+3] = b[globalId+3] + scalar * c[globalId+3];
+
+//         globalId += globalSize;
+//     }
+// }
 
 kernel void triad_float8(
     global float8 *restrict a,

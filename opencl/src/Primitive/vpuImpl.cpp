@@ -8,10 +8,7 @@
 
 #include "Foundation.h"
 
-#define NUM_FUCTIONS    (1)        //map, scatter, gather, reduce, scan, split
-#define STEP            (10)
-#define MAX_TIME_INIT       (99999.0)
-#define MIN_TIME_INIT       (0.0)
+#define VPU_EXPR_TIME     (2)
 
 /* basicSize:
  *  1 - float
@@ -24,7 +21,7 @@
  */
 double vpu(
     cl_mem d_source_values, int length, 
-    int localSize, int gridSize, PlatInfo info, int con, int repeatTime, int basicSize)
+    int localSize, int gridSize, PlatInfo& info, int con, int repeatTime, int basicSize)
 {
     double totalTime = 0;
 
@@ -64,13 +61,19 @@ double vpu(
 
     cl_event event;
     status = clFinish(info.currentQueue);
-    status = clEnqueueNDRangeKernel(info.currentQueue, vpuKernel, 1, 0, global, local, 0, 0, &event);
-    clFlush(info.currentQueue);
-    clWaitForEvents(1,&event);
 
-    checkErr(status, ERR_EXEC_KERNEL);
-    totalTime = clEventTime(event);
-    
+    for(int i = 0; i < VPU_EXPR_TIME; i++) {
+        status = clEnqueueNDRangeKernel(info.currentQueue, vpuKernel, 1, 0, global, local, 0, 0, &event);
+        clFlush(info.currentQueue);
+        status = clFinish(info.currentQueue);
+        
+        checkErr(status, ERR_EXEC_KERNEL);
+        double tempTime = clEventTime(event);
+
+        //throw away the first result
+        if (i != 0)     totalTime += tempTime;
+    }    
+    totalTime /= (VPU_EXPR_TIME - 1);
 
     return totalTime;
 }

@@ -13,7 +13,7 @@ double gather(
     cl_mem d_source_keys, cl_mem &d_dest_keys, bool isRecord,
 #endif
     cl_mem d_source_values, cl_mem& d_dest_values, int length, 
-    cl_mem d_loc, int localSize, int gridSize, PlatInfo info) {
+    cl_mem d_loc, int localSize, int gridSize, PlatInfo& info) {
     
     double totalTime = 0;
     

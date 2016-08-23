@@ -11,7 +11,7 @@
 
 using namespace std;
 
-double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int localSize)
+double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int localSize)
 {
     double totalTime = 0.0f;
     cl_event event;
@@ -308,7 +308,7 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int lo
     return totalTime;
 }
 
-double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo info, int localSize)
+double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int localSize)
 {
     double totalTime = 0.0f;
 
@@ -577,7 +577,7 @@ double scan_ble(cl_mem &d_source, int length, int isExclusive, PlatInfo info, in
  *              0 for inclusive
  * return : processing time
  */
-double scan_blelloch(cl_mem &cl_arr, int num,int isExclusive, PlatInfo info, int localSize) {
+double scan_blelloch(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize) {
     
     double totalTime = 0;
     
