@@ -1,7 +1,8 @@
 #ifndef VPU_KERNEL_CL
 #define VPU_KERNEL_CL
 
-#define MADD1_OP  temp = temp * con + con;
+//the TYPEing 
+#define MADD1_OP  temp = 10.0f - temp * 0.9899f;
 
 #define MADD1_MOP20  \
      MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP \
@@ -9,108 +10,79 @@
      MADD1_OP MADD1_OP MADD1_OP MADD1_OP
 
 kernel void vpu1 (
-    global float* d_values,
-    int length,
-    int con, 
+    global TYPE* restrict d_values,
     int repeatTime)
 {
     int globalId = get_global_id(0);
-    int globalSize = get_global_size(0);
 
-    while (globalId < length/1) {
-        float temp = d_values[globalId];
-        for(int i = 0; i < repeatTime; i++) {
-            MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
-            MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
-            MADD1_MOP20 MADD1_MOP20
-        }
-        d_values[globalId] = temp;
-        globalId += globalSize;
+    TYPE temp = d_values[globalId] + (TYPE)(0.1);
+    for(int i = 0; i < repeatTime; i++) {
+        MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
+        MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
+        MADD1_MOP20 MADD1_MOP20
     }
+    d_values[globalId] = temp;
 }
 
 kernel void vpu2 (
-    global float2* d_values,
-    int length,
-    int con, 
+    global TYPE* restrict d_values,
     int repeatTime)
 {
     int globalId = get_global_id(0);
-    int globalSize = get_global_size(0);
 
-    while (globalId < length/2) {
-        float2 temp = d_values[globalId];
-        for(int i = 0; i < repeatTime; i++) {
-            MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
-            MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
-            MADD1_MOP20 MADD1_MOP20
-        }
-        d_values[globalId] = temp;
-        globalId += globalSize;
+    TYPE2 temp = d_values[globalId] + (TYPE2)(0.1,0.2);
+    for(int i = 0; i < repeatTime; i++) {
+        MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
+        MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
+        MADD1_MOP20 MADD1_MOP20
     }
+    d_values[globalId] = temp.s0 + temp.s1;
 }
 
 kernel void vpu4 (
-    global float4* d_values,
-    int length,
-    int con, 
+    global TYPE* restrict d_values,
     int repeatTime)
 {
     int globalId = get_global_id(0);
-    int globalSize = get_global_size(0);
 
-    while (globalId < length/4) {
-        float4 temp = d_values[globalId];
-        for(int i = 0; i < repeatTime; i++) {
-            MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
-            MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
-            MADD1_MOP20 MADD1_MOP20
-        }
-        d_values[globalId] = temp;
-        globalId += globalSize;
+    TYPE4 temp = d_values[globalId] + (TYPE4)(0.1,0.2,0.3,0.4);
+    for(int i = 0; i < repeatTime; i++) {
+        MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
+        MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
+        MADD1_MOP20 MADD1_MOP20
     }
+    d_values[globalId] = temp.s0 + temp.s1 + temp.s2 + temp.s3;
 }
 
 kernel void vpu8 (
-    global float8* d_values,
-    int length,
-    int con, 
+    global TYPE* restrict d_values,
     int repeatTime)
 {
     int globalId = get_global_id(0);
-    int globalSize = get_global_size(0);
 
-    while (globalId < length/8) {
-        float8 temp = d_values[globalId];
-        for(int i = 0; i < repeatTime; i++) {
-            MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
-            MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
-            MADD1_MOP20 MADD1_MOP20
-        }
-        d_values[globalId] = temp;
-        globalId += globalSize;
+    TYPE8 temp = d_values[globalId] + (TYPE8)(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8);
+    for(int i = 0; i < repeatTime; i++) {
+        MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
+        MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
+        MADD1_MOP20 MADD1_MOP20
     }
+    d_values[globalId] = temp.s0 + temp.s1 + temp.s2 + temp.s3 + temp.s4 + temp.s5 + temp.s6 + temp.s7;
 }
 
 kernel void vpu16 (
-    global float16* d_values,
-    int length,
-    int con, 
+    global TYPE* restrict d_values,
     int repeatTime)
 {
     int globalId = get_global_id(0);
     int globalSize = get_global_size(0);
 
-    while (globalId < length/16) {
-        float16 temp = d_values[globalId];
-        for(int i = 0; i < repeatTime; i++) {
-            MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
-            MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
-            MADD1_MOP20 MADD1_MOP20
-        }
-        d_values[globalId] = temp;
-        globalId += globalSize;
+    TYPE16 temp = d_values[globalId] + (TYPE16)(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6);
+    for(int i = 0; i < repeatTime; i++) {
+        MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
+        MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
+        MADD1_MOP20 MADD1_MOP20
     }
+    d_values[globalId] = temp.s0 + temp.s1 + temp.s2 + temp.s3 + temp.s4 + temp.s5 + temp.s6 + temp.s7 + temp.s8 + temp.s9 + temp.sa + temp.sb + temp.sc + temp.sd + temp.se + temp.sf;
 }
 
 #endif

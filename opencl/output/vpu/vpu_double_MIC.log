@@ -1,0 +1,775 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 33554432
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Many Integrated Core Acceleration Card
+------ End of hardware checking ------
+
+----- Vector Instruction Throughput Test -----
+Data type: double.
+blockSize=128	gridSize=256	float1	2.57265 ms	733.656 GFlops	done!
+blockSize=128	gridSize=256	float2	4.96702 ms	759.988 GFlops	done!
+blockSize=128	gridSize=256	float4	9.74084 ms	775.061 GFlops	done!
+blockSize=128	gridSize=256	float8	19.2255 ms	785.389 GFlops	done!
+blockSize=128	gridSize=256	float16	80.6593 ms	374.402 GFlops	done!
+blockSize=128	gridSize=512	float1	4.32272 ms	873.264 GFlops	done!
+blockSize=128	gridSize=512	float2	8.62529 ms	875.303 GFlops	done!
+blockSize=128	gridSize=512	float4	17.0411 ms	886.062 GFlops	done!
+blockSize=128	gridSize=512	float8	34.2143 ms	882.642 GFlops	done!
+blockSize=128	gridSize=512	float16	132.729 ms	455.046 GFlops	done!
+blockSize=128	gridSize=1024	float1	7.47195 ms	1010.41 GFlops	done!
+blockSize=128	gridSize=1024	float2	14.9112 ms	1012.63 GFlops	done!
+blockSize=128	gridSize=1024	float4	29.7157 ms	1016.26 GFlops	done!
+blockSize=128	gridSize=1024	float8	60.0393 ms	1005.97 GFlops	done!
+blockSize=128	gridSize=1024	float16	221.785 ms	544.655 GFlops	done!
+blockSize=128	gridSize=2048	float1	13.7465 ms	1098.42 GFlops	done!
+blockSize=128	gridSize=2048	float2	27.1943 ms	1110.49 GFlops	done!
+blockSize=128	gridSize=2048	float4	54.1329 ms	1115.74 GFlops	done!
+blockSize=128	gridSize=2048	float8	108.335 ms	1115.03 GFlops	done!
+blockSize=128	gridSize=2048	float16	399.118 ms	605.314 GFlops	done!
+blockSize=128	gridSize=4096	float1	25.8653 ms	1167.55 GFlops	done!
+blockSize=128	gridSize=4096	float2	51.384 ms	1175.42 GFlops	done!
+blockSize=128	gridSize=4096	float4	102.47 ms	1178.85 GFlops	done!
+blockSize=128	gridSize=4096	float8	204.63 ms	1180.63 GFlops	done!
+blockSize=128	gridSize=4096	float16	757.693 ms	637.704 GFlops	done!
+blockSize=128	gridSize=8192	float1	51.4904 ms	1173 GFlops	done!
+blockSize=128	gridSize=8192	float2	102.525 ms	1178.2 GFlops	done!
+blockSize=128	gridSize=8192	float4	204.604 ms	1180.78 GFlops	done!
+blockSize=128	gridSize=8192	float8	408.915 ms	1181.62 GFlops	done!
+blockSize=128	gridSize=8192	float16	1516.05 ms	637.425 GFlops	done!
+blockSize=128	gridSize=16384	float1	102.663 ms	1176.62 GFlops	done!
+blockSize=128	gridSize=16384	float2	204.667 ms	1180.42 GFlops	done!
+blockSize=128	gridSize=16384	float4	408.371 ms	1183.2 GFlops	done!
+blockSize=128	gridSize=16384	float8	816.967 ms	1182.87 GFlops	done!
+blockSize=128	gridSize=16384	float16	3022.39 ms	639.472 GFlops	done!
+blockSize=128	gridSize=32768	float1	205.681 ms	1174.59 GFlops	done!
+blockSize=128	gridSize=32768	float2	410.232 ms	1177.83 GFlops	done!
+blockSize=128	gridSize=32768	float4	819.735 ms	1178.88 GFlops	done!
+blockSize=128	gridSize=32768	float8	1639.72 ms	1178.7 GFlops	done!
+blockSize=128	gridSize=32768	float16	6078.52 ms	635.923 GFlops	done!
+blockSize=256	gridSize=256	float1	4.98049 ms	757.932 GFlops	done!
+blockSize=256	gridSize=256	float2	9.79435 ms	770.827 GFlops	done!
+blockSize=256	gridSize=256	float4	19.1927 ms	786.73 GFlops	done!
+blockSize=256	gridSize=256	float8	38.1565 ms	791.451 GFlops	done!
+blockSize=256	gridSize=256	float16	155.12 ms	389.364 GFlops	done!
+blockSize=256	gridSize=512	float1	8.49546 ms	888.68 GFlops	done!
+blockSize=256	gridSize=512	float2	17.1755 ms	879.131 GFlops	done!
+blockSize=256	gridSize=512	float4	34.1887 ms	883.304 GFlops	done!
+blockSize=256	gridSize=512	float8	69.328 ms	871.192 GFlops	done!
+blockSize=256	gridSize=512	float16	265.019 ms	455.8 GFlops	done!
+blockSize=256	gridSize=1024	float1	14.9424 ms	1010.51 GFlops	done!
+blockSize=256	gridSize=1024	float2	29.7114 ms	1016.41 GFlops	done!
+blockSize=256	gridSize=1024	float4	59.5127 ms	1014.88 GFlops	done!
+blockSize=256	gridSize=1024	float8	119.374 ms	1011.91 GFlops	done!
+blockSize=256	gridSize=1024	float16	446.164 ms	541.487 GFlops	done!
+blockSize=256	gridSize=2048	float1	27.2949 ms	1106.4 GFlops	done!
+blockSize=256	gridSize=2048	float2	54.2792 ms	1112.73 GFlops	done!
+blockSize=256	gridSize=2048	float4	108.274 ms	1115.65 GFlops	done!
+blockSize=256	gridSize=2048	float8	215.908 ms	1118.96 GFlops	done!
+blockSize=256	gridSize=2048	float16	801.901 ms	602.548 GFlops	done!
+blockSize=256	gridSize=4096	float1	51.4633 ms	1173.61 GFlops	done!
+blockSize=256	gridSize=4096	float2	102.424 ms	1179.37 GFlops	done!
+blockSize=256	gridSize=4096	float4	204.528 ms	1181.22 GFlops	done!
+blockSize=256	gridSize=4096	float8	408.906 ms	1181.65 GFlops	done!
+blockSize=256	gridSize=4096	float16	1520.77 ms	635.446 GFlops	done!
+blockSize=256	gridSize=8192	float1	102.708 ms	1176.11 GFlops	done!
+blockSize=256	gridSize=8192	float2	204.758 ms	1179.89 GFlops	done!
+blockSize=256	gridSize=8192	float4	408.846 ms	1181.82 GFlops	done!
+blockSize=256	gridSize=8192	float8	817.442 ms	1182.18 GFlops	done!
+blockSize=256	gridSize=8192	float16	3024.94 ms	638.933 GFlops	done!
+blockSize=256	gridSize=16384	float1	204.92 ms	1178.96 GFlops	done!
+blockSize=256	gridSize=16384	float2	408.601 ms	1182.53 GFlops	done!
+blockSize=256	gridSize=16384	float4	815.105 ms	1185.58 GFlops	done!
+blockSize=256	gridSize=16384	float8	1630.5 ms	1185.37 GFlops	done!
+blockSize=256	gridSize=16384	float16	6046.86 ms	639.252 GFlops	done!
+blockSize=256	gridSize=32768	float1	410.901 ms	1175.91 GFlops	done!
+blockSize=256	gridSize=32768	float2	820.275 ms	1178.1 GFlops	done!
+blockSize=256	gridSize=32768	float4	1638.85 ms	1179.32 GFlops	done!
+blockSize=256	gridSize=32768	float8	3277.46 ms	1179.41 GFlops	done!
+blockSize=256	gridSize=32768	float16	12149 ms	636.344 GFlops	done!
+blockSize=512	gridSize=256	float1	9.78626 ms	771.464 GFlops	done!
+blockSize=512	gridSize=256	float2	19.1961 ms	786.59 GFlops	done!
+blockSize=512	gridSize=256	float4	37.9953 ms	794.81 GFlops	done!
+blockSize=512	gridSize=256	float8	74.7306 ms	808.21 GFlops	done!
+blockSize=512	gridSize=256	float16	304.579 ms	396.599 GFlops	done!
+blockSize=512	gridSize=512	float1	17.1801 ms	878.895 GFlops	done!
+blockSize=512	gridSize=512	float2	34.4601 ms	876.347 GFlops	done!
+blockSize=512	gridSize=512	float4	68.6786 ms	879.429 GFlops	done!
+blockSize=512	gridSize=512	float8	138.525 ms	872.015 GFlops	done!
+blockSize=512	gridSize=512	float16	519.748 ms	464.825 GFlops	done!
+blockSize=512	gridSize=1024	float1	29.6177 ms	1019.63 GFlops	done!
+blockSize=512	gridSize=1024	float2	59.77 ms	1010.51 GFlops	done!
+blockSize=512	gridSize=1024	float4	117.81 ms	1025.34 GFlops	done!
+blockSize=512	gridSize=1024	float8	233.594 ms	1034.24 GFlops	done!
+blockSize=512	gridSize=1024	float16	887.087 ms	544.686 GFlops	done!
+blockSize=512	gridSize=2048	float1	54.2771 ms	1112.77 GFlops	done!
+blockSize=512	gridSize=2048	float2	107.923 ms	1119.28 GFlops	done!
+blockSize=512	gridSize=2048	float4	215.845 ms	1119.28 GFlops	done!
+blockSize=512	gridSize=2048	float8	432.716 ms	1116.63 GFlops	done!
+blockSize=512	gridSize=2048	float16	1606.15 ms	601.668 GFlops	done!
+blockSize=512	gridSize=4096	float1	102.652 ms	1176.76 GFlops	done!
+blockSize=512	gridSize=4096	float2	204.727 ms	1180.07 GFlops	done!
+blockSize=512	gridSize=4096	float4	408.94 ms	1181.55 GFlops	done!
+blockSize=512	gridSize=4096	float8	817.343 ms	1182.33 GFlops	done!
+blockSize=512	gridSize=4096	float16	3027.89 ms	638.312 GFlops	done!
+blockSize=512	gridSize=8192	float1	204.995 ms	1178.53 GFlops	done!
+blockSize=512	gridSize=8192	float2	409.002 ms	1181.37 GFlops	done!
+blockSize=512	gridSize=8192	float4	817.285 ms	1182.41 GFlops	done!
+blockSize=512	gridSize=8192	float8	1634.3 ms	1182.6 GFlops	done!
+blockSize=512	gridSize=8192	float16	6045.59 ms	639.387 GFlops	done!
+blockSize=512	gridSize=16384	float1	409.248 ms	1180.66 GFlops	done!
+blockSize=512	gridSize=16384	float2	816.089 ms	1184.14 GFlops	done!
+blockSize=512	gridSize=16384	float4	1629.87 ms	1185.82 GFlops	done!
+blockSize=512	gridSize=16384	float8	3260.36 ms	1185.6 GFlops	done!
+blockSize=512	gridSize=16384	float16	12083.2 ms	639.807 GFlops	done!
+blockSize=512	gridSize=32768	float1	821.206 ms	1176.77 GFlops	done!
+blockSize=512	gridSize=32768	float2	1639.39 ms	1178.93 GFlops	done!
+blockSize=512	gridSize=32768	float4	3278.03 ms	1179.21 GFlops	done!
+blockSize=512	gridSize=32768	float8	6558.15 ms	1178.83 GFlops	done!
+blockSize=512	gridSize=32768	float16	24288.2 ms	636.6 GFlops	done!
+blockSize=1024	gridSize=256	float1	19.2674 ms	783.68 GFlops	done!
+blockSize=1024	gridSize=256	float2	37.9723 ms	795.29 GFlops	done!
+blockSize=1024	gridSize=256	float4	74.6247 ms	809.357 GFlops	done!
+blockSize=1024	gridSize=256	float8	144.997 ms	833.091 GFlops	done!
+blockSize=1024	gridSize=256	float16	616.765 ms	391.708 GFlops	done!
+blockSize=1024	gridSize=512	float1	34.3199 ms	879.927 GFlops	done!
+blockSize=1024	gridSize=512	float2	67.7575 ms	891.384 GFlops	done!
+blockSize=1024	gridSize=512	float4	136.264 ms	886.482 GFlops	done!
+blockSize=1024	gridSize=512	float8	275.835 ms	875.857 GFlops	done!
+blockSize=1024	gridSize=512	float16	1047.85 ms	461.119 GFlops	done!
+blockSize=1024	gridSize=1024	float1	59.6063 ms	1013.28 GFlops	done!
+blockSize=1024	gridSize=1024	float2	118.382 ms	1020.39 GFlops	done!
+blockSize=1024	gridSize=1024	float4	233.528 ms	1034.53 GFlops	done!
+blockSize=1024	gridSize=1024	float8	481.549 ms	1003.4 GFlops	done!
+blockSize=1024	gridSize=1024	float16	1775.94 ms	544.146 GFlops	done!
+blockSize=1024	gridSize=2048	float1	108.502 ms	1113.3 GFlops	done!
+blockSize=1024	gridSize=2048	float2	214.996 ms	1123.7 GFlops	done!
+blockSize=1024	gridSize=2048	float4	424.582 ms	1138.02 GFlops	done!
+blockSize=1024	gridSize=2048	float8	866.49 ms	1115.27 GFlops	done!
+blockSize=1024	gridSize=2048	float16	3211.85 ms	601.751 GFlops	done!
+blockSize=1024	gridSize=4096	float1	205.098 ms	1177.93 GFlops	done!
+blockSize=1024	gridSize=4096	float2	409.074 ms	1181.16 GFlops	done!
+blockSize=1024	gridSize=4096	float4	817.459 ms	1182.16 GFlops	done!
+blockSize=1024	gridSize=4096	float8	1636.59 ms	1180.95 GFlops	done!
+blockSize=1024	gridSize=4096	float16	6049.02 ms	639.025 GFlops	done!
+blockSize=1024	gridSize=8192	float1	409.698 ms	1179.36 GFlops	done!
+blockSize=1024	gridSize=8192	float2	817.879 ms	1181.55 GFlops	done!
+blockSize=1024	gridSize=8192	float4	1634.23 ms	1182.66 GFlops	done!
+blockSize=1024	gridSize=8192	float8	3269.15 ms	1182.41 GFlops	done!
+blockSize=1024	gridSize=8192	float16	12083.5 ms	639.794 GFlops	done!
+blockSize=1024	gridSize=16384	float1	817.05 ms	1182.75 GFlops	done!
+blockSize=1024	gridSize=16384	float2	1630.13 ms	1185.63 GFlops	done!
+blockSize=1024	gridSize=16384	float4	3265.17 ms	1183.85 GFlops	done!
+blockSize=1024	gridSize=16384	float8	6529.36 ms	1184.03 GFlops	done!
+blockSize=1024	gridSize=16384	float16	24163.6 ms	639.883 GFlops	done!
+blockSize=1024	gridSize=32768	float1	1642.66 ms	1176.59 GFlops	done!
+blockSize=1024	gridSize=32768	float2	3279.57 ms	1178.65 GFlops	done!
+blockSize=1024	gridSize=32768	float4	6554.68 ms	1179.45 GFlops	done!
+blockSize=1024	gridSize=32768	float8	13108 ms	1179.58 GFlops	done!
+blockSize=1024	gridSize=32768	float16	48560.7 ms	636.807 GFlops	done!
+
+----------- Original ------------
+# 128	256	float1	2.57265 ms	733.656 GFlops
+# 128	256	float2	4.96702 ms	759.988 GFlops
+# 128	256	float4	9.74084 ms	775.061 GFlops
+# 128	256	float8	19.2255 ms	785.389 GFlops
+# 128	256	float16	80.6593 ms	374.402 GFlops
+# 128	512	float1	4.32272 ms	873.264 GFlops
+# 128	512	float2	8.62529 ms	875.303 GFlops
+# 128	512	float4	17.0411 ms	886.062 GFlops
+# 128	512	float8	34.2143 ms	882.642 GFlops
+# 128	512	float16	132.729 ms	455.046 GFlops
+# 128	1024	float1	7.47195 ms	1010.41 GFlops
+# 128	1024	float2	14.9112 ms	1012.63 GFlops
+# 128	1024	float4	29.7157 ms	1016.26 GFlops
+# 128	1024	float8	60.0393 ms	1005.97 GFlops
+# 128	1024	float16	221.785 ms	544.655 GFlops
+# 128	2048	float1	13.7465 ms	1098.42 GFlops
+# 128	2048	float2	27.1943 ms	1110.49 GFlops
+# 128	2048	float4	54.1329 ms	1115.74 GFlops
+# 128	2048	float8	108.335 ms	1115.03 GFlops
+# 128	2048	float16	399.118 ms	605.314 GFlops
+# 128	4096	float1	25.8653 ms	1167.55 GFlops
+# 128	4096	float2	51.384 ms	1175.42 GFlops
+# 128	4096	float4	102.47 ms	1178.85 GFlops
+# 128	4096	float8	204.63 ms	1180.63 GFlops
+# 128	4096	float16	757.693 ms	637.704 GFlops
+# 128	8192	float1	51.4904 ms	1173 GFlops
+# 128	8192	float2	102.525 ms	1178.2 GFlops
+# 128	8192	float4	204.604 ms	1180.78 GFlops
+# 128	8192	float8	408.915 ms	1181.62 GFlops
+# 128	8192	float16	1516.05 ms	637.425 GFlops
+# 128	16384	float1	102.663 ms	1176.62 GFlops
+# 128	16384	float2	204.667 ms	1180.42 GFlops
+# 128	16384	float4	408.371 ms	1183.2 GFlops
+# 128	16384	float8	816.967 ms	1182.87 GFlops
+# 128	16384	float16	3022.39 ms	639.472 GFlops
+# 128	32768	float1	205.681 ms	1174.59 GFlops
+# 128	32768	float2	410.232 ms	1177.83 GFlops
+# 128	32768	float4	819.735 ms	1178.88 GFlops
+# 128	32768	float8	1639.72 ms	1178.7 GFlops
+# 128	32768	float16	6078.52 ms	635.923 GFlops
+# 256	256	float1	4.98049 ms	757.932 GFlops
+# 256	256	float2	9.79435 ms	770.827 GFlops
+# 256	256	float4	19.1927 ms	786.73 GFlops
+# 256	256	float8	38.1565 ms	791.451 GFlops
+# 256	256	float16	155.12 ms	389.364 GFlops
+# 256	512	float1	8.49546 ms	888.68 GFlops
+# 256	512	float2	17.1755 ms	879.131 GFlops
+# 256	512	float4	34.1887 ms	883.304 GFlops
+# 256	512	float8	69.328 ms	871.192 GFlops
+# 256	512	float16	265.019 ms	455.8 GFlops
+# 256	1024	float1	14.9424 ms	1010.51 GFlops
+# 256	1024	float2	29.7114 ms	1016.41 GFlops
+# 256	1024	float4	59.5127 ms	1014.88 GFlops
+# 256	1024	float8	119.374 ms	1011.91 GFlops
+# 256	1024	float16	446.164 ms	541.487 GFlops
+# 256	2048	float1	27.2949 ms	1106.4 GFlops
+# 256	2048	float2	54.2792 ms	1112.73 GFlops
+# 256	2048	float4	108.274 ms	1115.65 GFlops
+# 256	2048	float8	215.908 ms	1118.96 GFlops
+# 256	2048	float16	801.901 ms	602.548 GFlops
+# 256	4096	float1	51.4633 ms	1173.61 GFlops
+# 256	4096	float2	102.424 ms	1179.37 GFlops
+# 256	4096	float4	204.528 ms	1181.22 GFlops
+# 256	4096	float8	408.906 ms	1181.65 GFlops
+# 256	4096	float16	1520.77 ms	635.446 GFlops
+# 256	8192	float1	102.708 ms	1176.11 GFlops
+# 256	8192	float2	204.758 ms	1179.89 GFlops
+# 256	8192	float4	408.846 ms	1181.82 GFlops
+# 256	8192	float8	817.442 ms	1182.18 GFlops
+# 256	8192	float16	3024.94 ms	638.933 GFlops
+# 256	16384	float1	204.92 ms	1178.96 GFlops
+# 256	16384	float2	408.601 ms	1182.53 GFlops
+# 256	16384	float4	815.105 ms	1185.58 GFlops
+# 256	16384	float8	1630.5 ms	1185.37 GFlops
+# 256	16384	float16	6046.86 ms	639.252 GFlops
+# 256	32768	float1	410.901 ms	1175.91 GFlops
+# 256	32768	float2	820.275 ms	1178.1 GFlops
+# 256	32768	float4	1638.85 ms	1179.32 GFlops
+# 256	32768	float8	3277.46 ms	1179.41 GFlops
+# 256	32768	float16	12149 ms	636.344 GFlops
+# 512	256	float1	9.78626 ms	771.464 GFlops
+# 512	256	float2	19.1961 ms	786.59 GFlops
+# 512	256	float4	37.9953 ms	794.81 GFlops
+# 512	256	float8	74.7306 ms	808.21 GFlops
+# 512	256	float16	304.579 ms	396.599 GFlops
+# 512	512	float1	17.1801 ms	878.895 GFlops
+# 512	512	float2	34.4601 ms	876.347 GFlops
+# 512	512	float4	68.6786 ms	879.429 GFlops
+# 512	512	float8	138.525 ms	872.015 GFlops
+# 512	512	float16	519.748 ms	464.825 GFlops
+# 512	1024	float1	29.6177 ms	1019.63 GFlops
+# 512	1024	float2	59.77 ms	1010.51 GFlops
+# 512	1024	float4	117.81 ms	1025.34 GFlops
+# 512	1024	float8	233.594 ms	1034.24 GFlops
+# 512	1024	float16	887.087 ms	544.686 GFlops
+# 512	2048	float1	54.2771 ms	1112.77 GFlops
+# 512	2048	float2	107.923 ms	1119.28 GFlops
+# 512	2048	float4	215.845 ms	1119.28 GFlops
+# 512	2048	float8	432.716 ms	1116.63 GFlops
+# 512	2048	float16	1606.15 ms	601.668 GFlops
+# 512	4096	float1	102.652 ms	1176.76 GFlops
+# 512	4096	float2	204.727 ms	1180.07 GFlops
+# 512	4096	float4	408.94 ms	1181.55 GFlops
+# 512	4096	float8	817.343 ms	1182.33 GFlops
+# 512	4096	float16	3027.89 ms	638.312 GFlops
+# 512	8192	float1	204.995 ms	1178.53 GFlops
+# 512	8192	float2	409.002 ms	1181.37 GFlops
+# 512	8192	float4	817.285 ms	1182.41 GFlops
+# 512	8192	float8	1634.3 ms	1182.6 GFlops
+# 512	8192	float16	6045.59 ms	639.387 GFlops
+# 512	16384	float1	409.248 ms	1180.66 GFlops
+# 512	16384	float2	816.089 ms	1184.14 GFlops
+# 512	16384	float4	1629.87 ms	1185.82 GFlops
+# 512	16384	float8	3260.36 ms	1185.6 GFlops
+# 512	16384	float16	12083.2 ms	639.807 GFlops
+# 512	32768	float1	821.206 ms	1176.77 GFlops
+# 512	32768	float2	1639.39 ms	1178.93 GFlops
+# 512	32768	float4	3278.03 ms	1179.21 GFlops
+# 512	32768	float8	6558.15 ms	1178.83 GFlops
+# 512	32768	float16	24288.2 ms	636.6 GFlops
+# 1024	256	float1	19.2674 ms	783.68 GFlops
+# 1024	256	float2	37.9723 ms	795.29 GFlops
+# 1024	256	float4	74.6247 ms	809.357 GFlops
+# 1024	256	float8	144.997 ms	833.091 GFlops
+# 1024	256	float16	616.765 ms	391.708 GFlops
+# 1024	512	float1	34.3199 ms	879.927 GFlops
+# 1024	512	float2	67.7575 ms	891.384 GFlops
+# 1024	512	float4	136.264 ms	886.482 GFlops
+# 1024	512	float8	275.835 ms	875.857 GFlops
+# 1024	512	float16	1047.85 ms	461.119 GFlops
+# 1024	1024	float1	59.6063 ms	1013.28 GFlops
+# 1024	1024	float2	118.382 ms	1020.39 GFlops
+# 1024	1024	float4	233.528 ms	1034.53 GFlops
+# 1024	1024	float8	481.549 ms	1003.4 GFlops
+# 1024	1024	float16	1775.94 ms	544.146 GFlops
+# 1024	2048	float1	108.502 ms	1113.3 GFlops
+# 1024	2048	float2	214.996 ms	1123.7 GFlops
+# 1024	2048	float4	424.582 ms	1138.02 GFlops
+# 1024	2048	float8	866.49 ms	1115.27 GFlops
+# 1024	2048	float16	3211.85 ms	601.751 GFlops
+# 1024	4096	float1	205.098 ms	1177.93 GFlops
+# 1024	4096	float2	409.074 ms	1181.16 GFlops
+# 1024	4096	float4	817.459 ms	1182.16 GFlops
+# 1024	4096	float8	1636.59 ms	1180.95 GFlops
+# 1024	4096	float16	6049.02 ms	639.025 GFlops
+# 1024	8192	float1	409.698 ms	1179.36 GFlops
+# 1024	8192	float2	817.879 ms	1181.55 GFlops
+# 1024	8192	float4	1634.23 ms	1182.66 GFlops
+# 1024	8192	float8	3269.15 ms	1182.41 GFlops
+# 1024	8192	float16	12083.5 ms	639.794 GFlops
+# 1024	16384	float1	817.05 ms	1182.75 GFlops
+# 1024	16384	float2	1630.13 ms	1185.63 GFlops
+# 1024	16384	float4	3265.17 ms	1183.85 GFlops
+# 1024	16384	float8	6529.36 ms	1184.03 GFlops
+# 1024	16384	float16	24163.6 ms	639.883 GFlops
+# 1024	32768	float1	1642.66 ms	1176.59 GFlops
+# 1024	32768	float2	3279.57 ms	1178.65 GFlops
+# 1024	32768	float4	6554.68 ms	1179.45 GFlops
+# 1024	32768	float8	13108 ms	1179.58 GFlops
+# 1024	32768	float16	48560.7 ms	636.807 GFlops
+
+----------- Aggregated at vec_size ------------
+# float1	128	256	2.57265 ms	733.656 GFlops
+# float1	128	512	4.32272 ms	873.264 GFlops
+# float1	128	1024	7.47195 ms	1010.41 GFlops
+# float1	128	2048	13.7465 ms	1098.42 GFlops
+# float1	128	4096	25.8653 ms	1167.55 GFlops
+# float1	128	8192	51.4904 ms	1173 GFlops
+# float1	128	16384	102.663 ms	1176.62 GFlops
+# float1	128	32768	205.681 ms	1174.59 GFlops
+# float1	256	256	4.98049 ms	757.932 GFlops
+# float1	256	512	8.49546 ms	888.68 GFlops
+# float1	256	1024	14.9424 ms	1010.51 GFlops
+# float1	256	2048	27.2949 ms	1106.4 GFlops
+# float1	256	4096	51.4633 ms	1173.61 GFlops
+# float1	256	8192	102.708 ms	1176.11 GFlops
+# float1	256	16384	204.92 ms	1178.96 GFlops
+# float1	256	32768	410.901 ms	1175.91 GFlops
+# float1	512	256	9.78626 ms	771.464 GFlops
+# float1	512	512	17.1801 ms	878.895 GFlops
+# float1	512	1024	29.6177 ms	1019.63 GFlops
+# float1	512	2048	54.2771 ms	1112.77 GFlops
+# float1	512	4096	102.652 ms	1176.76 GFlops
+# float1	512	8192	204.995 ms	1178.53 GFlops
+# float1	512	16384	409.248 ms	1180.66 GFlops
+# float1	512	32768	821.206 ms	1176.77 GFlops
+# float1	1024	256	19.2674 ms	783.68 GFlops
+# float1	1024	512	34.3199 ms	879.927 GFlops
+# float1	1024	1024	59.6063 ms	1013.28 GFlops
+# float1	1024	2048	108.502 ms	1113.3 GFlops
+# float1	1024	4096	205.098 ms	1177.93 GFlops
+# float1	1024	8192	409.698 ms	1179.36 GFlops
+# float1	1024	16384	817.05 ms	1182.75 GFlops
+# float1	1024	32768	1642.66 ms	1176.59 GFlops
+
+summary: float1	817.05 ms	1182.75 GFlops	1024	16384
+--------------------------------------------
+# float2	128	256	4.96702 ms	759.988 GFlops
+# float2	128	512	8.62529 ms	875.303 GFlops
+# float2	128	1024	14.9112 ms	1012.63 GFlops
+# float2	128	2048	27.1943 ms	1110.49 GFlops
+# float2	128	4096	51.384 ms	1175.42 GFlops
+# float2	128	8192	102.525 ms	1178.2 GFlops
+# float2	128	16384	204.667 ms	1180.42 GFlops
+# float2	128	32768	410.232 ms	1177.83 GFlops
+# float2	256	256	9.79435 ms	770.827 GFlops
+# float2	256	512	17.1755 ms	879.131 GFlops
+# float2	256	1024	29.7114 ms	1016.41 GFlops
+# float2	256	2048	54.2792 ms	1112.73 GFlops
+# float2	256	4096	102.424 ms	1179.37 GFlops
+# float2	256	8192	204.758 ms	1179.89 GFlops
+# float2	256	16384	408.601 ms	1182.53 GFlops
+# float2	256	32768	820.275 ms	1178.1 GFlops
+# float2	512	256	19.1961 ms	786.59 GFlops
+# float2	512	512	34.4601 ms	876.347 GFlops
+# float2	512	1024	59.77 ms	1010.51 GFlops
+# float2	512	2048	107.923 ms	1119.28 GFlops
+# float2	512	4096	204.727 ms	1180.07 GFlops
+# float2	512	8192	409.002 ms	1181.37 GFlops
+# float2	512	16384	816.089 ms	1184.14 GFlops
+# float2	512	32768	1639.39 ms	1178.93 GFlops
+# float2	1024	256	37.9723 ms	795.29 GFlops
+# float2	1024	512	67.7575 ms	891.384 GFlops
+# float2	1024	1024	118.382 ms	1020.39 GFlops
+# float2	1024	2048	214.996 ms	1123.7 GFlops
+# float2	1024	4096	409.074 ms	1181.16 GFlops
+# float2	1024	8192	817.879 ms	1181.55 GFlops
+# float2	1024	16384	1630.13 ms	1185.63 GFlops
+# float2	1024	32768	3279.57 ms	1178.65 GFlops
+
+summary: float2	1630.13 ms	1185.63 GFlops	1024	16384
+--------------------------------------------
+# float4	128	256	9.74084 ms	775.061 GFlops
+# float4	128	512	17.0411 ms	886.062 GFlops
+# float4	128	1024	29.7157 ms	1016.26 GFlops
+# float4	128	2048	54.1329 ms	1115.74 GFlops
+# float4	128	4096	102.47 ms	1178.85 GFlops
+# float4	128	8192	204.604 ms	1180.78 GFlops
+# float4	128	16384	408.371 ms	1183.2 GFlops
+# float4	128	32768	819.735 ms	1178.88 GFlops
+# float4	256	256	19.1927 ms	786.73 GFlops
+# float4	256	512	34.1887 ms	883.304 GFlops
+# float4	256	1024	59.5127 ms	1014.88 GFlops
+# float4	256	2048	108.274 ms	1115.65 GFlops
+# float4	256	4096	204.528 ms	1181.22 GFlops
+# float4	256	8192	408.846 ms	1181.82 GFlops
+# float4	256	16384	815.105 ms	1185.58 GFlops
+# float4	256	32768	1638.85 ms	1179.32 GFlops
+# float4	512	256	37.9953 ms	794.81 GFlops
+# float4	512	512	68.6786 ms	879.429 GFlops
+# float4	512	1024	117.81 ms	1025.34 GFlops
+# float4	512	2048	215.845 ms	1119.28 GFlops
+# float4	512	4096	408.94 ms	1181.55 GFlops
+# float4	512	8192	817.285 ms	1182.41 GFlops
+# float4	512	16384	1629.87 ms	1185.82 GFlops
+# float4	512	32768	3278.03 ms	1179.21 GFlops
+# float4	1024	256	74.6247 ms	809.357 GFlops
+# float4	1024	512	136.264 ms	886.482 GFlops
+# float4	1024	1024	233.528 ms	1034.53 GFlops
+# float4	1024	2048	424.582 ms	1138.02 GFlops
+# float4	1024	4096	817.459 ms	1182.16 GFlops
+# float4	1024	8192	1634.23 ms	1182.66 GFlops
+# float4	1024	16384	3265.17 ms	1183.85 GFlops
+# float4	1024	32768	6554.68 ms	1179.45 GFlops
+
+summary: float4	1629.87 ms	1185.82 GFlops	512	16384
+--------------------------------------------
+# float8	128	256	19.2255 ms	785.389 GFlops
+# float8	128	512	34.2143 ms	882.642 GFlops
+# float8	128	1024	60.0393 ms	1005.97 GFlops
+# float8	128	2048	108.335 ms	1115.03 GFlops
+# float8	128	4096	204.63 ms	1180.63 GFlops
+# float8	128	8192	408.915 ms	1181.62 GFlops
+# float8	128	16384	816.967 ms	1182.87 GFlops
+# float8	128	32768	1639.72 ms	1178.7 GFlops
+# float8	256	256	38.1565 ms	791.451 GFlops
+# float8	256	512	69.328 ms	871.192 GFlops
+# float8	256	1024	119.374 ms	1011.91 GFlops
+# float8	256	2048	215.908 ms	1118.96 GFlops
+# float8	256	4096	408.906 ms	1181.65 GFlops
+# float8	256	8192	817.442 ms	1182.18 GFlops
+# float8	256	16384	1630.5 ms	1185.37 GFlops
+# float8	256	32768	3277.46 ms	1179.41 GFlops
+# float8	512	256	74.7306 ms	808.21 GFlops
+# float8	512	512	138.525 ms	872.015 GFlops
+# float8	512	1024	233.594 ms	1034.24 GFlops
+# float8	512	2048	432.716 ms	1116.63 GFlops
+# float8	512	4096	817.343 ms	1182.33 GFlops
+# float8	512	8192	1634.3 ms	1182.6 GFlops
+# float8	512	16384	3260.36 ms	1185.6 GFlops
+# float8	512	32768	6558.15 ms	1178.83 GFlops
+# float8	1024	256	144.997 ms	833.091 GFlops
+# float8	1024	512	275.835 ms	875.857 GFlops
+# float8	1024	1024	481.549 ms	1003.4 GFlops
+# float8	1024	2048	866.49 ms	1115.27 GFlops
+# float8	1024	4096	1636.59 ms	1180.95 GFlops
+# float8	1024	8192	3269.15 ms	1182.41 GFlops
+# float8	1024	16384	6529.36 ms	1184.03 GFlops
+# float8	1024	32768	13108 ms	1179.58 GFlops
+
+summary: float8	3260.36 ms	1185.6 GFlops	512	16384
+--------------------------------------------
+# float16	128	256	80.6593 ms	374.402 GFlops
+# float16	128	512	132.729 ms	455.046 GFlops
+# float16	128	1024	221.785 ms	544.655 GFlops
+# float16	128	2048	399.118 ms	605.314 GFlops
+# float16	128	4096	757.693 ms	637.704 GFlops
+# float16	128	8192	1516.05 ms	637.425 GFlops
+# float16	128	16384	3022.39 ms	639.472 GFlops
+# float16	128	32768	6078.52 ms	635.923 GFlops
+# float16	256	256	155.12 ms	389.364 GFlops
+# float16	256	512	265.019 ms	455.8 GFlops
+# float16	256	1024	446.164 ms	541.487 GFlops
+# float16	256	2048	801.901 ms	602.548 GFlops
+# float16	256	4096	1520.77 ms	635.446 GFlops
+# float16	256	8192	3024.94 ms	638.933 GFlops
+# float16	256	16384	6046.86 ms	639.252 GFlops
+# float16	256	32768	12149 ms	636.344 GFlops
+# float16	512	256	304.579 ms	396.599 GFlops
+# float16	512	512	519.748 ms	464.825 GFlops
+# float16	512	1024	887.087 ms	544.686 GFlops
+# float16	512	2048	1606.15 ms	601.668 GFlops
+# float16	512	4096	3027.89 ms	638.312 GFlops
+# float16	512	8192	6045.59 ms	639.387 GFlops
+# float16	512	16384	12083.2 ms	639.807 GFlops
+# float16	512	32768	24288.2 ms	636.6 GFlops
+# float16	1024	256	616.765 ms	391.708 GFlops
+# float16	1024	512	1047.85 ms	461.119 GFlops
+# float16	1024	1024	1775.94 ms	544.146 GFlops
+# float16	1024	2048	3211.85 ms	601.751 GFlops
+# float16	1024	4096	6049.02 ms	639.025 GFlops
+# float16	1024	8192	12083.5 ms	639.794 GFlops
+# float16	1024	16384	24163.6 ms	639.883 GFlops
+# float16	1024	32768	48560.7 ms	636.807 GFlops
+
+summary: float16	24163.6 ms	639.883 GFlops	1024	16384
+--------------------------------------------
+
+----------- Aggregated at block & grid size ------------
+# 128	256	float1	2.57265 ms	733.656 GFlops
+# 128	256	float2	4.96702 ms	759.988 GFlops
+# 128	256	float4	9.74084 ms	775.061 GFlops
+# 128	256	float8	19.2255 ms	785.389 GFlops
+# 128	256	float16	80.6593 ms	374.402 GFlops
+
+summary: 128	256	19.2255 ms	785.389 GFlops	float8
+--------------------------------------------
+# 128	512	float1	4.32272 ms	873.264 GFlops
+# 128	512	float2	8.62529 ms	875.303 GFlops
+# 128	512	float4	17.0411 ms	886.062 GFlops
+# 128	512	float8	34.2143 ms	882.642 GFlops
+# 128	512	float16	132.729 ms	455.046 GFlops
+
+summary: 128	512	17.0411 ms	886.062 GFlops	float4
+--------------------------------------------
+# 128	1024	float1	7.47195 ms	1010.41 GFlops
+# 128	1024	float2	14.9112 ms	1012.63 GFlops
+# 128	1024	float4	29.7157 ms	1016.26 GFlops
+# 128	1024	float8	60.0393 ms	1005.97 GFlops
+# 128	1024	float16	221.785 ms	544.655 GFlops
+
+summary: 128	1024	29.7157 ms	1016.26 GFlops	float4
+--------------------------------------------
+# 128	2048	float1	13.7465 ms	1098.42 GFlops
+# 128	2048	float2	27.1943 ms	1110.49 GFlops
+# 128	2048	float4	54.1329 ms	1115.74 GFlops
+# 128	2048	float8	108.335 ms	1115.03 GFlops
+# 128	2048	float16	399.118 ms	605.314 GFlops
+
+summary: 128	2048	54.1329 ms	1115.74 GFlops	float4
+--------------------------------------------
+# 128	4096	float1	25.8653 ms	1167.55 GFlops
+# 128	4096	float2	51.384 ms	1175.42 GFlops
+# 128	4096	float4	102.47 ms	1178.85 GFlops
+# 128	4096	float8	204.63 ms	1180.63 GFlops
+# 128	4096	float16	757.693 ms	637.704 GFlops
+
+summary: 128	4096	204.63 ms	1180.63 GFlops	float8
+--------------------------------------------
+# 128	8192	float1	51.4904 ms	1173 GFlops
+# 128	8192	float2	102.525 ms	1178.2 GFlops
+# 128	8192	float4	204.604 ms	1180.78 GFlops
+# 128	8192	float8	408.915 ms	1181.62 GFlops
+# 128	8192	float16	1516.05 ms	637.425 GFlops
+
+summary: 128	8192	408.915 ms	1181.62 GFlops	float8
+--------------------------------------------
+# 128	16384	float1	102.663 ms	1176.62 GFlops
+# 128	16384	float2	204.667 ms	1180.42 GFlops
+# 128	16384	float4	408.371 ms	1183.2 GFlops
+# 128	16384	float8	816.967 ms	1182.87 GFlops
+# 128	16384	float16	3022.39 ms	639.472 GFlops
+
+summary: 128	16384	408.371 ms	1183.2 GFlops	float4
+--------------------------------------------
+# 128	32768	float1	205.681 ms	1174.59 GFlops
+# 128	32768	float2	410.232 ms	1177.83 GFlops
+# 128	32768	float4	819.735 ms	1178.88 GFlops
+# 128	32768	float8	1639.72 ms	1178.7 GFlops
+# 128	32768	float16	6078.52 ms	635.923 GFlops
+
+summary: 128	32768	819.735 ms	1178.88 GFlops	float4
+--------------------------------------------
+# 256	256	float1	4.98049 ms	757.932 GFlops
+# 256	256	float2	9.79435 ms	770.827 GFlops
+# 256	256	float4	19.1927 ms	786.73 GFlops
+# 256	256	float8	38.1565 ms	791.451 GFlops
+# 256	256	float16	155.12 ms	389.364 GFlops
+
+summary: 256	256	38.1565 ms	791.451 GFlops	float8
+--------------------------------------------
+# 256	512	float1	8.49546 ms	888.68 GFlops
+# 256	512	float2	17.1755 ms	879.131 GFlops
+# 256	512	float4	34.1887 ms	883.304 GFlops
+# 256	512	float8	69.328 ms	871.192 GFlops
+# 256	512	float16	265.019 ms	455.8 GFlops
+
+summary: 256	512	8.49546 ms	888.68 GFlops	float1
+--------------------------------------------
+# 256	1024	float1	14.9424 ms	1010.51 GFlops
+# 256	1024	float2	29.7114 ms	1016.41 GFlops
+# 256	1024	float4	59.5127 ms	1014.88 GFlops
+# 256	1024	float8	119.374 ms	1011.91 GFlops
+# 256	1024	float16	446.164 ms	541.487 GFlops
+
+summary: 256	1024	29.7114 ms	1016.41 GFlops	float2
+--------------------------------------------
+# 256	2048	float1	27.2949 ms	1106.4 GFlops
+# 256	2048	float2	54.2792 ms	1112.73 GFlops
+# 256	2048	float4	108.274 ms	1115.65 GFlops
+# 256	2048	float8	215.908 ms	1118.96 GFlops
+# 256	2048	float16	801.901 ms	602.548 GFlops
+
+summary: 256	2048	215.908 ms	1118.96 GFlops	float8
+--------------------------------------------
+# 256	4096	float1	51.4633 ms	1173.61 GFlops
+# 256	4096	float2	102.424 ms	1179.37 GFlops
+# 256	4096	float4	204.528 ms	1181.22 GFlops
+# 256	4096	float8	408.906 ms	1181.65 GFlops
+# 256	4096	float16	1520.77 ms	635.446 GFlops
+
+summary: 256	4096	408.906 ms	1181.65 GFlops	float8
+--------------------------------------------
+# 256	8192	float1	102.708 ms	1176.11 GFlops
+# 256	8192	float2	204.758 ms	1179.89 GFlops
+# 256	8192	float4	408.846 ms	1181.82 GFlops
+# 256	8192	float8	817.442 ms	1182.18 GFlops
+# 256	8192	float16	3024.94 ms	638.933 GFlops
+
+summary: 256	8192	817.442 ms	1182.18 GFlops	float8
+--------------------------------------------
+# 256	16384	float1	204.92 ms	1178.96 GFlops
+# 256	16384	float2	408.601 ms	1182.53 GFlops
+# 256	16384	float4	815.105 ms	1185.58 GFlops
+# 256	16384	float8	1630.5 ms	1185.37 GFlops
+# 256	16384	float16	6046.86 ms	639.252 GFlops
+
+summary: 256	16384	815.105 ms	1185.58 GFlops	float4
+--------------------------------------------
+# 256	32768	float1	410.901 ms	1175.91 GFlops
+# 256	32768	float2	820.275 ms	1178.1 GFlops
+# 256	32768	float4	1638.85 ms	1179.32 GFlops
+# 256	32768	float8	3277.46 ms	1179.41 GFlops
+# 256	32768	float16	12149 ms	636.344 GFlops
+
+summary: 256	32768	3277.46 ms	1179.41 GFlops	float8
+--------------------------------------------
+# 512	256	float1	9.78626 ms	771.464 GFlops
+# 512	256	float2	19.1961 ms	786.59 GFlops
+# 512	256	float4	37.9953 ms	794.81 GFlops
+# 512	256	float8	74.7306 ms	808.21 GFlops
+# 512	256	float16	304.579 ms	396.599 GFlops
+
+summary: 512	256	74.7306 ms	808.21 GFlops	float8
+--------------------------------------------
+# 512	512	float1	17.1801 ms	878.895 GFlops
+# 512	512	float2	34.4601 ms	876.347 GFlops
+# 512	512	float4	68.6786 ms	879.429 GFlops
+# 512	512	float8	138.525 ms	872.015 GFlops
+# 512	512	float16	519.748 ms	464.825 GFlops
+
+summary: 512	512	68.6786 ms	879.429 GFlops	float4
+--------------------------------------------
+# 512	1024	float1	29.6177 ms	1019.63 GFlops
+# 512	1024	float2	59.77 ms	1010.51 GFlops
+# 512	1024	float4	117.81 ms	1025.34 GFlops
+# 512	1024	float8	233.594 ms	1034.24 GFlops
+# 512	1024	float16	887.087 ms	544.686 GFlops
+
+summary: 512	1024	233.594 ms	1034.24 GFlops	float8
+--------------------------------------------
+# 512	2048	float1	54.2771 ms	1112.77 GFlops
+# 512	2048	float2	107.923 ms	1119.28 GFlops
+# 512	2048	float4	215.845 ms	1119.28 GFlops
+# 512	2048	float8	432.716 ms	1116.63 GFlops
+# 512	2048	float16	1606.15 ms	601.668 GFlops
+
+summary: 512	2048	107.923 ms	1119.28 GFlops	float2
+--------------------------------------------
+# 512	4096	float1	102.652 ms	1176.76 GFlops
+# 512	4096	float2	204.727 ms	1180.07 GFlops
+# 512	4096	float4	408.94 ms	1181.55 GFlops
+# 512	4096	float8	817.343 ms	1182.33 GFlops
+# 512	4096	float16	3027.89 ms	638.312 GFlops
+
+summary: 512	4096	817.343 ms	1182.33 GFlops	float8
+--------------------------------------------
+# 512	8192	float1	204.995 ms	1178.53 GFlops
+# 512	8192	float2	409.002 ms	1181.37 GFlops
+# 512	8192	float4	817.285 ms	1182.41 GFlops
+# 512	8192	float8	1634.3 ms	1182.6 GFlops
+# 512	8192	float16	6045.59 ms	639.387 GFlops
+
+summary: 512	8192	1634.3 ms	1182.6 GFlops	float8
+--------------------------------------------
+# 512	16384	float1	409.248 ms	1180.66 GFlops
+# 512	16384	float2	816.089 ms	1184.14 GFlops
+# 512	16384	float4	1629.87 ms	1185.82 GFlops
+# 512	16384	float8	3260.36 ms	1185.6 GFlops
+# 512	16384	float16	12083.2 ms	639.807 GFlops
+
+summary: 512	16384	1629.87 ms	1185.82 GFlops	float4
+--------------------------------------------
+# 512	32768	float1	821.206 ms	1176.77 GFlops
+# 512	32768	float2	1639.39 ms	1178.93 GFlops
+# 512	32768	float4	3278.03 ms	1179.21 GFlops
+# 512	32768	float8	6558.15 ms	1178.83 GFlops
+# 512	32768	float16	24288.2 ms	636.6 GFlops
+
+summary: 512	32768	3278.03 ms	1179.21 GFlops	float4
+--------------------------------------------
+# 1024	256	float1	19.2674 ms	783.68 GFlops
+# 1024	256	float2	37.9723 ms	795.29 GFlops
+# 1024	256	float4	74.6247 ms	809.357 GFlops
+# 1024	256	float8	144.997 ms	833.091 GFlops
+# 1024	256	float16	616.765 ms	391.708 GFlops
+
+summary: 1024	256	144.997 ms	833.091 GFlops	float8
+--------------------------------------------
+# 1024	512	float1	34.3199 ms	879.927 GFlops
+# 1024	512	float2	67.7575 ms	891.384 GFlops
+# 1024	512	float4	136.264 ms	886.482 GFlops
+# 1024	512	float8	275.835 ms	875.857 GFlops
+# 1024	512	float16	1047.85 ms	461.119 GFlops
+
+summary: 1024	512	67.7575 ms	891.384 GFlops	float2
+--------------------------------------------
+# 1024	1024	float1	59.6063 ms	1013.28 GFlops
+# 1024	1024	float2	118.382 ms	1020.39 GFlops
+# 1024	1024	float4	233.528 ms	1034.53 GFlops
+# 1024	1024	float8	481.549 ms	1003.4 GFlops
+# 1024	1024	float16	1775.94 ms	544.146 GFlops
+
+summary: 1024	1024	233.528 ms	1034.53 GFlops	float4
+--------------------------------------------
+# 1024	2048	float1	108.502 ms	1113.3 GFlops
+# 1024	2048	float2	214.996 ms	1123.7 GFlops
+# 1024	2048	float4	424.582 ms	1138.02 GFlops
+# 1024	2048	float8	866.49 ms	1115.27 GFlops
+# 1024	2048	float16	3211.85 ms	601.751 GFlops
+
+summary: 1024	2048	424.582 ms	1138.02 GFlops	float4
+--------------------------------------------
+# 1024	4096	float1	205.098 ms	1177.93 GFlops
+# 1024	4096	float2	409.074 ms	1181.16 GFlops
+# 1024	4096	float4	817.459 ms	1182.16 GFlops
+# 1024	4096	float8	1636.59 ms	1180.95 GFlops
+# 1024	4096	float16	6049.02 ms	639.025 GFlops
+
+summary: 1024	4096	817.459 ms	1182.16 GFlops	float4
+--------------------------------------------
+# 1024	8192	float1	409.698 ms	1179.36 GFlops
+# 1024	8192	float2	817.879 ms	1181.55 GFlops
+# 1024	8192	float4	1634.23 ms	1182.66 GFlops
+# 1024	8192	float8	3269.15 ms	1182.41 GFlops
+# 1024	8192	float16	12083.5 ms	639.794 GFlops
+
+summary: 1024	8192	1634.23 ms	1182.66 GFlops	float4
+--------------------------------------------
+# 1024	16384	float1	817.05 ms	1182.75 GFlops
+# 1024	16384	float2	1630.13 ms	1185.63 GFlops
+# 1024	16384	float4	3265.17 ms	1183.85 GFlops
+# 1024	16384	float8	6529.36 ms	1184.03 GFlops
+# 1024	16384	float16	24163.6 ms	639.883 GFlops
+
+summary: 1024	16384	1630.13 ms	1185.63 GFlops	float2
+--------------------------------------------
+# 1024	32768	float1	1642.66 ms	1176.59 GFlops
+# 1024	32768	float2	3279.57 ms	1178.65 GFlops
+# 1024	32768	float4	6554.68 ms	1179.45 GFlops
+# 1024	32768	float8	13108 ms	1179.58 GFlops
+# 1024	32768	float16	48560.7 ms	636.807 GFlops
+
+summary: 1024	32768	13108 ms	1179.58 GFlops	float8
+--------------------------------------------
+Data type: double
+Time for VPU: 1629.87 ms.	BlockSize: 512	GridSize: 16384	VecSize: 4	Bandwidth: 1185.82GFLOPS

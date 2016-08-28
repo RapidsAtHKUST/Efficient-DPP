@@ -11,11 +11,12 @@
 #include <iostream>
 using namespace std;
 
-KernelProcessor::KernelProcessor(string *addr,int num, cl_context context) {
+KernelProcessor::KernelProcessor(string *addr,int num, cl_context context, char* extra) {
     this->num = num;
     source = new char*[this->num];
     kernelRead(addr, num);
-    compile(context);
+
+    compile(context, extra);
 }
 
 void KernelProcessor::kernelRead(string *addr, int num) {
@@ -40,7 +41,7 @@ void KernelProcessor::kernelRead(string *addr, int num) {
     }
 }
 
-void KernelProcessor::compile(cl_context context) {
+void KernelProcessor::compile(cl_context context, char* extra) {
     //establish the program the compile it
     cl_int err;
     this->program = clCreateProgramWithSource(context, this->num, (const char**)this->source, 0, &err);
@@ -56,18 +57,19 @@ void KernelProcessor::compile(cl_context context) {
     checkErr(err, "Failed to get the devices of the context.");
     
     //compile
-    char path[1000] = "-I";
-    strcat(path, PROJECT_ROOT);
-    strcat(path, "/inc ");
+    char comArgs[1000] = "-I";
+    strcat(comArgs, PROJECT_ROOT);
+    strcat(comArgs, "/inc ");
 
-    strcat(path,"-DKERNEL ");
+    strcat(comArgs,"-DKERNEL ");
+    strcat(comArgs, extra);
 
-    strcat(path, "-auto-prefetch-level=3 ");
+    // strcat(path, "-auto-prefetch-level=2 ");
 #ifdef RECORDS
-    strcat(path,"-DRECORDS");
+    strcat(comArgs,"-DRECORDS");
 #endif
     
-    err = clBuildProgram(program, cl_int(num), devices,path, 0, 0);
+    err = clBuildProgram(program, cl_int(num), devices,comArgs, 0, 0);
     checkErr(err, "Compilation error.");
 
     // //extract the assembly programs

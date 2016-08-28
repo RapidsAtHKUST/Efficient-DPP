@@ -20,9 +20,9 @@ private:
     int num;
 protected:
     void kernelRead(std::string *addr, int num);
-    void compile(cl_context context);
+    void compile(cl_context context, char* extra);
 public:
-    KernelProcessor(std::string *addr,int num, cl_context context);
+    KernelProcessor(std::string *addr,int num, cl_context context, char* extra="");
     cl_kernel &getKernel(char *kerName);
     ~KernelProcessor();
 };

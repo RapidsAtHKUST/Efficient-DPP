@@ -3,8 +3,15 @@
 
 //throughput processing
 #define VPU_REPEAT_TIME             (120)               //repeat time for madd operation
-#define FACTOR                      (1.0001)            //madd: s = s * FACTOR + FACTOR
+#define VPU_EXPR_TIME               (10)
 
+#define MEM_EXPR_TIME               (100)
+
+#define BARRIER_EXPR_TIME           (10)
+#define BARRIER_REPEAT_TIME         (1000)
+
+#define ATOMIC_EXPR_TIME            (2)
+#define ATOMIC_REPEAT_TIME          (1000)
 
 //scan definition
 #define SCAN_BITS        			(4)
@@ -58,11 +65,32 @@ typedef struct Basic_info {
     double vpu_time;
     double vpu_throughput;
 
+    int vpu_blockSize;
+    int vpu_gridSize;
+    int vpu_vecSize;
+
     //memory bandwidth
     double mem_read_time;
     double mem_read_throughput;
+
+    int mem_read_blockSize;
+    int mem_read_gridSize;
+    int mem_read_vecSize;
+
     double mem_write_time;
     double mem_write_throughput;
+
+    int mem_write_blockSize;
+    int mem_write_gridSize;
+    int mem_write_vecSize;
+
+    double mem_triad_time;
+    double mem_triad_throughput;
+
+    int mem_triad_blockSize;
+    int mem_triad_gridSize;
+    int mem_triad_vecSize;
+
 } Basic_info;
 
 typedef struct Device_perf_info {
