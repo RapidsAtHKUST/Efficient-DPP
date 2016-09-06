@@ -114,73 +114,113 @@ void testVPU(T *fixedValues, PlatInfo& info , double& totalTime, int localSize, 
 
 //for memory read bandwidth test
 template<typename T>
-void testMemReadWrite(
-    T *fixedValues, PlatInfo& info , double& readTime, double& writeTime, int localSize, int gridSize, int basicSize) {
+void testMem(PlatInfo& info , const int localSize, const int gridSize, double& readTime, double& writeTime, double& mulTime, double& triadTime, int repeat) {
 
     bool res = true;
-    int length = localSize * gridSize * basicSize ;
-    int vec_length = localSize * gridSize ;
+    cl_int status = 0;
+    int argsNum = 0;
+    
+    int length = localSize * gridSize * repeat;
+
+    std::cout<<"Data size: "<<length<<std::endl;
+    assert(length > 0);
 
 #ifndef SILENCE
     FUNC_BEGIN;
     SHOW_PARALLEL(localSize, gridSize);
     SHOW_DATA_NUM(length);
 #endif
-    T *h_source_values = new T[length];  
-    T *h_dest_values = new T[localSize * gridSize];
+
+    T *h_source_values_1 = new T[length];  
+    T *h_source_values_2 = new T[length];  
+    T *h_dest_values = new T[length];
 
     for(int i = 0; i < length; i++) {
-        h_source_values[i] = fixedValues[i];
+        h_source_values_1[i] = (T)i;
+     	h_source_values_2[i] = (T)(i+10);
     }
-    
-    //memory allocation
-    cl_int status = 0;
-    readTime = 0;
-    writeTime = 0;
 
-    int argsNum = 0;
-    
-    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(T)*length, NULL, &status);
+    readTime = 0.0; writeTime = 0.0; mulTime = 0.0; triadTime = 0.0;
+
+    //memory allocation
+    cl_mem d_source_values_1 = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(T)*length, h_source_values, 0, 0, 0);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values_1, CL_TRUE, 0, sizeof(T)*length, h_source_values_1, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);   
 
-    //for each thread to write out so that the code would not be optimized
-    cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY , sizeof(T)*localSize*gridSize, NULL, &status);
+    cl_mem d_source_values_2 = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*length, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values_2, CL_TRUE, 0, sizeof(T)*length, h_source_values_2, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER); 
+
+    cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(T)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
     char extra[500];
-    if (sizeof(T) == sizeof(float))         
-        strcpy(extra, "-DTYPE=float -DTYPE2=float2 -DTYPE4=float4 -DTYPE8=float8 -DTYPE16=float16");
-    else if (sizeof(T) == sizeof(double))
-        strcpy(extra, "-DTYPE=double -DTYPE2=double2 -DTYPE4=double4 -DTYPE8=double8 -DTYPE16=double16");
+    if (sizeof(T) == sizeof(float))         strcpy(extra, "-DTYPE=float");
+    else if (sizeof(T) == sizeof(double))   strcpy(extra, "-DTYPE=double");
 
     //kernel reading
     char path[100] = PROJECT_ROOT;
     char basicSizeName[20] = "";
     strcat(path, "/Kernels/memKernel.cl");
     std::string kerAddr = path;
-    my_itoa(basicSize, basicSizeName, 10);
 
-    char read_write_kerName[100] = "mem_read_write";
+    char read_kerName[100] = "mem_read";
     char write_kerName[100] = "mem_write";
 
-    strcat(read_write_kerName, basicSizeName);
-    strcat(write_kerName, basicSizeName);
+    char mul_kerName[100] = "mem_mul";
+    char triad_kerName[100] = "mem_triad";
 
+    char mul_strided_kerName[100] = "mem_mul_strided";
+    char mul_coalesced_kerName[100] = "mem_mul_coalesced";
+
+    //get the kernel
     KernelProcessor reader(&kerAddr,1,info.context, extra);
-    cl_kernel read_write_kernel = reader.getKernel(read_write_kerName);
+    cl_kernel read_kernel = reader.getKernel(read_kerName);
+    cl_kernel mul_kernel = reader.getKernel(mul_kerName);
     cl_kernel write_kernel = reader.getKernel(write_kerName);
+    cl_kernel triad_kernel = reader.getKernel(triad_kerName);
 
-    //set kernel arguments
+    cl_kernel mul_strided_kernel = reader.getKernel(mul_strided_kerName);
+     cl_kernel mul_coalesced_kernel = reader.getKernel(mul_coalesced_kerName);
+
+    //set kernel arguments: read_kernel
     argsNum = 0;
-    status |= clSetKernelArg(read_write_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
-    status |= clSetKernelArg(read_write_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    status |= clSetKernelArg(read_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
+    status |= clSetKernelArg(read_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
     checkErr(status, ERR_SET_ARGUMENTS);
 
+	//set kernel arguments: write_kernel
     argsNum = 0;
     status |= clSetKernelArg(write_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    //set kernel arguments: mul_kernel
+    argsNum = 0;
+    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
+    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    //set kernel arguments: triad_kernel
+    argsNum = 0;
+    status |= clSetKernelArg(triad_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
+    status |= clSetKernelArg(triad_kernel, argsNum++, sizeof(cl_mem), &d_source_values_2);
+    status |= clSetKernelArg(triad_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    //set kernel arguments: mul_coalesced_kernel
+    argsNum = 0;
+    status |= clSetKernelArg(mul_coalesced_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
+    status |= clSetKernelArg(mul_coalesced_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    //set kernel arguments: mul_strided_kernel
+    argsNum = 0;
+    status |= clSetKernelArg(mul_strided_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
+    status |= clSetKernelArg(mul_strided_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
     checkErr(status, ERR_SET_ARGUMENTS);
 
     //set work group and NDRange sizes
@@ -195,6 +235,32 @@ void testMemReadWrite(
     cl_event event;
     clFlush(info.currentQueue);
     status = clFinish(info.currentQueue);
+    
+    //executing read, write, mul, triad
+    for(int i = 0; i < MEM_EXPR_TIME; i++) {
+        status = clEnqueueNDRangeKernel(info.currentQueue, triad_kernel, 1, 0, global, local, 0, 0, &event);
+        clFlush(info.currentQueue);
+        status = clFinish(info.currentQueue);
+        
+        checkErr(status, ERR_EXEC_KERNEL);
+        double tempTime = clEventTime(event);
+
+        //throw away the first result
+        if (i != 0)     triadTime += tempTime;
+    }    
+
+    for(int i = 0; i < MEM_EXPR_TIME; i++) {
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, read_kernel, 1, 0, global, local, 0, 0, &event);
+        clFlush(info.currentQueue);
+        status = clFinish(info.currentQueue);
+        
+        checkErr(status, ERR_EXEC_KERNEL);
+        double tempTime = clEventTime(event);
+
+        //throw away the first result
+        if (i != 0)     readTime += tempTime;
+    }   
 
     for(int i = 0; i < MEM_EXPR_TIME; i++) {
         status = clEnqueueNDRangeKernel(info.currentQueue, write_kernel, 1, 0, global, local, 0, 0, &event);
@@ -206,145 +272,117 @@ void testMemReadWrite(
 
         //throw away the first result
         if (i != 0)     writeTime += tempTime;
-
-        status = clEnqueueNDRangeKernel(info.currentQueue, read_write_kernel, 1, 0, global, local, 0, 0, &event);
-        clFlush(info.currentQueue);
-        status = clFinish(info.currentQueue);
-        
-        checkErr(status, ERR_EXEC_KERNEL);
-        tempTime = clEventTime(event);
-
-        //throw away the first result
-        if (i != 0)     readTime += tempTime;
     }    
-    writeTime /= (MEM_EXPR_TIME - 1);
-    readTime /= (MEM_EXPR_TIME - 1);
-    readTime -= writeTime;
-
-    //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(T)*localSize*gridSize, h_dest_values, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-
-    status = clFinish(info.currentQueue);                                        
-
-    status = clReleaseMemObject(d_source_values);
-    status = clReleaseMemObject(d_dest_values);
-
-    checkErr(status, ERR_RELEASE_MEM);
-
-    delete [] h_source_values;
-    delete [] h_dest_values;
-
-#ifndef SILENCE
-    SHOW_TIME(totalTime);
-    SHOW_TOTAL_TIME(diffTime(end, start));
-    FUNC_END;
-#endif
-}
-
-template<typename T>
-void testTriad(T* fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize) {
-
-    bool res = true;
-    int length = localSize * gridSize * basicSize;
-    int vec_length = localSize * gridSize;
-#ifndef SILENCE
-    FUNC_BEGIN;
-    SHOW_PARALLEL(localSize, gridSize);
-    SHOW_DATA_NUM(length);
-#endif
-
-    T *h_dest_values_a = new T[length];  
-    T *h_source_values_b = new T[length];  
-    T *h_source_values_c = new T[length];  
-
-    for(int i = 0; i < length ;i++) {
-        h_source_values_b[i] = fixedValues[i];
-        h_source_values_c[i] = fixedValues[i] + i;
-    }
-
-    //memory allocation
-    cl_int status = 0;
-    totalTime = 0;
-    int argsNum = 0;
-    
-    cl_mem d_source_values_b = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(T)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    cl_mem d_source_values_c = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(T)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    cl_mem d_dest_values_a = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(T)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values_b, CL_TRUE, 0, sizeof(T)*length, h_source_values_b, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);  
-
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values_c, CL_TRUE, 0, sizeof(T)*length, h_source_values_c, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);  
-
-    char extra[500];
-    if (sizeof(T) == sizeof(float))         
-        strcpy(extra, "-DTYPE=float -DTYPE2=float2 -DTYPE4=float4 -DTYPE8=float8 -DTYPE16=float16");
-    else if (sizeof(T) == sizeof(double))
-        strcpy(extra, "-DTYPE=double -DTYPE2=double2 -DTYPE4=double4 -DTYPE8=double8 -DTYPE16=double16");
-
-    //kernel reading
-    char path[100] = PROJECT_ROOT;
-    char basicSizeName[20] = "";
-    strcat(path, "/Kernels/memKernel.cl");
-    std::string kerAddr = path;
-    my_itoa(basicSize, basicSizeName, 10);
-    char kerName[100] = "triad";
-    strcat(kerName, basicSizeName);
-
-    KernelProcessor reader(&kerAddr,1,info.context, extra);
-    cl_kernel kernel = reader.getKernel(kerName);
-
-    //set kernel arguments
-    argsNum = 0;
-    status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_dest_values_a);
-    status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_source_values_b);
-    status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_source_values_c);
-    checkErr(status, ERR_SET_ARGUMENTS);
-
-    //set work group and NDRange sizes
-    size_t local[1] = {(size_t)localSize};
-    size_t global[1] = {(size_t)(localSize * gridSize)};
-    
-    //launch the kernel
-#ifdef PRINT_KERNEL
-    printExecutingKernel(kernel);
-#endif
-    cl_event event;
-    clFlush(info.currentQueue);
-    status = clFinish(info.currentQueue);
 
     for(int i = 0; i < MEM_EXPR_TIME; i++) {
-        status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);
+        status = clEnqueueNDRangeKernel(info.currentQueue, mul_kernel, 1, 0, global, local, 0, 0, &event);
         clFlush(info.currentQueue);
         status = clFinish(info.currentQueue);
         
         checkErr(status, ERR_EXEC_KERNEL);
         double tempTime = clEventTime(event);
-        //throw away the first result
-        if (i != 0)     totalTime += tempTime;
-    }    
-    totalTime /= (MEM_EXPR_TIME - 1);
 
-    //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values_a, CL_TRUE, 0, sizeof(T)*length, h_dest_values_a, 0, 0, 0);
+        //throw away the first result
+        if (i != 0)     mulTime += tempTime;
+    }    
+
+    readTime /= ((MEM_EXPR_TIME - 1)*repeat);
+    writeTime /= (MEM_EXPR_TIME - 1);
+    mulTime /= (MEM_EXPR_TIME - 1);
+    triadTime /= (MEM_EXPR_TIME - 1);
+
+
+    //executing mul with coalesced and strided manner
+    double *coalesced_time = new double[repeat];
+    double *coalesced_throughput = new double[repeat];
+	double *strided_time = new double[repeat];
+    double *strided_throughput = new double[repeat];
+
+    for(int i = 0; i < repeat; i++) {
+        coalesced_time[i] = 0.0;
+        coalesced_throughput[i] = 0.0;
+        strided_time[i] = 0.0;
+        strided_throughput[i] = 0.0;
+    }
+
+    //coalesced
+    cout<<"------------------ Coalesced Access ------------------"<<endl;
+    for(int re = 0; re < repeat; re++) {
+	    for(int i = 0; i < MEM_EXPR_TIME; i++) {
+	    	int repeatTime = re + 1;
+	    	status |= clSetKernelArg(mul_coalesced_kernel, 2, sizeof(int), &repeatTime);
+    		checkErr(status, ERR_SET_ARGUMENTS);
+	        status = clEnqueueNDRangeKernel(info.currentQueue, mul_coalesced_kernel, 1, 0, global, local, 0, 0, &event);
+	        clFlush(info.currentQueue);
+	        status = clFinish(info.currentQueue);
+	    
+	        checkErr(status, ERR_EXEC_KERNEL);
+	        double tempTime = clEventTime(event);
+
+	        //throw away the first result
+	        if (i != 0)     coalesced_time[re] += tempTime;
+	    }  
+	}
+
+    for(int re = 0; re < repeat; re++) {
+		coalesced_time[re] /= (MEM_EXPR_TIME - 1);
+		assert(coalesced_time[re] > 0);
+		coalesced_throughput[re] = computeMem(localSize*gridSize*(re+1)*2, sizeof(T), coalesced_time[re]);
+    	cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re+1)
+    		<<"("<<localSize*gridSize*(re+1)<<')'
+    		<<" Time: "<<coalesced_time[re]<<" ms\t"<<"Throughput: "<<coalesced_throughput[re]<<" GB/s"<<endl;
+    }
+    cout<<endl;
+
+    //strided
+    cout<<"------------------ Strided Access ------------------"<<endl;
+    for(int re = 0; re < repeat; re++) {
+	    for(int i = 0; i < MEM_EXPR_TIME; i++) {
+	    	int repeatTime = re + 1;
+	    	status |= clSetKernelArg(mul_strided_kernel, 2, sizeof(int), &repeatTime);
+    		checkErr(status, ERR_SET_ARGUMENTS);
+	        status = clEnqueueNDRangeKernel(info.currentQueue, mul_strided_kernel, 1, 0, global, local, 0, 0, &event);
+	        clFlush(info.currentQueue);
+	        status = clFinish(info.currentQueue);
+	    
+	        checkErr(status, ERR_EXEC_KERNEL);
+	        double tempTime = clEventTime(event);
+
+	        //throw away the first result
+	        if (i != 0)     strided_time[re] += tempTime;
+	    }  
+	}
+
+    for(int re = 0; re < repeat; re++) {
+		strided_time[re] /= (MEM_EXPR_TIME - 1);
+		assert(strided_time[re] > 0);
+		strided_throughput[re] = computeMem(localSize*gridSize*(re+1)*2, sizeof(T), strided_time[re]);
+    	cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re+1)
+    		<<"("<<localSize*gridSize*(re+1)<<')'
+    		<<" Time: "<<strided_time[re]<<" ms\t"<<"Throughput: "<<strided_throughput[re]<<" GB/s"<<endl;
+    }
+    cout<<endl;
+
+
+    //memory written back for not being optimized out
+    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(T)*localSize*gridSize, h_dest_values, 0, 0, 0);
     checkErr(status, ERR_READ_BUFFER);
 
-    status = clFinish(info.currentQueue);
-    status = clReleaseMemObject(d_dest_values_a);
-    status = clReleaseMemObject(d_source_values_b);
-    status = clReleaseMemObject(d_source_values_c);
+    status = clFinish(info.currentQueue);                                        
+
+    status = clReleaseMemObject(d_source_values_1);
+    status = clReleaseMemObject(d_source_values_2);
+    status = clReleaseMemObject(d_dest_values);
     checkErr(status, ERR_RELEASE_MEM);
 
-    delete [] h_dest_values_a;
-    delete [] h_source_values_b;
-    delete [] h_source_values_c;
+    delete [] h_source_values_1;
+    delete [] h_source_values_2;
+    delete [] h_dest_values;
+
+    delete[] coalesced_time;
+    delete[] coalesced_throughput;
+    delete[] strided_time;
+    delete[] strided_throughput;
 
 #ifndef SILENCE
     FUNC_END;
@@ -615,11 +653,5 @@ void testAtomic(PlatInfo& info , double& totalTime, int localSize, int gridSize,
 template void testVPU<float>(float *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
 template void testVPU<double>(double *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
 
-template void testMemReadWrite<float>(
-    float *fixedValues, PlatInfo& info ,  double& readTime, double& writeTime, int localSize, int gridSize, int basicSize);
- template void testMemReadWrite<double>(
-    double *fixedValues, PlatInfo& info , double& readTime, double& writeTime, int localSize, int gridSize, int basicSize);
-
-template void testTriad<float>(float* fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
-template void testTriad<double>(double* fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
-
+template void testMem<float>(PlatInfo& info , const int blockSize, const int gridSize, double& readTime, double& writeTime, double& addTime, double& triadTime, int repeat);
+template void testMem<double>(PlatInfo& info ,  const int blockSize, const int gridSize,double& readTime, double& writeTime, double& addTime, double& triadTime, int repeat);

@@ -1,129 +1,95 @@
 #ifndef MEM_KERNEL_CL
 #define	MEM_KERNEL_CL
 
-//-------------------------------- read operation ---------------------------
+//mem_read: repeat 20 times, unrolled
+#define READ_REPEAT         (20)
+#define STRIDED_ADD(time)   (v += d_source_values[begin + time]);
+#define COALESCED_ADD       v += d_source_values[globalId];     \
+                            globalId += globalSize;
 
-kernel void mem_read_write1 (
-    global TYPE* restrict d_source_values,
+
+kernel void mem_read (
+    global const TYPE* restrict d_source_values,
     global TYPE* restrict d_dest_values)
 {
     int globalId = get_global_id(0);
-    d_dest_values[globalId] = d_source_values[globalId];
+    TYPE v = 0.0;
+
+    //strided unrolling for Xeon & Xeon Phi
+    // int begin = globalId * READ_REPEAT;
+    // STRIDED_ADD(0); STRIDED_ADD(1); STRIDED_ADD(2);
+    // STRIDED_ADD(3); STRIDED_ADD(4); STRIDED_ADD(5);
+    // STRIDED_ADD(6); STRIDED_ADD(7); STRIDED_ADD(8);
+    // STRIDED_ADD(9); STRIDED_ADD(10); STRIDED_ADD(11);
+    // STRIDED_ADD(12); STRIDED_ADD(13); STRIDED_ADD(14);
+    // STRIDED_ADD(15); STRIDED_ADD(16); STRIDED_ADD(17);
+    // STRIDED_ADD(18); STRIDED_ADD(19); 
+
+    //coalesced unrolling for GPU
+    int globalSize = get_global_size(0);
+    int global_output = globalId;
+    COALESCED_ADD; COALESCED_ADD; COALESCED_ADD; COALESCED_ADD;
+    COALESCED_ADD; COALESCED_ADD; COALESCED_ADD; COALESCED_ADD;
+    COALESCED_ADD; COALESCED_ADD; COALESCED_ADD; COALESCED_ADD;
+    COALESCED_ADD; COALESCED_ADD; COALESCED_ADD; COALESCED_ADD;
+    COALESCED_ADD; COALESCED_ADD; COALESCED_ADD; COALESCED_ADD;
+    // for(int i = 0; i < 20; i++) {
+    //     v += d_source_values[globalId];
+    //     globalId += globalSize;
+    // }
+    // COALESCED_ADD;
+
+    d_dest_values[global_output] = v;
 }
 
-kernel void mem_read_write2 (
-    global TYPE2* restrict d_source_values,
-    global TYPE2* restrict d_dest_values)
+kernel void mem_write (global TYPE* restrict d_dest_values)
 {
     int globalId = get_global_id(0);
-    d_dest_values[globalId] = d_source_values[globalId];
+    d_dest_values[globalId] = 123.45f;
 }
 
-kernel void mem_read_writ4 (
-    global TYPE4* restrict d_source_values,
-    global TYPE4* restrict d_dest_values)
+kernel void mem_mul (
+    global const TYPE* restrict d_source_values, 
+    global TYPE* restrict d_dest_values)
 {
     int globalId = get_global_id(0);
-    d_dest_values[globalId] = d_source_values[globalId];
+    d_dest_values[globalId] = d_source_values[globalId] * 0.3f;
 }
 
-kernel void mem_read_write8 (
-    global TYPE8* restrict d_source_values,
-    global TYPE8* restrict d_dest_values)
+kernel void mem_triad(
+    global const TYPE * restrict d_source_values1,
+    global const TYPE * restrict d_source_values2,
+    global TYPE * restrict d_dest_values)
 {
     int globalId = get_global_id(0);
-    d_dest_values[globalId] = d_source_values[globalId];
+    d_dest_values[globalId] = d_source_values1[globalId] + 0.3f * d_source_values2[globalId];
 }
 
-kernel void mem_read_write16 (
-    global TYPE16* restrict d_source_values,
-    global TYPE16* restrict d_dest_values)
+kernel void mem_mul_coalesced (
+    global const TYPE* restrict d_source_values, 
+    global TYPE* restrict d_dest_values,
+    const int repeat)
 {
     int globalId = get_global_id(0);
-    d_dest_values[globalId] = d_source_values[globalId];
-}
-//-------------------------------- write operation ---------------------------
+    int globalSize = get_global_size(0);
 
-kernel void mem_write1 (global TYPE* d_source_values)
+    for(int i = 0; i < repeat; i++) {
+        d_dest_values[globalId] = d_source_values[globalId] * 0.3f;
+        globalId += globalSize;
+    }
+}
+
+kernel void mem_mul_strided (
+    global const TYPE* restrict d_source_values, 
+    global TYPE* restrict d_dest_values,
+    const int repeat)
 {
     int globalId = get_global_id(0);
-    d_source_values[globalId] = globalId + 0.15;
-}
 
-kernel void mem_write2 (global TYPE2* d_source_values)
-{
-    int globalId = get_global_id(0);
-    d_source_values[globalId] = (TYPE2)
-        (globalId+0.15, globalId+0.0131);
-}
-
-kernel void mem_write4 (global TYPE4* d_source_values)
-{
-    int globalId = get_global_id(0);
-    d_source_values[globalId] = (TYPE4)
-    	(globalId+0.15, globalId+0.0131, globalId+22.13, globalId+33.411);
-}
-
-kernel void mem_write8 (global TYPE8* d_source_values)
-{
-   int globalId = get_global_id(0);
-    d_source_values[globalId] = (TYPE8)
-    	(globalId+0.15, globalId+0.0131, globalId+22.13, globalId+33.411, globalId+99.11, globalId+32.34,globalId+6.45, globalId+976.335);
-}
-
-kernel void mem_write16 (global TYPE16* d_source_values)
-{
-    int globalId = get_global_id(0);
-    d_source_values[globalId] = (TYPE16)
-    	(globalId+0.15, globalId+0.0131, globalId+22.13, globalId+33.411, globalId+99.11, globalId+32.34,globalId+6.45, globalId+976.335, globalId+908.222, globalId+123.0981, globalId+104.4781, globalId+11.1361,globalId+121.4671, globalId+134.3561,
-    		globalId+14.1, globalId+15.1);
-}
-
-// -------------------------------  Triad test -------------------------
-
-kernel void triad1(
-    global TYPE * restrict a,
-    global const TYPE * restrict b,
-    global const TYPE * restrict c)
-{
-    int globalId = get_global_id(0);
-    a[globalId] = b[globalId] + 0.3 * c[globalId];
-}
-
-kernel void triad2(
-    global TYPE2 *restrict a,
-    global const TYPE2 *restrict b,
-    global const TYPE2 *restrict c)
-{
-    int globalId = get_global_id(0);
-    a[globalId] = b[globalId] + 0.3f * c[globalId]; 
-}
-
-kernel void triad4(
-    global TYPE4 *restrict a,
-    global const TYPE4 *restrict b,
-    global const TYPE4 *restrict c)
-{
-    int globalId = get_global_id(0);
-    a[globalId] = b[globalId] + 0.3f * c[globalId]; 
-}
-
-kernel void triad8(
-    global TYPE8 *restrict a,
-    global const TYPE8 *restrict b,
-    global const TYPE8 *restrict c)
-{
-    int globalId = get_global_id(0);
-    a[globalId] = b[globalId] + 0.3f * c[globalId]; 
-}
-
-kernel void triad16(
-    global TYPE16 *restrict a,
-    global const TYPE16 *restrict b,
-    global const TYPE16 *restrict c)
-{
-    int globalId = get_global_id(0);
-    a[globalId] = b[globalId] + 0.3f * c[globalId]; 
+    int begin = globalId * repeat;
+    for(int i = 0; i < repeat; i++) {
+        d_dest_values[begin+i] = d_source_values[begin+i] * 0.3f ;
+    }
 }
 
 #endif

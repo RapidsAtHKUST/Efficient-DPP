@@ -60,11 +60,7 @@ template<typename T>
 void testVPU(T *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
 
 template<typename T>
-void testMemReadWrite(
-    T *fixedValues, PlatInfo& info , double& readTime, double& writeTime, int localSize, int gridSize, int basicSize);
-
-template<typename T>
-void testTriad(T* fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
+void testMem(PlatInfo& info , const int blockSize, const int gridSize, double& readTime, double& writeTime, double& addTime, double& triadTime, int repeat);
 
 void testBarrier(
     float *fixedValues, PlatInfo& info , double& totalTime, double& percentage, int localSize, int gridSize);

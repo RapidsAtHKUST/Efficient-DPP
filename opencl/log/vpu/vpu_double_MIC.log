@@ -1,0 +1,776 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 33554432
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Many Integrated Core Acceleration Card
+------ End of hardware checking ------
+
+----- Vector Instruction Throughput Test -----
+Max data size: 33554432
+Data type: double
+blockSize=128	gridSize=256	double1	2.5767 ms	732.503 GFlops	done!
+blockSize=128	gridSize=256	double2	4.97383 ms	758.947 GFlops	done!
+blockSize=128	gridSize=256	double4	9.75699 ms	773.778 GFlops	done!
+blockSize=128	gridSize=256	double8	19.2658 ms	783.747 GFlops	done!
+blockSize=128	gridSize=256	double16	83.4239 ms	361.995 GFlops	done!
+blockSize=128	gridSize=512	double1	4.25665 ms	886.818 GFlops	done!
+blockSize=128	gridSize=512	double2	8.63114 ms	874.71 GFlops	done!
+blockSize=128	gridSize=512	double4	17.0653 ms	884.805 GFlops	done!
+blockSize=128	gridSize=512	double8	34.771 ms	868.511 GFlops	done!
+blockSize=128	gridSize=512	double16	132.14 ms	457.077 GFlops	done!
+blockSize=128	gridSize=1024	double1	7.55099 ms	999.836 GFlops	done!
+blockSize=128	gridSize=1024	double2	14.8552 ms	1016.45 GFlops	done!
+blockSize=128	gridSize=1024	double4	29.9864 ms	1007.09 GFlops	done!
+blockSize=128	gridSize=1024	double8	59.5482 ms	1014.27 GFlops	done!
+blockSize=128	gridSize=1024	double16	221.09 ms	546.367 GFlops	done!
+blockSize=128	gridSize=2048	double1	13.7371 ms	1099.17 GFlops	done!
+blockSize=128	gridSize=2048	double2	27.2234 ms	1109.3 GFlops	done!
+blockSize=128	gridSize=2048	double4	54.2577 ms	1113.17 GFlops	done!
+blockSize=128	gridSize=2048	double8	108.056 ms	1117.9 GFlops	done!
+blockSize=128	gridSize=2048	double16	399.393 ms	604.898 GFlops	done!
+blockSize=128	gridSize=4096	double1	25.8951 ms	1166.21 GFlops	done!
+blockSize=128	gridSize=4096	double2	51.444 ms	1174.05 GFlops	done!
+blockSize=128	gridSize=4096	double4	102.474 ms	1178.79 GFlops	done!
+blockSize=128	gridSize=4096	double8	204.723 ms	1180.09 GFlops	done!
+blockSize=128	gridSize=4096	double16	758.587 ms	636.952 GFlops	done!
+blockSize=128	gridSize=8192	double1	51.4703 ms	1173.45 GFlops	done!
+blockSize=128	gridSize=8192	double2	102.526 ms	1178.2 GFlops	done!
+blockSize=128	gridSize=8192	double4	204.709 ms	1180.17 GFlops	done!
+blockSize=128	gridSize=8192	double8	408.924 ms	1181.6 GFlops	done!
+blockSize=128	gridSize=8192	double16	1513.3 ms	638.585 GFlops	done!
+blockSize=128	gridSize=16384	double1	102.669 ms	1176.56 GFlops	done!
+blockSize=128	gridSize=16384	double2	204.557 ms	1181.05 GFlops	done!
+blockSize=128	gridSize=16384	double4	408.68 ms	1182.3 GFlops	done!
+blockSize=128	gridSize=16384	double8	816.954 ms	1182.89 GFlops	done!
+blockSize=128	gridSize=16384	double16	3021.19 ms	639.727 GFlops	done!
+blockSize=128	gridSize=32768	double1	205.631 ms	1174.88 GFlops	done!
+blockSize=128	gridSize=32768	double2	410.353 ms	1177.48 GFlops	done!
+blockSize=128	gridSize=32768	double4	819.453 ms	1179.28 GFlops	done!
+blockSize=128	gridSize=32768	double8	1638.97 ms	1179.24 GFlops	done!
+blockSize=128	gridSize=32768	double16	6076.55 ms	636.129 GFlops	done!
+blockSize=256	gridSize=256	double1	4.96369 ms	760.497 GFlops	done!
+blockSize=256	gridSize=256	double2	9.75708 ms	773.771 GFlops	done!
+blockSize=256	gridSize=256	double4	19.1727 ms	787.553 GFlops	done!
+blockSize=256	gridSize=256	double8	38.0824 ms	792.991 GFlops	done!
+blockSize=256	gridSize=256	double16	153.891 ms	392.473 GFlops	done!
+blockSize=256	gridSize=512	double1	8.70154 ms	867.633 GFlops	done!
+blockSize=256	gridSize=512	double2	17.0899 ms	883.533 GFlops	done!
+blockSize=256	gridSize=512	double4	34.201 ms	882.984 GFlops	done!
+blockSize=256	gridSize=512	double8	68.3891 ms	883.152 GFlops	done!
+blockSize=256	gridSize=512	double16	264.627 ms	456.476 GFlops	done!
+blockSize=256	gridSize=1024	double1	14.7603 ms	1022.98 GFlops	done!
+blockSize=256	gridSize=1024	double2	29.7506 ms	1015.07 GFlops	done!
+blockSize=256	gridSize=1024	double4	59.9977 ms	1006.67 GFlops	done!
+blockSize=256	gridSize=1024	double8	119.874 ms	1007.69 GFlops	done!
+blockSize=256	gridSize=1024	double16	447.791 ms	539.52 GFlops	done!
+blockSize=256	gridSize=2048	double1	27.222 ms	1109.36 GFlops	done!
+blockSize=256	gridSize=2048	double2	54.1704 ms	1114.96 GFlops	done!
+blockSize=256	gridSize=2048	double4	108.307 ms	1115.31 GFlops	done!
+blockSize=256	gridSize=2048	double8	214.489 ms	1126.36 GFlops	done!
+blockSize=256	gridSize=2048	double16	803.065 ms	601.674 GFlops	done!
+blockSize=256	gridSize=4096	double1	51.5328 ms	1172.03 GFlops	done!
+blockSize=256	gridSize=4096	double2	102.62 ms	1177.12 GFlops	done!
+blockSize=256	gridSize=4096	double4	204.581 ms	1180.91 GFlops	done!
+blockSize=256	gridSize=4096	double8	408.878 ms	1181.73 GFlops	done!
+blockSize=256	gridSize=4096	double16	1522.17 ms	634.861 GFlops	done!
+blockSize=256	gridSize=8192	double1	102.678 ms	1176.45 GFlops	done!
+blockSize=256	gridSize=8192	double2	204.717 ms	1180.13 GFlops	done!
+blockSize=256	gridSize=8192	double4	408.926 ms	1181.59 GFlops	done!
+blockSize=256	gridSize=8192	double8	817.445 ms	1182.18 GFlops	done!
+blockSize=256	gridSize=8192	double16	3028.45 ms	638.193 GFlops	done!
+blockSize=256	gridSize=16384	double1	204.943 ms	1178.83 GFlops	done!
+blockSize=256	gridSize=16384	double2	408.538 ms	1182.72 GFlops	done!
+blockSize=256	gridSize=16384	double4	815.191 ms	1185.45 GFlops	done!
+blockSize=256	gridSize=16384	double8	1630.62 ms	1185.28 GFlops	done!
+blockSize=256	gridSize=16384	double16	6052.65 ms	638.641 GFlops	done!
+blockSize=256	gridSize=32768	double1	410.821 ms	1176.14 GFlops	done!
+blockSize=256	gridSize=32768	double2	820.375 ms	1177.96 GFlops	done!
+blockSize=256	gridSize=32768	double4	1639.08 ms	1179.16 GFlops	done!
+blockSize=256	gridSize=32768	double8	3278.42 ms	1179.06 GFlops	done!
+blockSize=256	gridSize=32768	double16	12147.7 ms	636.412 GFlops	done!
+blockSize=512	gridSize=256	double1	9.77166 ms	772.617 GFlops	done!
+blockSize=512	gridSize=256	double2	19.1659 ms	787.832 GFlops	done!
+blockSize=512	gridSize=256	double4	37.9368 ms	796.033 GFlops	done!
+blockSize=512	gridSize=256	double8	74.7687 ms	807.798 GFlops	done!
+blockSize=512	gridSize=256	double16	306.339 ms	394.322 GFlops	done!
+blockSize=512	gridSize=512	double1	17.1157 ms	882.199 GFlops	done!
+blockSize=512	gridSize=512	double2	34.2324 ms	882.177 GFlops	done!
+blockSize=512	gridSize=512	double4	69.748 ms	865.946 GFlops	done!
+blockSize=512	gridSize=512	double8	137.506 ms	878.476 GFlops	done!
+blockSize=512	gridSize=512	double16	519.503 ms	465.044 GFlops	done!
+blockSize=512	gridSize=1024	double1	29.5262 ms	1022.79 GFlops	done!
+blockSize=512	gridSize=1024	double2	59.2788 ms	1018.88 GFlops	done!
+blockSize=512	gridSize=1024	double4	119.349 ms	1012.12 GFlops	done!
+blockSize=512	gridSize=1024	double8	237.504 ms	1017.21 GFlops	done!
+blockSize=512	gridSize=1024	double16	884.468 ms	546.299 GFlops	done!
+blockSize=512	gridSize=2048	double1	54.2429 ms	1113.47 GFlops	done!
+blockSize=512	gridSize=2048	double2	108.101 ms	1117.43 GFlops	done!
+blockSize=512	gridSize=2048	double4	213.922 ms	1129.34 GFlops	done!
+blockSize=512	gridSize=2048	double8	423.918 ms	1139.81 GFlops	done!
+blockSize=512	gridSize=2048	double16	1602.47 ms	603.049 GFlops	done!
+blockSize=512	gridSize=4096	double1	102.689 ms	1176.32 GFlops	done!
+blockSize=512	gridSize=4096	double2	204.727 ms	1180.07 GFlops	done!
+blockSize=512	gridSize=4096	double4	409.034 ms	1181.28 GFlops	done!
+blockSize=512	gridSize=4096	double8	817.286 ms	1182.41 GFlops	done!
+blockSize=512	gridSize=4096	double16	3026.1 ms	638.689 GFlops	done!
+blockSize=512	gridSize=8192	double1	205.067 ms	1178.11 GFlops	done!
+blockSize=512	gridSize=8192	double2	409.147 ms	1180.95 GFlops	done!
+blockSize=512	gridSize=8192	double4	817.417 ms	1182.22 GFlops	done!
+blockSize=512	gridSize=8192	double8	1634.34 ms	1182.58 GFlops	done!
+blockSize=512	gridSize=8192	double16	6046.21 ms	639.321 GFlops	done!
+blockSize=512	gridSize=16384	double1	409.43 ms	1180.14 GFlops	done!
+blockSize=512	gridSize=16384	double2	815.417 ms	1185.12 GFlops	done!
+blockSize=512	gridSize=16384	double4	1629.31 ms	1186.23 GFlops	done!
+blockSize=512	gridSize=16384	double8	3265.96 ms	1183.56 GFlops	done!
+blockSize=512	gridSize=16384	double16	12084.7 ms	639.73 GFlops	done!
+blockSize=512	gridSize=32768	double1	821.277 ms	1176.66 GFlops	done!
+blockSize=512	gridSize=32768	double2	1639.37 ms	1178.95 GFlops	done!
+blockSize=512	gridSize=32768	double4	3278.07 ms	1179.19 GFlops	done!
+blockSize=512	gridSize=32768	double8	6553.76 ms	1179.62 GFlops	done!
+blockSize=512	gridSize=32768	double16	24286.1 ms	636.655 GFlops	done!
+blockSize=1024	gridSize=256	double1	19.2436 ms	784.651 GFlops	done!
+blockSize=1024	gridSize=256	double2	37.976 ms	795.213 GFlops	done!
+blockSize=1024	gridSize=256	double4	74.6516 ms	809.064 GFlops	done!
+blockSize=1024	gridSize=256	double8	145.008 ms	833.027 GFlops	done!
+blockSize=1024	gridSize=256	double16	611.981 ms	394.77 GFlops	done!
+blockSize=1024	gridSize=512	double1	34.2334 ms	882.149 GFlops	done!
+blockSize=1024	gridSize=512	double2	69.2904 ms	871.664 GFlops	done!
+blockSize=1024	gridSize=512	double4	136.286 ms	886.344 GFlops	done!
+blockSize=1024	gridSize=512	double8	281.399 ms	858.537 GFlops	done!
+blockSize=1024	gridSize=512	double16	1046.46 ms	461.732 GFlops	done!
+blockSize=1024	gridSize=1024	double1	60.3382 ms	1000.99 GFlops	done!
+blockSize=1024	gridSize=1024	double2	118.889 ms	1016.04 GFlops	done!
+blockSize=1024	gridSize=1024	double4	233.389 ms	1035.15 GFlops	done!
+blockSize=1024	gridSize=1024	double8	473.694 ms	1020.03 GFlops	done!
+blockSize=1024	gridSize=1024	double16	1763.84 ms	547.876 GFlops	done!
+blockSize=1024	gridSize=2048	double1	108.516 ms	1113.16 GFlops	done!
+blockSize=1024	gridSize=2048	double2	216.498 ms	1115.91 GFlops	done!
+blockSize=1024	gridSize=2048	double4	432.394 ms	1117.46 GFlops	done!
+blockSize=1024	gridSize=2048	double8	866.227 ms	1115.61 GFlops	done!
+blockSize=1024	gridSize=2048	double16	3207.21 ms	602.622 GFlops	done!
+blockSize=1024	gridSize=4096	double1	205.051 ms	1178.2 GFlops	done!
+blockSize=1024	gridSize=4096	double2	409.155 ms	1180.93 GFlops	done!
+blockSize=1024	gridSize=4096	double4	817.246 ms	1182.47 GFlops	done!
+blockSize=1024	gridSize=4096	double8	1636.52 ms	1181.01 GFlops	done!
+blockSize=1024	gridSize=4096	double16	6045.84 ms	639.36 GFlops	done!
+blockSize=1024	gridSize=8192	double1	409.682 ms	1179.41 GFlops	done!
+blockSize=1024	gridSize=8192	double2	817.884 ms	1181.55 GFlops	done!
+blockSize=1024	gridSize=8192	double4	1634.31 ms	1182.6 GFlops	done!
+blockSize=1024	gridSize=8192	double8	3270.24 ms	1182.01 GFlops	done!
+blockSize=1024	gridSize=8192	double16	12087.6 ms	639.576 GFlops	done!
+blockSize=1024	gridSize=16384	double1	817.188 ms	1182.55 GFlops	done!
+blockSize=1024	gridSize=16384	double2	1630.44 ms	1185.41 GFlops	done!
+blockSize=1024	gridSize=16384	double4	3261.27 ms	1185.27 GFlops	done!
+blockSize=1024	gridSize=16384	double8	6531.5 ms	1183.64 GFlops	done!
+blockSize=1024	gridSize=16384	double16	24168.2 ms	639.762 GFlops	done!
+blockSize=1024	gridSize=32768	double1	1641.68 ms	1177.29 GFlops	done!
+blockSize=1024	gridSize=32768	double2	3280.91 ms	1178.17 GFlops	done!
+blockSize=1024	gridSize=32768	double4	6552.02 ms	1179.93 GFlops	done!
+blockSize=1024	gridSize=32768	double8	13111.1 ms	1179.3 GFlops	done!
+blockSize=1024	gridSize=32768	double16	48552.8 ms	636.91 GFlops	done!
+
+----------- Original ------------
+# [vpu]:128	256	double1	2.5767 ms	732.503 GFlops
+# [vpu]:128	256	double2	4.97383 ms	758.947 GFlops
+# [vpu]:128	256	double4	9.75699 ms	773.778 GFlops
+# [vpu]:128	256	double8	19.2658 ms	783.747 GFlops
+# [vpu]:128	256	double16	83.4239 ms	361.995 GFlops
+# [vpu]:128	512	double1	4.25665 ms	886.818 GFlops
+# [vpu]:128	512	double2	8.63114 ms	874.71 GFlops
+# [vpu]:128	512	double4	17.0653 ms	884.805 GFlops
+# [vpu]:128	512	double8	34.771 ms	868.511 GFlops
+# [vpu]:128	512	double16	132.14 ms	457.077 GFlops
+# [vpu]:128	1024	double1	7.55099 ms	999.836 GFlops
+# [vpu]:128	1024	double2	14.8552 ms	1016.45 GFlops
+# [vpu]:128	1024	double4	29.9864 ms	1007.09 GFlops
+# [vpu]:128	1024	double8	59.5482 ms	1014.27 GFlops
+# [vpu]:128	1024	double16	221.09 ms	546.367 GFlops
+# [vpu]:128	2048	double1	13.7371 ms	1099.17 GFlops
+# [vpu]:128	2048	double2	27.2234 ms	1109.3 GFlops
+# [vpu]:128	2048	double4	54.2577 ms	1113.17 GFlops
+# [vpu]:128	2048	double8	108.056 ms	1117.9 GFlops
+# [vpu]:128	2048	double16	399.393 ms	604.898 GFlops
+# [vpu]:128	4096	double1	25.8951 ms	1166.21 GFlops
+# [vpu]:128	4096	double2	51.444 ms	1174.05 GFlops
+# [vpu]:128	4096	double4	102.474 ms	1178.79 GFlops
+# [vpu]:128	4096	double8	204.723 ms	1180.09 GFlops
+# [vpu]:128	4096	double16	758.587 ms	636.952 GFlops
+# [vpu]:128	8192	double1	51.4703 ms	1173.45 GFlops
+# [vpu]:128	8192	double2	102.526 ms	1178.2 GFlops
+# [vpu]:128	8192	double4	204.709 ms	1180.17 GFlops
+# [vpu]:128	8192	double8	408.924 ms	1181.6 GFlops
+# [vpu]:128	8192	double16	1513.3 ms	638.585 GFlops
+# [vpu]:128	16384	double1	102.669 ms	1176.56 GFlops
+# [vpu]:128	16384	double2	204.557 ms	1181.05 GFlops
+# [vpu]:128	16384	double4	408.68 ms	1182.3 GFlops
+# [vpu]:128	16384	double8	816.954 ms	1182.89 GFlops
+# [vpu]:128	16384	double16	3021.19 ms	639.727 GFlops
+# [vpu]:128	32768	double1	205.631 ms	1174.88 GFlops
+# [vpu]:128	32768	double2	410.353 ms	1177.48 GFlops
+# [vpu]:128	32768	double4	819.453 ms	1179.28 GFlops
+# [vpu]:128	32768	double8	1638.97 ms	1179.24 GFlops
+# [vpu]:128	32768	double16	6076.55 ms	636.129 GFlops
+# [vpu]:256	256	double1	4.96369 ms	760.497 GFlops
+# [vpu]:256	256	double2	9.75708 ms	773.771 GFlops
+# [vpu]:256	256	double4	19.1727 ms	787.553 GFlops
+# [vpu]:256	256	double8	38.0824 ms	792.991 GFlops
+# [vpu]:256	256	double16	153.891 ms	392.473 GFlops
+# [vpu]:256	512	double1	8.70154 ms	867.633 GFlops
+# [vpu]:256	512	double2	17.0899 ms	883.533 GFlops
+# [vpu]:256	512	double4	34.201 ms	882.984 GFlops
+# [vpu]:256	512	double8	68.3891 ms	883.152 GFlops
+# [vpu]:256	512	double16	264.627 ms	456.476 GFlops
+# [vpu]:256	1024	double1	14.7603 ms	1022.98 GFlops
+# [vpu]:256	1024	double2	29.7506 ms	1015.07 GFlops
+# [vpu]:256	1024	double4	59.9977 ms	1006.67 GFlops
+# [vpu]:256	1024	double8	119.874 ms	1007.69 GFlops
+# [vpu]:256	1024	double16	447.791 ms	539.52 GFlops
+# [vpu]:256	2048	double1	27.222 ms	1109.36 GFlops
+# [vpu]:256	2048	double2	54.1704 ms	1114.96 GFlops
+# [vpu]:256	2048	double4	108.307 ms	1115.31 GFlops
+# [vpu]:256	2048	double8	214.489 ms	1126.36 GFlops
+# [vpu]:256	2048	double16	803.065 ms	601.674 GFlops
+# [vpu]:256	4096	double1	51.5328 ms	1172.03 GFlops
+# [vpu]:256	4096	double2	102.62 ms	1177.12 GFlops
+# [vpu]:256	4096	double4	204.581 ms	1180.91 GFlops
+# [vpu]:256	4096	double8	408.878 ms	1181.73 GFlops
+# [vpu]:256	4096	double16	1522.17 ms	634.861 GFlops
+# [vpu]:256	8192	double1	102.678 ms	1176.45 GFlops
+# [vpu]:256	8192	double2	204.717 ms	1180.13 GFlops
+# [vpu]:256	8192	double4	408.926 ms	1181.59 GFlops
+# [vpu]:256	8192	double8	817.445 ms	1182.18 GFlops
+# [vpu]:256	8192	double16	3028.45 ms	638.193 GFlops
+# [vpu]:256	16384	double1	204.943 ms	1178.83 GFlops
+# [vpu]:256	16384	double2	408.538 ms	1182.72 GFlops
+# [vpu]:256	16384	double4	815.191 ms	1185.45 GFlops
+# [vpu]:256	16384	double8	1630.62 ms	1185.28 GFlops
+# [vpu]:256	16384	double16	6052.65 ms	638.641 GFlops
+# [vpu]:256	32768	double1	410.821 ms	1176.14 GFlops
+# [vpu]:256	32768	double2	820.375 ms	1177.96 GFlops
+# [vpu]:256	32768	double4	1639.08 ms	1179.16 GFlops
+# [vpu]:256	32768	double8	3278.42 ms	1179.06 GFlops
+# [vpu]:256	32768	double16	12147.7 ms	636.412 GFlops
+# [vpu]:512	256	double1	9.77166 ms	772.617 GFlops
+# [vpu]:512	256	double2	19.1659 ms	787.832 GFlops
+# [vpu]:512	256	double4	37.9368 ms	796.033 GFlops
+# [vpu]:512	256	double8	74.7687 ms	807.798 GFlops
+# [vpu]:512	256	double16	306.339 ms	394.322 GFlops
+# [vpu]:512	512	double1	17.1157 ms	882.199 GFlops
+# [vpu]:512	512	double2	34.2324 ms	882.177 GFlops
+# [vpu]:512	512	double4	69.748 ms	865.946 GFlops
+# [vpu]:512	512	double8	137.506 ms	878.476 GFlops
+# [vpu]:512	512	double16	519.503 ms	465.044 GFlops
+# [vpu]:512	1024	double1	29.5262 ms	1022.79 GFlops
+# [vpu]:512	1024	double2	59.2788 ms	1018.88 GFlops
+# [vpu]:512	1024	double4	119.349 ms	1012.12 GFlops
+# [vpu]:512	1024	double8	237.504 ms	1017.21 GFlops
+# [vpu]:512	1024	double16	884.468 ms	546.299 GFlops
+# [vpu]:512	2048	double1	54.2429 ms	1113.47 GFlops
+# [vpu]:512	2048	double2	108.101 ms	1117.43 GFlops
+# [vpu]:512	2048	double4	213.922 ms	1129.34 GFlops
+# [vpu]:512	2048	double8	423.918 ms	1139.81 GFlops
+# [vpu]:512	2048	double16	1602.47 ms	603.049 GFlops
+# [vpu]:512	4096	double1	102.689 ms	1176.32 GFlops
+# [vpu]:512	4096	double2	204.727 ms	1180.07 GFlops
+# [vpu]:512	4096	double4	409.034 ms	1181.28 GFlops
+# [vpu]:512	4096	double8	817.286 ms	1182.41 GFlops
+# [vpu]:512	4096	double16	3026.1 ms	638.689 GFlops
+# [vpu]:512	8192	double1	205.067 ms	1178.11 GFlops
+# [vpu]:512	8192	double2	409.147 ms	1180.95 GFlops
+# [vpu]:512	8192	double4	817.417 ms	1182.22 GFlops
+# [vpu]:512	8192	double8	1634.34 ms	1182.58 GFlops
+# [vpu]:512	8192	double16	6046.21 ms	639.321 GFlops
+# [vpu]:512	16384	double1	409.43 ms	1180.14 GFlops
+# [vpu]:512	16384	double2	815.417 ms	1185.12 GFlops
+# [vpu]:512	16384	double4	1629.31 ms	1186.23 GFlops
+# [vpu]:512	16384	double8	3265.96 ms	1183.56 GFlops
+# [vpu]:512	16384	double16	12084.7 ms	639.73 GFlops
+# [vpu]:512	32768	double1	821.277 ms	1176.66 GFlops
+# [vpu]:512	32768	double2	1639.37 ms	1178.95 GFlops
+# [vpu]:512	32768	double4	3278.07 ms	1179.19 GFlops
+# [vpu]:512	32768	double8	6553.76 ms	1179.62 GFlops
+# [vpu]:512	32768	double16	24286.1 ms	636.655 GFlops
+# [vpu]:1024	256	double1	19.2436 ms	784.651 GFlops
+# [vpu]:1024	256	double2	37.976 ms	795.213 GFlops
+# [vpu]:1024	256	double4	74.6516 ms	809.064 GFlops
+# [vpu]:1024	256	double8	145.008 ms	833.027 GFlops
+# [vpu]:1024	256	double16	611.981 ms	394.77 GFlops
+# [vpu]:1024	512	double1	34.2334 ms	882.149 GFlops
+# [vpu]:1024	512	double2	69.2904 ms	871.664 GFlops
+# [vpu]:1024	512	double4	136.286 ms	886.344 GFlops
+# [vpu]:1024	512	double8	281.399 ms	858.537 GFlops
+# [vpu]:1024	512	double16	1046.46 ms	461.732 GFlops
+# [vpu]:1024	1024	double1	60.3382 ms	1000.99 GFlops
+# [vpu]:1024	1024	double2	118.889 ms	1016.04 GFlops
+# [vpu]:1024	1024	double4	233.389 ms	1035.15 GFlops
+# [vpu]:1024	1024	double8	473.694 ms	1020.03 GFlops
+# [vpu]:1024	1024	double16	1763.84 ms	547.876 GFlops
+# [vpu]:1024	2048	double1	108.516 ms	1113.16 GFlops
+# [vpu]:1024	2048	double2	216.498 ms	1115.91 GFlops
+# [vpu]:1024	2048	double4	432.394 ms	1117.46 GFlops
+# [vpu]:1024	2048	double8	866.227 ms	1115.61 GFlops
+# [vpu]:1024	2048	double16	3207.21 ms	602.622 GFlops
+# [vpu]:1024	4096	double1	205.051 ms	1178.2 GFlops
+# [vpu]:1024	4096	double2	409.155 ms	1180.93 GFlops
+# [vpu]:1024	4096	double4	817.246 ms	1182.47 GFlops
+# [vpu]:1024	4096	double8	1636.52 ms	1181.01 GFlops
+# [vpu]:1024	4096	double16	6045.84 ms	639.36 GFlops
+# [vpu]:1024	8192	double1	409.682 ms	1179.41 GFlops
+# [vpu]:1024	8192	double2	817.884 ms	1181.55 GFlops
+# [vpu]:1024	8192	double4	1634.31 ms	1182.6 GFlops
+# [vpu]:1024	8192	double8	3270.24 ms	1182.01 GFlops
+# [vpu]:1024	8192	double16	12087.6 ms	639.576 GFlops
+# [vpu]:1024	16384	double1	817.188 ms	1182.55 GFlops
+# [vpu]:1024	16384	double2	1630.44 ms	1185.41 GFlops
+# [vpu]:1024	16384	double4	3261.27 ms	1185.27 GFlops
+# [vpu]:1024	16384	double8	6531.5 ms	1183.64 GFlops
+# [vpu]:1024	16384	double16	24168.2 ms	639.762 GFlops
+# [vpu]:1024	32768	double1	1641.68 ms	1177.29 GFlops
+# [vpu]:1024	32768	double2	3280.91 ms	1178.17 GFlops
+# [vpu]:1024	32768	double4	6552.02 ms	1179.93 GFlops
+# [vpu]:1024	32768	double8	13111.1 ms	1179.3 GFlops
+# [vpu]:1024	32768	double16	48552.8 ms	636.91 GFlops
+
+----------- Aggregated at vec_size ------------
+# [vpu]:double1	128	256	2.5767 ms	732.503 GFlops
+# [vpu]:double1	128	512	4.25665 ms	886.818 GFlops
+# [vpu]:double1	128	1024	7.55099 ms	999.836 GFlops
+# [vpu]:double1	128	2048	13.7371 ms	1099.17 GFlops
+# [vpu]:double1	128	4096	25.8951 ms	1166.21 GFlops
+# [vpu]:double1	128	8192	51.4703 ms	1173.45 GFlops
+# [vpu]:double1	128	16384	102.669 ms	1176.56 GFlops
+# [vpu]:double1	128	32768	205.631 ms	1174.88 GFlops
+# [vpu]:double1	256	256	4.96369 ms	760.497 GFlops
+# [vpu]:double1	256	512	8.70154 ms	867.633 GFlops
+# [vpu]:double1	256	1024	14.7603 ms	1022.98 GFlops
+# [vpu]:double1	256	2048	27.222 ms	1109.36 GFlops
+# [vpu]:double1	256	4096	51.5328 ms	1172.03 GFlops
+# [vpu]:double1	256	8192	102.678 ms	1176.45 GFlops
+# [vpu]:double1	256	16384	204.943 ms	1178.83 GFlops
+# [vpu]:double1	256	32768	410.821 ms	1176.14 GFlops
+# [vpu]:double1	512	256	9.77166 ms	772.617 GFlops
+# [vpu]:double1	512	512	17.1157 ms	882.199 GFlops
+# [vpu]:double1	512	1024	29.5262 ms	1022.79 GFlops
+# [vpu]:double1	512	2048	54.2429 ms	1113.47 GFlops
+# [vpu]:double1	512	4096	102.689 ms	1176.32 GFlops
+# [vpu]:double1	512	8192	205.067 ms	1178.11 GFlops
+# [vpu]:double1	512	16384	409.43 ms	1180.14 GFlops
+# [vpu]:double1	512	32768	821.277 ms	1176.66 GFlops
+# [vpu]:double1	1024	256	19.2436 ms	784.651 GFlops
+# [vpu]:double1	1024	512	34.2334 ms	882.149 GFlops
+# [vpu]:double1	1024	1024	60.3382 ms	1000.99 GFlops
+# [vpu]:double1	1024	2048	108.516 ms	1113.16 GFlops
+# [vpu]:double1	1024	4096	205.051 ms	1178.2 GFlops
+# [vpu]:double1	1024	8192	409.682 ms	1179.41 GFlops
+# [vpu]:double1	1024	16384	817.188 ms	1182.55 GFlops
+# [vpu]:double1	1024	32768	1641.68 ms	1177.29 GFlops
+
+summary: double1	817.188 ms	1182.55 GFlops	1024	16384
+--------------------------------------------
+# [vpu]:double2	128	256	4.97383 ms	758.947 GFlops
+# [vpu]:double2	128	512	8.63114 ms	874.71 GFlops
+# [vpu]:double2	128	1024	14.8552 ms	1016.45 GFlops
+# [vpu]:double2	128	2048	27.2234 ms	1109.3 GFlops
+# [vpu]:double2	128	4096	51.444 ms	1174.05 GFlops
+# [vpu]:double2	128	8192	102.526 ms	1178.2 GFlops
+# [vpu]:double2	128	16384	204.557 ms	1181.05 GFlops
+# [vpu]:double2	128	32768	410.353 ms	1177.48 GFlops
+# [vpu]:double2	256	256	9.75708 ms	773.771 GFlops
+# [vpu]:double2	256	512	17.0899 ms	883.533 GFlops
+# [vpu]:double2	256	1024	29.7506 ms	1015.07 GFlops
+# [vpu]:double2	256	2048	54.1704 ms	1114.96 GFlops
+# [vpu]:double2	256	4096	102.62 ms	1177.12 GFlops
+# [vpu]:double2	256	8192	204.717 ms	1180.13 GFlops
+# [vpu]:double2	256	16384	408.538 ms	1182.72 GFlops
+# [vpu]:double2	256	32768	820.375 ms	1177.96 GFlops
+# [vpu]:double2	512	256	19.1659 ms	787.832 GFlops
+# [vpu]:double2	512	512	34.2324 ms	882.177 GFlops
+# [vpu]:double2	512	1024	59.2788 ms	1018.88 GFlops
+# [vpu]:double2	512	2048	108.101 ms	1117.43 GFlops
+# [vpu]:double2	512	4096	204.727 ms	1180.07 GFlops
+# [vpu]:double2	512	8192	409.147 ms	1180.95 GFlops
+# [vpu]:double2	512	16384	815.417 ms	1185.12 GFlops
+# [vpu]:double2	512	32768	1639.37 ms	1178.95 GFlops
+# [vpu]:double2	1024	256	37.976 ms	795.213 GFlops
+# [vpu]:double2	1024	512	69.2904 ms	871.664 GFlops
+# [vpu]:double2	1024	1024	118.889 ms	1016.04 GFlops
+# [vpu]:double2	1024	2048	216.498 ms	1115.91 GFlops
+# [vpu]:double2	1024	4096	409.155 ms	1180.93 GFlops
+# [vpu]:double2	1024	8192	817.884 ms	1181.55 GFlops
+# [vpu]:double2	1024	16384	1630.44 ms	1185.41 GFlops
+# [vpu]:double2	1024	32768	3280.91 ms	1178.17 GFlops
+
+summary: double2	1630.44 ms	1185.41 GFlops	1024	16384
+--------------------------------------------
+# [vpu]:double4	128	256	9.75699 ms	773.778 GFlops
+# [vpu]:double4	128	512	17.0653 ms	884.805 GFlops
+# [vpu]:double4	128	1024	29.9864 ms	1007.09 GFlops
+# [vpu]:double4	128	2048	54.2577 ms	1113.17 GFlops
+# [vpu]:double4	128	4096	102.474 ms	1178.79 GFlops
+# [vpu]:double4	128	8192	204.709 ms	1180.17 GFlops
+# [vpu]:double4	128	16384	408.68 ms	1182.3 GFlops
+# [vpu]:double4	128	32768	819.453 ms	1179.28 GFlops
+# [vpu]:double4	256	256	19.1727 ms	787.553 GFlops
+# [vpu]:double4	256	512	34.201 ms	882.984 GFlops
+# [vpu]:double4	256	1024	59.9977 ms	1006.67 GFlops
+# [vpu]:double4	256	2048	108.307 ms	1115.31 GFlops
+# [vpu]:double4	256	4096	204.581 ms	1180.91 GFlops
+# [vpu]:double4	256	8192	408.926 ms	1181.59 GFlops
+# [vpu]:double4	256	16384	815.191 ms	1185.45 GFlops
+# [vpu]:double4	256	32768	1639.08 ms	1179.16 GFlops
+# [vpu]:double4	512	256	37.9368 ms	796.033 GFlops
+# [vpu]:double4	512	512	69.748 ms	865.946 GFlops
+# [vpu]:double4	512	1024	119.349 ms	1012.12 GFlops
+# [vpu]:double4	512	2048	213.922 ms	1129.34 GFlops
+# [vpu]:double4	512	4096	409.034 ms	1181.28 GFlops
+# [vpu]:double4	512	8192	817.417 ms	1182.22 GFlops
+# [vpu]:double4	512	16384	1629.31 ms	1186.23 GFlops
+# [vpu]:double4	512	32768	3278.07 ms	1179.19 GFlops
+# [vpu]:double4	1024	256	74.6516 ms	809.064 GFlops
+# [vpu]:double4	1024	512	136.286 ms	886.344 GFlops
+# [vpu]:double4	1024	1024	233.389 ms	1035.15 GFlops
+# [vpu]:double4	1024	2048	432.394 ms	1117.46 GFlops
+# [vpu]:double4	1024	4096	817.246 ms	1182.47 GFlops
+# [vpu]:double4	1024	8192	1634.31 ms	1182.6 GFlops
+# [vpu]:double4	1024	16384	3261.27 ms	1185.27 GFlops
+# [vpu]:double4	1024	32768	6552.02 ms	1179.93 GFlops
+
+summary: double4	1629.31 ms	1186.23 GFlops	512	16384
+--------------------------------------------
+# [vpu]:double8	128	256	19.2658 ms	783.747 GFlops
+# [vpu]:double8	128	512	34.771 ms	868.511 GFlops
+# [vpu]:double8	128	1024	59.5482 ms	1014.27 GFlops
+# [vpu]:double8	128	2048	108.056 ms	1117.9 GFlops
+# [vpu]:double8	128	4096	204.723 ms	1180.09 GFlops
+# [vpu]:double8	128	8192	408.924 ms	1181.6 GFlops
+# [vpu]:double8	128	16384	816.954 ms	1182.89 GFlops
+# [vpu]:double8	128	32768	1638.97 ms	1179.24 GFlops
+# [vpu]:double8	256	256	38.0824 ms	792.991 GFlops
+# [vpu]:double8	256	512	68.3891 ms	883.152 GFlops
+# [vpu]:double8	256	1024	119.874 ms	1007.69 GFlops
+# [vpu]:double8	256	2048	214.489 ms	1126.36 GFlops
+# [vpu]:double8	256	4096	408.878 ms	1181.73 GFlops
+# [vpu]:double8	256	8192	817.445 ms	1182.18 GFlops
+# [vpu]:double8	256	16384	1630.62 ms	1185.28 GFlops
+# [vpu]:double8	256	32768	3278.42 ms	1179.06 GFlops
+# [vpu]:double8	512	256	74.7687 ms	807.798 GFlops
+# [vpu]:double8	512	512	137.506 ms	878.476 GFlops
+# [vpu]:double8	512	1024	237.504 ms	1017.21 GFlops
+# [vpu]:double8	512	2048	423.918 ms	1139.81 GFlops
+# [vpu]:double8	512	4096	817.286 ms	1182.41 GFlops
+# [vpu]:double8	512	8192	1634.34 ms	1182.58 GFlops
+# [vpu]:double8	512	16384	3265.96 ms	1183.56 GFlops
+# [vpu]:double8	512	32768	6553.76 ms	1179.62 GFlops
+# [vpu]:double8	1024	256	145.008 ms	833.027 GFlops
+# [vpu]:double8	1024	512	281.399 ms	858.537 GFlops
+# [vpu]:double8	1024	1024	473.694 ms	1020.03 GFlops
+# [vpu]:double8	1024	2048	866.227 ms	1115.61 GFlops
+# [vpu]:double8	1024	4096	1636.52 ms	1181.01 GFlops
+# [vpu]:double8	1024	8192	3270.24 ms	1182.01 GFlops
+# [vpu]:double8	1024	16384	6531.5 ms	1183.64 GFlops
+# [vpu]:double8	1024	32768	13111.1 ms	1179.3 GFlops
+
+summary: double8	1630.62 ms	1185.28 GFlops	256	16384
+--------------------------------------------
+# [vpu]:double16	128	256	83.4239 ms	361.995 GFlops
+# [vpu]:double16	128	512	132.14 ms	457.077 GFlops
+# [vpu]:double16	128	1024	221.09 ms	546.367 GFlops
+# [vpu]:double16	128	2048	399.393 ms	604.898 GFlops
+# [vpu]:double16	128	4096	758.587 ms	636.952 GFlops
+# [vpu]:double16	128	8192	1513.3 ms	638.585 GFlops
+# [vpu]:double16	128	16384	3021.19 ms	639.727 GFlops
+# [vpu]:double16	128	32768	6076.55 ms	636.129 GFlops
+# [vpu]:double16	256	256	153.891 ms	392.473 GFlops
+# [vpu]:double16	256	512	264.627 ms	456.476 GFlops
+# [vpu]:double16	256	1024	447.791 ms	539.52 GFlops
+# [vpu]:double16	256	2048	803.065 ms	601.674 GFlops
+# [vpu]:double16	256	4096	1522.17 ms	634.861 GFlops
+# [vpu]:double16	256	8192	3028.45 ms	638.193 GFlops
+# [vpu]:double16	256	16384	6052.65 ms	638.641 GFlops
+# [vpu]:double16	256	32768	12147.7 ms	636.412 GFlops
+# [vpu]:double16	512	256	306.339 ms	394.322 GFlops
+# [vpu]:double16	512	512	519.503 ms	465.044 GFlops
+# [vpu]:double16	512	1024	884.468 ms	546.299 GFlops
+# [vpu]:double16	512	2048	1602.47 ms	603.049 GFlops
+# [vpu]:double16	512	4096	3026.1 ms	638.689 GFlops
+# [vpu]:double16	512	8192	6046.21 ms	639.321 GFlops
+# [vpu]:double16	512	16384	12084.7 ms	639.73 GFlops
+# [vpu]:double16	512	32768	24286.1 ms	636.655 GFlops
+# [vpu]:double16	1024	256	611.981 ms	394.77 GFlops
+# [vpu]:double16	1024	512	1046.46 ms	461.732 GFlops
+# [vpu]:double16	1024	1024	1763.84 ms	547.876 GFlops
+# [vpu]:double16	1024	2048	3207.21 ms	602.622 GFlops
+# [vpu]:double16	1024	4096	6045.84 ms	639.36 GFlops
+# [vpu]:double16	1024	8192	12087.6 ms	639.576 GFlops
+# [vpu]:double16	1024	16384	24168.2 ms	639.762 GFlops
+# [vpu]:double16	1024	32768	48552.8 ms	636.91 GFlops
+
+summary: double16	24168.2 ms	639.762 GFlops	1024	16384
+--------------------------------------------
+
+----------- Aggregated at block & grid size ------------
+# [vpu]:128	256	double1	2.5767 ms	732.503 GFlops
+# [vpu]:128	256	double2	4.97383 ms	758.947 GFlops
+# [vpu]:128	256	double4	9.75699 ms	773.778 GFlops
+# [vpu]:128	256	double8	19.2658 ms	783.747 GFlops
+# [vpu]:128	256	double16	83.4239 ms	361.995 GFlops
+
+summary: 128	256	19.2658 ms	783.747 GFlops	double8
+--------------------------------------------
+# [vpu]:128	512	double1	4.25665 ms	886.818 GFlops
+# [vpu]:128	512	double2	8.63114 ms	874.71 GFlops
+# [vpu]:128	512	double4	17.0653 ms	884.805 GFlops
+# [vpu]:128	512	double8	34.771 ms	868.511 GFlops
+# [vpu]:128	512	double16	132.14 ms	457.077 GFlops
+
+summary: 128	512	4.25665 ms	886.818 GFlops	double1
+--------------------------------------------
+# [vpu]:128	1024	double1	7.55099 ms	999.836 GFlops
+# [vpu]:128	1024	double2	14.8552 ms	1016.45 GFlops
+# [vpu]:128	1024	double4	29.9864 ms	1007.09 GFlops
+# [vpu]:128	1024	double8	59.5482 ms	1014.27 GFlops
+# [vpu]:128	1024	double16	221.09 ms	546.367 GFlops
+
+summary: 128	1024	14.8552 ms	1016.45 GFlops	double2
+--------------------------------------------
+# [vpu]:128	2048	double1	13.7371 ms	1099.17 GFlops
+# [vpu]:128	2048	double2	27.2234 ms	1109.3 GFlops
+# [vpu]:128	2048	double4	54.2577 ms	1113.17 GFlops
+# [vpu]:128	2048	double8	108.056 ms	1117.9 GFlops
+# [vpu]:128	2048	double16	399.393 ms	604.898 GFlops
+
+summary: 128	2048	108.056 ms	1117.9 GFlops	double8
+--------------------------------------------
+# [vpu]:128	4096	double1	25.8951 ms	1166.21 GFlops
+# [vpu]:128	4096	double2	51.444 ms	1174.05 GFlops
+# [vpu]:128	4096	double4	102.474 ms	1178.79 GFlops
+# [vpu]:128	4096	double8	204.723 ms	1180.09 GFlops
+# [vpu]:128	4096	double16	758.587 ms	636.952 GFlops
+
+summary: 128	4096	204.723 ms	1180.09 GFlops	double8
+--------------------------------------------
+# [vpu]:128	8192	double1	51.4703 ms	1173.45 GFlops
+# [vpu]:128	8192	double2	102.526 ms	1178.2 GFlops
+# [vpu]:128	8192	double4	204.709 ms	1180.17 GFlops
+# [vpu]:128	8192	double8	408.924 ms	1181.6 GFlops
+# [vpu]:128	8192	double16	1513.3 ms	638.585 GFlops
+
+summary: 128	8192	408.924 ms	1181.6 GFlops	double8
+--------------------------------------------
+# [vpu]:128	16384	double1	102.669 ms	1176.56 GFlops
+# [vpu]:128	16384	double2	204.557 ms	1181.05 GFlops
+# [vpu]:128	16384	double4	408.68 ms	1182.3 GFlops
+# [vpu]:128	16384	double8	816.954 ms	1182.89 GFlops
+# [vpu]:128	16384	double16	3021.19 ms	639.727 GFlops
+
+summary: 128	16384	816.954 ms	1182.89 GFlops	double8
+--------------------------------------------
+# [vpu]:128	32768	double1	205.631 ms	1174.88 GFlops
+# [vpu]:128	32768	double2	410.353 ms	1177.48 GFlops
+# [vpu]:128	32768	double4	819.453 ms	1179.28 GFlops
+# [vpu]:128	32768	double8	1638.97 ms	1179.24 GFlops
+# [vpu]:128	32768	double16	6076.55 ms	636.129 GFlops
+
+summary: 128	32768	819.453 ms	1179.28 GFlops	double4
+--------------------------------------------
+# [vpu]:256	256	double1	4.96369 ms	760.497 GFlops
+# [vpu]:256	256	double2	9.75708 ms	773.771 GFlops
+# [vpu]:256	256	double4	19.1727 ms	787.553 GFlops
+# [vpu]:256	256	double8	38.0824 ms	792.991 GFlops
+# [vpu]:256	256	double16	153.891 ms	392.473 GFlops
+
+summary: 256	256	38.0824 ms	792.991 GFlops	double8
+--------------------------------------------
+# [vpu]:256	512	double1	8.70154 ms	867.633 GFlops
+# [vpu]:256	512	double2	17.0899 ms	883.533 GFlops
+# [vpu]:256	512	double4	34.201 ms	882.984 GFlops
+# [vpu]:256	512	double8	68.3891 ms	883.152 GFlops
+# [vpu]:256	512	double16	264.627 ms	456.476 GFlops
+
+summary: 256	512	17.0899 ms	883.533 GFlops	double2
+--------------------------------------------
+# [vpu]:256	1024	double1	14.7603 ms	1022.98 GFlops
+# [vpu]:256	1024	double2	29.7506 ms	1015.07 GFlops
+# [vpu]:256	1024	double4	59.9977 ms	1006.67 GFlops
+# [vpu]:256	1024	double8	119.874 ms	1007.69 GFlops
+# [vpu]:256	1024	double16	447.791 ms	539.52 GFlops
+
+summary: 256	1024	14.7603 ms	1022.98 GFlops	double1
+--------------------------------------------
+# [vpu]:256	2048	double1	27.222 ms	1109.36 GFlops
+# [vpu]:256	2048	double2	54.1704 ms	1114.96 GFlops
+# [vpu]:256	2048	double4	108.307 ms	1115.31 GFlops
+# [vpu]:256	2048	double8	214.489 ms	1126.36 GFlops
+# [vpu]:256	2048	double16	803.065 ms	601.674 GFlops
+
+summary: 256	2048	214.489 ms	1126.36 GFlops	double8
+--------------------------------------------
+# [vpu]:256	4096	double1	51.5328 ms	1172.03 GFlops
+# [vpu]:256	4096	double2	102.62 ms	1177.12 GFlops
+# [vpu]:256	4096	double4	204.581 ms	1180.91 GFlops
+# [vpu]:256	4096	double8	408.878 ms	1181.73 GFlops
+# [vpu]:256	4096	double16	1522.17 ms	634.861 GFlops
+
+summary: 256	4096	408.878 ms	1181.73 GFlops	double8
+--------------------------------------------
+# [vpu]:256	8192	double1	102.678 ms	1176.45 GFlops
+# [vpu]:256	8192	double2	204.717 ms	1180.13 GFlops
+# [vpu]:256	8192	double4	408.926 ms	1181.59 GFlops
+# [vpu]:256	8192	double8	817.445 ms	1182.18 GFlops
+# [vpu]:256	8192	double16	3028.45 ms	638.193 GFlops
+
+summary: 256	8192	817.445 ms	1182.18 GFlops	double8
+--------------------------------------------
+# [vpu]:256	16384	double1	204.943 ms	1178.83 GFlops
+# [vpu]:256	16384	double2	408.538 ms	1182.72 GFlops
+# [vpu]:256	16384	double4	815.191 ms	1185.45 GFlops
+# [vpu]:256	16384	double8	1630.62 ms	1185.28 GFlops
+# [vpu]:256	16384	double16	6052.65 ms	638.641 GFlops
+
+summary: 256	16384	815.191 ms	1185.45 GFlops	double4
+--------------------------------------------
+# [vpu]:256	32768	double1	410.821 ms	1176.14 GFlops
+# [vpu]:256	32768	double2	820.375 ms	1177.96 GFlops
+# [vpu]:256	32768	double4	1639.08 ms	1179.16 GFlops
+# [vpu]:256	32768	double8	3278.42 ms	1179.06 GFlops
+# [vpu]:256	32768	double16	12147.7 ms	636.412 GFlops
+
+summary: 256	32768	1639.08 ms	1179.16 GFlops	double4
+--------------------------------------------
+# [vpu]:512	256	double1	9.77166 ms	772.617 GFlops
+# [vpu]:512	256	double2	19.1659 ms	787.832 GFlops
+# [vpu]:512	256	double4	37.9368 ms	796.033 GFlops
+# [vpu]:512	256	double8	74.7687 ms	807.798 GFlops
+# [vpu]:512	256	double16	306.339 ms	394.322 GFlops
+
+summary: 512	256	74.7687 ms	807.798 GFlops	double8
+--------------------------------------------
+# [vpu]:512	512	double1	17.1157 ms	882.199 GFlops
+# [vpu]:512	512	double2	34.2324 ms	882.177 GFlops
+# [vpu]:512	512	double4	69.748 ms	865.946 GFlops
+# [vpu]:512	512	double8	137.506 ms	878.476 GFlops
+# [vpu]:512	512	double16	519.503 ms	465.044 GFlops
+
+summary: 512	512	17.1157 ms	882.199 GFlops	double1
+--------------------------------------------
+# [vpu]:512	1024	double1	29.5262 ms	1022.79 GFlops
+# [vpu]:512	1024	double2	59.2788 ms	1018.88 GFlops
+# [vpu]:512	1024	double4	119.349 ms	1012.12 GFlops
+# [vpu]:512	1024	double8	237.504 ms	1017.21 GFlops
+# [vpu]:512	1024	double16	884.468 ms	546.299 GFlops
+
+summary: 512	1024	29.5262 ms	1022.79 GFlops	double1
+--------------------------------------------
+# [vpu]:512	2048	double1	54.2429 ms	1113.47 GFlops
+# [vpu]:512	2048	double2	108.101 ms	1117.43 GFlops
+# [vpu]:512	2048	double4	213.922 ms	1129.34 GFlops
+# [vpu]:512	2048	double8	423.918 ms	1139.81 GFlops
+# [vpu]:512	2048	double16	1602.47 ms	603.049 GFlops
+
+summary: 512	2048	423.918 ms	1139.81 GFlops	double8
+--------------------------------------------
+# [vpu]:512	4096	double1	102.689 ms	1176.32 GFlops
+# [vpu]:512	4096	double2	204.727 ms	1180.07 GFlops
+# [vpu]:512	4096	double4	409.034 ms	1181.28 GFlops
+# [vpu]:512	4096	double8	817.286 ms	1182.41 GFlops
+# [vpu]:512	4096	double16	3026.1 ms	638.689 GFlops
+
+summary: 512	4096	817.286 ms	1182.41 GFlops	double8
+--------------------------------------------
+# [vpu]:512	8192	double1	205.067 ms	1178.11 GFlops
+# [vpu]:512	8192	double2	409.147 ms	1180.95 GFlops
+# [vpu]:512	8192	double4	817.417 ms	1182.22 GFlops
+# [vpu]:512	8192	double8	1634.34 ms	1182.58 GFlops
+# [vpu]:512	8192	double16	6046.21 ms	639.321 GFlops
+
+summary: 512	8192	1634.34 ms	1182.58 GFlops	double8
+--------------------------------------------
+# [vpu]:512	16384	double1	409.43 ms	1180.14 GFlops
+# [vpu]:512	16384	double2	815.417 ms	1185.12 GFlops
+# [vpu]:512	16384	double4	1629.31 ms	1186.23 GFlops
+# [vpu]:512	16384	double8	3265.96 ms	1183.56 GFlops
+# [vpu]:512	16384	double16	12084.7 ms	639.73 GFlops
+
+summary: 512	16384	1629.31 ms	1186.23 GFlops	double4
+--------------------------------------------
+# [vpu]:512	32768	double1	821.277 ms	1176.66 GFlops
+# [vpu]:512	32768	double2	1639.37 ms	1178.95 GFlops
+# [vpu]:512	32768	double4	3278.07 ms	1179.19 GFlops
+# [vpu]:512	32768	double8	6553.76 ms	1179.62 GFlops
+# [vpu]:512	32768	double16	24286.1 ms	636.655 GFlops
+
+summary: 512	32768	6553.76 ms	1179.62 GFlops	double8
+--------------------------------------------
+# [vpu]:1024	256	double1	19.2436 ms	784.651 GFlops
+# [vpu]:1024	256	double2	37.976 ms	795.213 GFlops
+# [vpu]:1024	256	double4	74.6516 ms	809.064 GFlops
+# [vpu]:1024	256	double8	145.008 ms	833.027 GFlops
+# [vpu]:1024	256	double16	611.981 ms	394.77 GFlops
+
+summary: 1024	256	145.008 ms	833.027 GFlops	double8
+--------------------------------------------
+# [vpu]:1024	512	double1	34.2334 ms	882.149 GFlops
+# [vpu]:1024	512	double2	69.2904 ms	871.664 GFlops
+# [vpu]:1024	512	double4	136.286 ms	886.344 GFlops
+# [vpu]:1024	512	double8	281.399 ms	858.537 GFlops
+# [vpu]:1024	512	double16	1046.46 ms	461.732 GFlops
+
+summary: 1024	512	136.286 ms	886.344 GFlops	double4
+--------------------------------------------
+# [vpu]:1024	1024	double1	60.3382 ms	1000.99 GFlops
+# [vpu]:1024	1024	double2	118.889 ms	1016.04 GFlops
+# [vpu]:1024	1024	double4	233.389 ms	1035.15 GFlops
+# [vpu]:1024	1024	double8	473.694 ms	1020.03 GFlops
+# [vpu]:1024	1024	double16	1763.84 ms	547.876 GFlops
+
+summary: 1024	1024	233.389 ms	1035.15 GFlops	double4
+--------------------------------------------
+# [vpu]:1024	2048	double1	108.516 ms	1113.16 GFlops
+# [vpu]:1024	2048	double2	216.498 ms	1115.91 GFlops
+# [vpu]:1024	2048	double4	432.394 ms	1117.46 GFlops
+# [vpu]:1024	2048	double8	866.227 ms	1115.61 GFlops
+# [vpu]:1024	2048	double16	3207.21 ms	602.622 GFlops
+
+summary: 1024	2048	432.394 ms	1117.46 GFlops	double4
+--------------------------------------------
+# [vpu]:1024	4096	double1	205.051 ms	1178.2 GFlops
+# [vpu]:1024	4096	double2	409.155 ms	1180.93 GFlops
+# [vpu]:1024	4096	double4	817.246 ms	1182.47 GFlops
+# [vpu]:1024	4096	double8	1636.52 ms	1181.01 GFlops
+# [vpu]:1024	4096	double16	6045.84 ms	639.36 GFlops
+
+summary: 1024	4096	817.246 ms	1182.47 GFlops	double4
+--------------------------------------------
+# [vpu]:1024	8192	double1	409.682 ms	1179.41 GFlops
+# [vpu]:1024	8192	double2	817.884 ms	1181.55 GFlops
+# [vpu]:1024	8192	double4	1634.31 ms	1182.6 GFlops
+# [vpu]:1024	8192	double8	3270.24 ms	1182.01 GFlops
+# [vpu]:1024	8192	double16	12087.6 ms	639.576 GFlops
+
+summary: 1024	8192	1634.31 ms	1182.6 GFlops	double4
+--------------------------------------------
+# [vpu]:1024	16384	double1	817.188 ms	1182.55 GFlops
+# [vpu]:1024	16384	double2	1630.44 ms	1185.41 GFlops
+# [vpu]:1024	16384	double4	3261.27 ms	1185.27 GFlops
+# [vpu]:1024	16384	double8	6531.5 ms	1183.64 GFlops
+# [vpu]:1024	16384	double16	24168.2 ms	639.762 GFlops
+
+summary: 1024	16384	1630.44 ms	1185.41 GFlops	double2
+--------------------------------------------
+# [vpu]:1024	32768	double1	1641.68 ms	1177.29 GFlops
+# [vpu]:1024	32768	double2	3280.91 ms	1178.17 GFlops
+# [vpu]:1024	32768	double4	6552.02 ms	1179.93 GFlops
+# [vpu]:1024	32768	double8	13111.1 ms	1179.3 GFlops
+# [vpu]:1024	32768	double16	48552.8 ms	636.91 GFlops
+
+summary: 1024	32768	6552.02 ms	1179.93 GFlops	double4
+--------------------------------------------
+Data type: double
+Time for VPU: 1629.31 ms.	BlockSize: 512	GridSize: 16384	VecSize: 4	Bandwidth: 1186.23 GFLOPS

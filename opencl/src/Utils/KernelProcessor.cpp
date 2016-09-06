@@ -64,7 +64,7 @@ void KernelProcessor::compile(cl_context context, char* extra) {
     strcat(comArgs,"-DKERNEL ");
     strcat(comArgs, extra);
 
-    // strcat(path, "-auto-prefetch-level=2 ");
+    // strcat(comArgs, " -auto-prefetch-level=0 ");
 #ifdef RECORDS
     strcat(comArgs,"-DRECORDS");
 #endif
@@ -73,26 +73,25 @@ void KernelProcessor::compile(cl_context context, char* extra) {
     checkErr(err, "Compilation error.");
 
     // //extract the assembly programs
-    // size_t ass_size;
-    // err = clGetProgramInfo(this->program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &ass_size, NULL);
-    // checkErr(err,"Failed to get the size of the assembly program.");
+    size_t ass_size;
+    err = clGetProgramInfo(this->program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &ass_size, NULL);
+    checkErr(err,"Failed to get the size of the assembly program.");
 
-    // cout<<"ass size: "<<ass_size<<endl;
-    // unsigned char *binary = new unsigned char[ass_size];
-    // err = clGetProgramInfo(this->program, CL_PROGRAM_BINARIES, ass_size, &binary, NULL);
-    // checkErr(err,"Failed to generate the assembly program.");
+    unsigned char *binary = new unsigned char[ass_size];
+    err = clGetProgramInfo(this->program, CL_PROGRAM_BINARIES, ass_size, &binary, NULL);
+    checkErr(err,"Failed to generate the assembly program.");
 
-    // FILE * fpbin = fopen( "assembly.ass", "wb" );
-    // if( fpbin == NULL )
-    // {
-    //     fprintf( stderr, "Cannot create '%s'\n", "assembly.ass" );
-    // }
-    // else
-    // {
-    //     fwrite( binary, 1, ass_size, fpbin );
-    //     fclose( fpbin );
-    // }
-    // delete [] binary;
+    FILE * fpbin = fopen( "assembly.ass", "wb" );
+    if( fpbin == NULL )
+    {
+        fprintf( stderr, "Cannot create '%s'\n", "assembly.ass" );
+    }
+    else
+    {
+        fwrite( binary, 1, ass_size, fpbin );
+        fclose( fpbin );
+    }
+    delete [] binary;
 
 }
 

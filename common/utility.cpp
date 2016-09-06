@@ -246,7 +246,7 @@ void my_itoa(int num, char *buffer, int base) {
 //calculating the processor throughput
 //elapsed time: in ms using diffTime
 double computeGFLOPS(int dataSize, double elaspedTime, bool isMADD, int repeatTime, int numPerRun) {
-    return (double)dataSize * (isMADD?2:1) * repeatTime * numPerRun / elaspedTime * 1e-6;
+    return (double)(dataSize) * (isMADD?2:1) * repeatTime * numPerRun / elaspedTime * 1e-6;
 }
 
 //calculating the memory bandwidth
