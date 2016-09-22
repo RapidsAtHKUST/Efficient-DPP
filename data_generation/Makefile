@@ -11,8 +11,9 @@ OBJ_DIR := $(HOME_PATH)/obj
 CC := g++
 CCFLAGS := -g
 INCLUDE := -I$(INC_DIR) \
-		   -I/usr/local/cuda/include
-LINK := 
+		   -I/usr/local/cuda/includei \
+		   -I/ghome/zlai/workspace/Nvidia_OpenCL_SDK_4_2_Linux/OpenCL/common/inc
+LINK := -L/ghome/zlai/workspace/Nvidia_OpenCL_SDK_4_2_Linux/OpenCL/common/lib -lOpenCL
 
 SRC :=  $(filter-out ._%,$(notdir $(shell find src -name *.cpp)))
 OBJ := $(SRC:%.cpp=$(OBJ_DIR)/%.o)

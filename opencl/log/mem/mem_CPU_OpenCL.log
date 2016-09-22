@@ -1,0 +1,22 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 33554432
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+------ End of hardware checking ------
+
+-----  Memory Bandwidth Test ----- 
+Data type: int
+Input data size(read): 838860800
+Input data size(write & mul): 67108864
+Output data size: 67108864
+Time for memory read(Repeat:100): 0.553128 ms.	Bandwidth: 60.663 GB/s
+Time for memory write: 4.30133 ms.	Bandwidth: 31.2038 GB/s
+Time for memory mul: 11.7396 ms.	Bandwidth: 45.7315 GB/s

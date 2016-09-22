@@ -76,9 +76,6 @@ typedef struct Basic_info {
     double mem_write_time;
     double mem_write_throughput;
 
-    double mem_triad_time;
-    double mem_triad_throughput;
-
     double mem_mul_time;
     double mem_mul_throughput;
 } Basic_info;

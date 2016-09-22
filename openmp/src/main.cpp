@@ -19,40 +19,59 @@ double avgTime[NUM_FUCTIONS]={0};
 
 int main(int argc, char* argv[]) {
 
-	double totalTime = 0.0f;
+	double readTime = 9999.0;
+	double writeTime = 9999.0;
+	double mulTime = 9999.0;
+
 	int n = atoi(argv[1]);
+	int expr = 10;
 
 	cout<<"num:"<<n<<endl;
 
-	// float *input = (float*)_mm_malloc(sizeof(float)*n, 64);
-	float *input = new float[n];
+	double *input = new double[n];
+	double *output = new double[n];
+
+	// double *input = (double*)_mm_malloc(sizeof(double) * n, 64);
+	// double *output = (double*)_mm_malloc(sizeof(double) * n, 64);
+
 	for(int i = 0; i < n;i++) {
-		input[i] = 0;
+		input[i] = rand() & 0xffffff;
 	}
 
 
 cout<<"---------------- begin test ----------------"<<endl;
-	
-	double lessTime = 9999999;
+	double totalTime;
 
-	int expr = 10;
-	int repeatTime = 1;
-	
-	for(int i = 0; i < expr; i++) {
-		totalTime = mem_read_test(input,n,repeatTime);
-		if (totalTime < lessTime) lessTime = totalTime;
-	}
-	cout<<"totalTime:"<<lessTime<<" ms."<<endl;
-	cout<<"Mem Throughput: "<< computeMem(n, sizeof(float), lessTime)<<" GB/s"<<endl;
-
-	// cout<<"output:";
-	// for(int i = 1456; i < 1567; i++) {
-	// 	cout<<input[i]<<' ';
+	// for(int i = 0; i < expr; i++) {
+	// 	totalTime = mem_read_test(input, n);
+	// 	if (totalTime < readTime) readTime = totalTime;
 	// }
-	// cout<<endl;
+	// cout<<"read test: finished."<<endl;
 
-	// _mm_free(input);
+	// for(int i = 0; i < expr; i++) {
+	// 	totalTime = mem_write_test(output, n);
+	// 	if (totalTime < writeTime) writeTime = totalTime;
+	// }
+	// cout<<"write test: finished."<<endl;
+
+	for(int i = 0; i < expr; i++) {
+		totalTime = mem_mul_test(input, output, n);
+		if (totalTime < mulTime) mulTime = totalTime;
+	}
+	cout<<"mul test: finished"<<endl;
+
+	cout<<"Read totalTime:"<<readTime<<" ms.\t"
+		<<"Read Throughput: "<< computeMem(n, sizeof(int), readTime)<<" GB/s"<<endl;
+	cout<<"Write totalTime:"<<writeTime<<" ms.\t"
+	<<"Write Throughput: "<< computeMem(n, sizeof(int), writeTime)<<" GB/s"<<endl;
+	cout<<"Mul totalTime:"<<mulTime<<" ms.\t"
+	<<"Mul Throughput: "<< computeMem(n*2, sizeof(double), mulTime)<<" GB/s"<<endl;
+
 	delete[] input;
+	delete[] output;
+	// _mm_free(input);
+	// _mm_free(output);
+
 
 	return 0;
 

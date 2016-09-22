@@ -81,6 +81,8 @@
 #define SHARED_MEM_SIZE			(48000)
 #define SHARED_MEM_CHECK(SIZE)		assert(SIZE <= SHARED_MEM_SIZE);
 #define MAX_TIME 				(999999.0f)
+#define SHUFFLE_NUM				(2099999999)
+#define PI 						(3.141592653589)
 
 int compRecordAsc ( const void * a, const void * b);
 int compRecordDec ( const void * a, const void * b);
@@ -103,7 +105,7 @@ template<typename T>
 void valRandom(T *arr, int length, T max=MAX_NUM);
 
 template<typename T>
-void valRandom_Only(T *arr, int length,  int times);
+void valRandom_Only(T *arr, int length,  int times, int max);
 
 // void generateFixedRecords(Record* fixedRecords, int length, bool write, char *file);
 

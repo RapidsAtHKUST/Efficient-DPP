@@ -8,7 +8,12 @@
 #ifndef __KERNELS_H__
 #define __KERNELS_H__
 
+
 #include "utility.h"
+
+float testMemRead(int *d_source_values, int *d_dest_values, int blockSize, int gridSize) ;
+float testMemWrite(int *d_dest_values, int blockSize, int gridSize) ;
+float testMemMul(int2 *d_source_values, int2 *d_dest_values, int blockSize, int gridSize) ;
 
 template<class T> float map(		
 #ifdef RECORDS

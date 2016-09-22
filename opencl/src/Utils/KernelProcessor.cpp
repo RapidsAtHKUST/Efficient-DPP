@@ -64,7 +64,8 @@ void KernelProcessor::compile(cl_context context, char* extra) {
     strcat(comArgs,"-DKERNEL ");
     strcat(comArgs, extra);
 
-    // strcat(comArgs, " -auto-prefetch-level=0 ");
+    // strcat(comArgs, " -auto-prefetch-level=0 ");    
+    
 #ifdef RECORDS
     strcat(comArgs,"-DRECORDS");
 #endif

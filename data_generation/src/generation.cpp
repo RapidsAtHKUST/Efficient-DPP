@@ -69,20 +69,37 @@ void intRandom(int *intArr, int length, int max) {
     }
 }
 
-void intRandom_Only(int *intArr, int length,  int times) {
+void intRandom_Only(int *intArr, int length,  int times, int max) {
     srand((unsigned)time(NULL));
     sleep(1);
-    for(int i = 0; i < length; i++) {
-        intArr[i] = i;
+
+	int *maxArray;
+
+	if (length == max)	{
+		maxArray = intArr;
+		std::cout<<"equal size"<<std::endl;
+	}
+	else				maxArray = new int[max];
+
+    for(int i = 0; i < max; i++) {
+        maxArray[i] = i;
     }
+    
     int temp, from = 0, to = 0;
     for(int i = 0; i < times; i++) {
-        from = rand() % length;
-        to = rand() % length;
-        temp = intArr[from];
-        intArr[from] = intArr[to];
-        intArr[to] = temp;
+        from = rand() % max;
+        to = rand() % max;
+        temp = maxArray[from];
+        maxArray[from] = maxArray[to];
+        maxArray[to] = temp;
     }
+
+	if (length != max) {
+	    for(int i = 0; i < length; i++) {
+		     intArr[i] = maxArray[i];
+		}
+		delete[] maxArray;
+	}
 }
 
 void intSorted(int *intArr, int length, int max) {
@@ -90,8 +107,8 @@ void intSorted(int *intArr, int length, int max) {
 	qsort(intArr,length,sizeof(int),compInt);
 }
 
-void intSorted_Only(int *intArr, int length, int times) {
-	intRandom_Only(intArr,length,times);
+void intSorted_Only(int *intArr, int length, int times, int max) {
+	intRandom_Only(intArr,length,times, max);
 	qsort(intArr,length,sizeof(int),compInt);
 }
 

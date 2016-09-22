@@ -10,6 +10,8 @@
 
 #include "kernels.h"
 
+void testMem(const int localSize, const int gridSize, float& readTime, float& writeTime, float& mulTime, int repeat) ;
+
 template<class T> bool testMap( 
 #ifdef RECORDS
 	int *source_keys, 

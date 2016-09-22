@@ -19,13 +19,19 @@
 
 #include <string.h>
 
-#include <cuda_runtime.h>
+// #include <cuda_runtime.h>
+
+#if defined(__APPLE__) || defined(__MACOSX)
+		#include <OpenCL/OpenCL.h>
+	#else
+		#include <CL/cl.h>
+#endif
 
 #define SHUFFLE_TIME(TIME)  		(TIME*2)
-#define MAX_DATA_SIZE				(160000000)
+#define MAX_DATA_SIZE				(1000000000)
 #define MAX_NUM 					(INT_MAX/2)
 
-typedef int2 Record;
+typedef cl_int2 Record;
 
 void recordRandom(Record *records, int length, int max = MAX_NUM);
 void recordRandom_Only(Record *records, int length,  int times);
@@ -33,10 +39,10 @@ void recordSorted(Record *records, int length, int max = MAX_NUM);
 void recordSorted_Only(Record *records, int length, int times);
 
 void intRandom(int *intArr, int length, int max = MAX_NUM);
-void intRandom_Only(int *intArr, int length,  int times);
+void intRandom_Only(int *intArr, int length,  int times, int max);
 
 void intSorted(int *intArr, int length, int max = MAX_NUM);
-void intSorted_Only(int *intArr, int length, int times);
+void intSorted_Only(int *intArr, int length, int times, int max);
 
 //generate the fixed record & int array and write to the external memory.
 void writeRecords(Record* records, int length, char *file);

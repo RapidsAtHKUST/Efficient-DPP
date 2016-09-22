@@ -12,8 +12,7 @@ double gather(
 #ifdef RECORDS
     cl_mem d_source_keys, cl_mem &d_dest_keys, bool isRecord,
 #endif
-    cl_mem d_source_values, cl_mem& d_dest_values, int length, 
-    cl_mem d_loc, int localSize, int gridSize, PlatInfo& info) {
+    cl_mem d_source_values, cl_mem& d_dest_values, int length, int length_output, cl_mem d_loc, int localSize, int gridSize, PlatInfo& info, int numOfRun) {
     
     double totalTime = 0;
     
@@ -33,18 +32,21 @@ double gather(
     argsNum = 0;
 
     int globalSize = gridSize * localSize;
-    int ele_per_thread = (length + globalSize - 1) / globalSize;
+    int ele_per_thread = (length_output + globalSize - 1) / globalSize;
 
 #ifdef RECORDS
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_source_keys);
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(cl_mem), &d_dest_keys);
-    status |= clSetKernelArg(mapKernel, argsNum++, sizeof(bool), &isRecord);
+    status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(cl_mem), &d_source_keys);
+    status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(cl_mem), &d_dest_keys);
+    status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(bool), &isRecord);
 #endif
     status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(cl_mem), &d_source_values);
     status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(cl_mem), &d_dest_values);
     status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(int), &length);
+    status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(int), &length_output);
     status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(cl_mem), &d_loc);
     status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(int), &ele_per_thread);
+    status |= clSetKernelArg(gatherKernel, argsNum++, sizeof(int), &numOfRun);
+    
     checkErr(status, ERR_SET_ARGUMENTS);
     
     //set work group and NDRange sizes
@@ -62,7 +64,8 @@ double gather(
     cl_event event;
     status = clEnqueueNDRangeKernel(info.currentQueue, gatherKernel, 1, 0, global, local, 0, 0, &event);
     clFlush(info.currentQueue);
-    clWaitForEvents(1, &event);
+    status = clFinish(info.currentQueue);
+
     checkErr(status, ERR_EXEC_KERNEL);
 
     totalTime = clEventTime(event);

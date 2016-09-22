@@ -10,16 +10,17 @@ kernel void gatherKernel(
   global const int *d_source_values, 
   global int* d_dest_values,
   const int length_input, const int length_output, global const int* loc,
-  int ele_per_thread, const int numOfRun)
+  int ele_per_thread)
 {
     int globalId = get_global_id(0);
 
-    int warpSize = 32;
-    int warpId = globalId >> 5;
+    int warpSize = 8;
+    int warpId = globalId >> 3;
 
     int begin = warpId * warpSize * ele_per_thread + (globalId & (warpSize-1));
     int end = ((warpId + 1) * warpSize * ele_per_thread < length_output)? ((warpId + 1) * warpSize * ele_per_thread) : length_output;
 
+    int numOfRun = 1;
     int numPerRun = length_input / numOfRun;
     if (length_input % numOfRun != 0) numPerRun += 1;
 

@@ -48,8 +48,8 @@ void testVPU(T *fixedValues, PlatInfo& info , double& totalTime, int localSize, 
     checkErr(status, ERR_WRITE_BUFFER);   
 
     char extra[500];
-    if (sizeof(T) == sizeof(float))         
-        strcpy(extra, "-DTYPE=float -DTYPE2=float2 -DTYPE4=float4 -DTYPE8=float8 -DTYPE16=float16");
+    if (sizeof(T) == sizeof(int))         
+        strcpy(extra, "-DTYPE=int -DTYPE2=int2 -DTYPE4=int4 -DTYPE8=int8 -DTYPE16=int16");
     else if (sizeof(T) == sizeof(double))
         strcpy(extra, "-DTYPE=double -DTYPE2=double2 -DTYPE4=double4 -DTYPE8=double8 -DTYPE16=double16");
 
@@ -100,6 +100,9 @@ void testVPU(T *fixedValues, PlatInfo& info , double& totalTime, int localSize, 
     status = clEnqueueReadBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(T)*length, h_source_values, 0, 0, 0);
     checkErr(status, ERR_READ_BUFFER);
 
+    for(int i = 0; i < length; i++) cout<<h_source_values[i]<<' ';
+    cout<<endl;
+
     status = clFinish(info.currentQueue);
 
     status = clReleaseMemObject(d_source_values);
@@ -114,53 +117,52 @@ void testVPU(T *fixedValues, PlatInfo& info , double& totalTime, int localSize, 
 
 //for memory read bandwidth test
 template<typename T>
-void testMem(PlatInfo& info , const int localSize, const int gridSize, double& readTime, double& writeTime, double& mulTime, double& triadTime, int repeat) {
+void testMem(PlatInfo& info , const int localSize, const int gridSize, double& readTime, double& writeTime, double& mulTime, int repeat) {
 
-    bool res = true;
     cl_int status = 0;
     int argsNum = 0;
     
-    int length = localSize * gridSize * repeat;
+    int input_length_read = localSize / 2 * gridSize / 2 * repeat;  //shrink the localsize and gridsize
 
-    std::cout<<"Data size: "<<length<<std::endl;
-    assert(length > 0);
+    //for write and mul, no need to repeat
+    int input_length_others = localSize * gridSize * 2; 
+    int output_length = localSize * gridSize * 2;
+
+    std::cout<<"Input data size(read): "<<input_length_read<<std::endl;
+    std::cout<<"Input data size(write & mul): "<<input_length_others<<std::endl;
+    std::cout<<"Output data size: "<<output_length<<std::endl;
+
+    assert(input_length_read > 0);
+    assert(input_length_others > 0);
+    assert(output_length > 0);
 
 #ifndef SILENCE
     FUNC_BEGIN;
     SHOW_PARALLEL(localSize, gridSize);
-    SHOW_DATA_NUM(length);
 #endif
 
-    T *h_source_values_1 = new T[length];  
-    T *h_source_values_2 = new T[length];  
-    T *h_dest_values = new T[length];
-
-    for(int i = 0; i < length; i++) {
-        h_source_values_1[i] = (T)i;
-     	h_source_values_2[i] = (T)(i+10);
+    T *h_source_values = new T[input_length_read];  
+    T *h_dest_values = new T[output_length];
+    
+    for(int i = 0; i < input_length_read; i++) {
+        h_source_values[i] = rand() % 10000;
     }
 
-    readTime = 0.0; writeTime = 0.0; mulTime = 0.0; triadTime = 0.0;
+    readTime = 0.0; writeTime = 0.0; mulTime = 0.0;
 
     //memory allocation
-    cl_mem d_source_values_1 = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*length, NULL, &status);
+    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*input_length_read, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values_1, CL_TRUE, 0, sizeof(T)*length, h_source_values_1, 0, 0, 0);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(T)*input_length_read, h_source_values, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);   
 
-    cl_mem d_source_values_2 = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values_2, CL_TRUE, 0, sizeof(T)*length, h_source_values_2, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER); 
-
-    cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(T)*length, NULL, &status);
+    cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(T)*output_length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
     char extra[500];
-    if (sizeof(T) == sizeof(float))         strcpy(extra, "-DTYPE=float");
-    else if (sizeof(T) == sizeof(double))   strcpy(extra, "-DTYPE=double");
+    if (sizeof(T) == sizeof(int))         strcpy(extra, "-DTYPE=int -DTYPE2=int2");
+    else if (sizeof(T) == sizeof(double))   strcpy(extra, "-DTYPE=double -DTYPE2=double2");
 
     //kernel reading
     char path[100] = PROJECT_ROOT;
@@ -170,62 +172,23 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
 
     char read_kerName[100] = "mem_read";
     char write_kerName[100] = "mem_write";
-
     char mul_kerName[100] = "mem_mul";
-    char triad_kerName[100] = "mem_triad";
-
-    char mul_strided_kerName[100] = "mem_mul_strided";
-    char mul_coalesced_kerName[100] = "mem_mul_coalesced";
 
     //get the kernel
     KernelProcessor reader(&kerAddr,1,info.context, extra);
     cl_kernel read_kernel = reader.getKernel(read_kerName);
     cl_kernel mul_kernel = reader.getKernel(mul_kerName);
     cl_kernel write_kernel = reader.getKernel(write_kerName);
-    cl_kernel triad_kernel = reader.getKernel(triad_kerName);
-
-    cl_kernel mul_strided_kernel = reader.getKernel(mul_strided_kerName);
-     cl_kernel mul_coalesced_kernel = reader.getKernel(mul_coalesced_kerName);
 
     //set kernel arguments: read_kernel
     argsNum = 0;
-    status |= clSetKernelArg(read_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
+    status |= clSetKernelArg(read_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
     status |= clSetKernelArg(read_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
     checkErr(status, ERR_SET_ARGUMENTS);
 
-	//set kernel arguments: write_kernel
-    argsNum = 0;
-    status |= clSetKernelArg(write_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
-    checkErr(status, ERR_SET_ARGUMENTS);
-
-    //set kernel arguments: mul_kernel
-    argsNum = 0;
-    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
-    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
-    checkErr(status, ERR_SET_ARGUMENTS);
-
-    //set kernel arguments: triad_kernel
-    argsNum = 0;
-    status |= clSetKernelArg(triad_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
-    status |= clSetKernelArg(triad_kernel, argsNum++, sizeof(cl_mem), &d_source_values_2);
-    status |= clSetKernelArg(triad_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
-    checkErr(status, ERR_SET_ARGUMENTS);
-
-    //set kernel arguments: mul_coalesced_kernel
-    argsNum = 0;
-    status |= clSetKernelArg(mul_coalesced_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
-    status |= clSetKernelArg(mul_coalesced_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
-    checkErr(status, ERR_SET_ARGUMENTS);
-
-    //set kernel arguments: mul_strided_kernel
-    argsNum = 0;
-    status |= clSetKernelArg(mul_strided_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
-    status |= clSetKernelArg(mul_strided_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
-    checkErr(status, ERR_SET_ARGUMENTS);
-
     //set work group and NDRange sizes
-    size_t local[1] = {(size_t)localSize};
-    size_t global[1] = {(size_t)(localSize * gridSize)};
+    size_t local[1] = {(size_t)(localSize/2)};
+    size_t global[1] = {(size_t)(localSize * gridSize / 4)};
     
     //launch the kernel
 #ifdef PRINT_KERNEL
@@ -238,18 +201,6 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
     
     //executing read, write, mul, triad
     for(int i = 0; i < MEM_EXPR_TIME; i++) {
-        status = clEnqueueNDRangeKernel(info.currentQueue, triad_kernel, 1, 0, global, local, 0, 0, &event);
-        clFlush(info.currentQueue);
-        status = clFinish(info.currentQueue);
-        
-        checkErr(status, ERR_EXEC_KERNEL);
-        double tempTime = clEventTime(event);
-
-        //throw away the first result
-        if (i != 0)     triadTime += tempTime;
-    }    
-
-    for(int i = 0; i < MEM_EXPR_TIME; i++) {
 
         status = clEnqueueNDRangeKernel(info.currentQueue, read_kernel, 1, 0, global, local, 0, 0, &event);
         clFlush(info.currentQueue);
@@ -261,6 +212,32 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
         //throw away the first result
         if (i != 0)     readTime += tempTime;
     }   
+    //finish read test, free the input space
+    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(T)*output_length, h_dest_values, 0, 0, 0);
+    checkErr(status, ERR_READ_BUFFER);
+    status = clFinish(info.currentQueue); 
+    status = clReleaseMemObject(d_source_values);
+
+    //for write and mul test -------------------------------
+    d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*input_length_others, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(T)*input_length_others, h_source_values, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER); 
+
+    //set kernel arguments: write_kernel
+    argsNum = 0;
+    status |= clSetKernelArg(write_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    //set kernel arguments: mul_kernel
+    argsNum = 0;
+    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
+    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    local[0] = {(size_t)localSize};
+    global[0] = {(size_t)(localSize * gridSize)};
 
     for(int i = 0; i < MEM_EXPR_TIME; i++) {
         status = clEnqueueNDRangeKernel(info.currentQueue, write_kernel, 1, 0, global, local, 0, 0, &event);
@@ -289,100 +266,266 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
     readTime /= ((MEM_EXPR_TIME - 1)*repeat);
     writeTime /= (MEM_EXPR_TIME - 1);
     mulTime /= (MEM_EXPR_TIME - 1);
-    triadTime /= (MEM_EXPR_TIME - 1);
 
+    //memory written back for not being optimized out
+    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(T)*output_length, h_dest_values, 0, 0, 0);
+    checkErr(status, ERR_READ_BUFFER);
+
+    status = clFinish(info.currentQueue);                                        
+
+    status = clReleaseMemObject(d_source_values);
+    status = clReleaseMemObject(d_dest_values);
+
+    checkErr(status, ERR_RELEASE_MEM);
+
+    delete [] h_source_values;
+    delete [] h_dest_values;
+
+#ifndef SILENCE
+    FUNC_END;
+#endif
+}
+
+template<typename T>
+void testAccess(PlatInfo& info , const int localSize, const int gridSize, int repeat) {
+
+    cl_int status = 0;
+    int argsNum = 0;
+    
+    int length = localSize * gridSize * repeat;
+
+    std::cout<<"Data size: "<<length<<std::endl;
+    assert(length > 0);
+
+#ifndef SILENCE
+    FUNC_BEGIN;
+    SHOW_PARALLEL(localSize, gridSize);
+    SHOW_DATA_NUM(length);
+#endif
+
+    T *h_source_values = new T[length];  
+    T *h_dest_values = new T[length];
+
+    for(int i = 0; i < length; i++) {
+        h_source_values[i] = (T)i;
+    }
+
+    //memory allocation
+    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*length, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(T)*length, h_source_values, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);   
+
+    cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY , sizeof(T)*length, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+
+    char extra[500];
+    if (sizeof(T) == sizeof(int))         strcpy(extra, "-DTYPE=int -DTYPE2=int2");
+    else if (sizeof(T) == sizeof(double))   strcpy(extra, "-DTYPE=double -DTYPE2=double2");
+
+    //kernel reading
+    char path[100] = PROJECT_ROOT;
+    char basicSizeName[20] = "";
+    strcat(path, "/Kernels/memKernel.cl");
+    std::string kerAddr = path;
+
+    char mul_strided_kerName[100] = "mem_mul_strided";
+    char mul_coalesced_kerName[100] = "mem_mul_coalesced";
+    char mul_mix_kerName[100] = "mem_mul_strided_warpwise";
+
+    //get the kernel
+    KernelProcessor reader(&kerAddr,1,info.context, extra);
+    cl_kernel mul_strided_kernel = reader.getKernel(mul_strided_kerName);
+     cl_kernel mul_coalesced_kernel = reader.getKernel(mul_coalesced_kerName);
+    cl_kernel mul_mix_kernel = reader.getKernel(mul_mix_kerName);
+
+    //set kernel arguments: mul_coalesced_kernel
+    argsNum = 0;
+    status |= clSetKernelArg(mul_coalesced_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
+    status |= clSetKernelArg(mul_coalesced_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    //set kernel arguments: mul_strided_kernel
+    argsNum = 0;
+    status |= clSetKernelArg(mul_strided_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
+    status |= clSetKernelArg(mul_strided_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    //set kernel arguments: mul_mix_kernel
+    argsNum = 0;
+    status |= clSetKernelArg(mul_mix_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
+    status |= clSetKernelArg(mul_mix_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    //set work group and NDRange sizes
+    size_t local[1] = {(size_t)localSize};
+    size_t global[1] = {(size_t)(localSize * gridSize)};
+    
+    //launch the kernel
+#ifdef PRINT_KERNEL
+    printExecutingKernel(kernel);
+#endif
+
+    cl_event event;
+    clFlush(info.currentQueue);
+    status = clFinish(info.currentQueue);
 
     //executing mul with coalesced and strided manner
-    double *coalesced_time = new double[repeat];
-    double *coalesced_throughput = new double[repeat];
-	double *strided_time = new double[repeat];
-    double *strided_throughput = new double[repeat];
+    double *coalesced_time = new double[repeat+1];
+    double *coalesced_throughput = new double[repeat+1];
+    double *strided_time = new double[repeat+1];
+    double *strided_throughput = new double[repeat+1];
 
-    for(int i = 0; i < repeat; i++) {
+    double *mix_time = new double[repeat+1];
+    double *mix_throughput = new double[repeat+1];
+
+    for(int i = 1; i <= repeat; i++) {
         coalesced_time[i] = 0.0;
         coalesced_throughput[i] = 0.0;
         strided_time[i] = 0.0;
         strided_throughput[i] = 0.0;
+        mix_time[i] = 0.0;
+        mix_throughput[i] = 0.0;
     }
 
     //coalesced
     cout<<"------------------ Coalesced Access ------------------"<<endl;
-    for(int re = 0; re < repeat; re++) {
-	    for(int i = 0; i < MEM_EXPR_TIME; i++) {
-	    	int repeatTime = re + 1;
-	    	status |= clSetKernelArg(mul_coalesced_kernel, 2, sizeof(int), &repeatTime);
-    		checkErr(status, ERR_SET_ARGUMENTS);
-	        status = clEnqueueNDRangeKernel(info.currentQueue, mul_coalesced_kernel, 1, 0, global, local, 0, 0, &event);
-	        clFlush(info.currentQueue);
-	        status = clFinish(info.currentQueue);
-	    
-	        checkErr(status, ERR_EXEC_KERNEL);
-	        double tempTime = clEventTime(event);
+    for(int re = 1; re <= repeat; re++) {
+        for(int i = 0; i < MEM_EXPR_TIME; i++) {
+            status |= clSetKernelArg(mul_coalesced_kernel, 2, sizeof(int), &re);
+            checkErr(status, ERR_SET_ARGUMENTS);
+            status = clEnqueueNDRangeKernel(info.currentQueue, mul_coalesced_kernel, 1, 0, global, local, 0, 0, &event);
+            clFlush(info.currentQueue);
+            status = clFinish(info.currentQueue);
+        
+            checkErr(status, ERR_EXEC_KERNEL);
+            double tempTime = clEventTime(event);
 
-	        //throw away the first result
-	        if (i != 0)     coalesced_time[re] += tempTime;
-	    }  
-	}
+            //throw away the first result
+            if (i != 0)     coalesced_time[re] += tempTime;
+        }  
+    }
 
-    for(int re = 0; re < repeat; re++) {
-		coalesced_time[re] /= (MEM_EXPR_TIME - 1);
-		assert(coalesced_time[re] > 0);
-		coalesced_throughput[re] = computeMem(localSize*gridSize*(re+1)*2, sizeof(T), coalesced_time[re]);
-    	cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re+1)
-    		<<"("<<localSize*gridSize*(re+1)<<')'
-    		<<" Time: "<<coalesced_time[re]<<" ms\t"<<"Throughput: "<<coalesced_throughput[re]<<" GB/s"<<endl;
+    for(int re = 1; re <= repeat; re++) {
+        coalesced_time[re] /= (MEM_EXPR_TIME - 1);
+        assert(coalesced_time[re] > 0);
+        coalesced_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(T), coalesced_time[re]);
+        cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
+            <<"("<<localSize*gridSize*(re)<<')'
+            <<" Time: "<<coalesced_time[re]<<" ms\t"<<"Throughput: "<<coalesced_throughput[re]<<" GB/s"<<endl;
     }
     cout<<endl;
 
     //strided
     cout<<"------------------ Strided Access ------------------"<<endl;
-    for(int re = 0; re < repeat; re++) {
-	    for(int i = 0; i < MEM_EXPR_TIME; i++) {
-	    	int repeatTime = re + 1;
-	    	status |= clSetKernelArg(mul_strided_kernel, 2, sizeof(int), &repeatTime);
-    		checkErr(status, ERR_SET_ARGUMENTS);
-	        status = clEnqueueNDRangeKernel(info.currentQueue, mul_strided_kernel, 1, 0, global, local, 0, 0, &event);
-	        clFlush(info.currentQueue);
-	        status = clFinish(info.currentQueue);
-	    
-	        checkErr(status, ERR_EXEC_KERNEL);
-	        double tempTime = clEventTime(event);
+    for(int re = 1; re <= repeat; re++) {
+        for(int i = 0; i < MEM_EXPR_TIME; i++) {
+            status |= clSetKernelArg(mul_strided_kernel, 2, sizeof(int), &re);
+            checkErr(status, ERR_SET_ARGUMENTS);
+            status = clEnqueueNDRangeKernel(info.currentQueue, mul_strided_kernel, 1, 0, global, local, 0, 0, &event);
+            clFlush(info.currentQueue);
+            status = clFinish(info.currentQueue);
+        
+            checkErr(status, ERR_EXEC_KERNEL);
+            double tempTime = clEventTime(event);
 
-	        //throw away the first result
-	        if (i != 0)     strided_time[re] += tempTime;
-	    }  
-	}
+            //throw away the first result
+            if (i != 0)     strided_time[re] += tempTime;
+        }  
+        // status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(T)*length, h_dest_values, 0, 0, 0);
+        // checkErr(status, ERR_READ_BUFFER);
 
-    for(int re = 0; re < repeat; re++) {
-		strided_time[re] /= (MEM_EXPR_TIME - 1);
-		assert(strided_time[re] > 0);
-		strided_throughput[re] = computeMem(localSize*gridSize*(re+1)*2, sizeof(T), strided_time[re]);
-    	cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re+1)
-    		<<"("<<localSize*gridSize*(re+1)<<')'
-    		<<" Time: "<<strided_time[re]<<" ms\t"<<"Throughput: "<<strided_throughput[re]<<" GB/s"<<endl;
+        // for(int i = 0; i < length; i++) {
+        //     cout<<h_source_values_1[i]<<' '<<h_dest_values[i]<<endl;
+        // }
+
+    }
+
+    //warpwise strided
+    for(int re = 1; re <= repeat; re++) {
+        strided_time[re] /= (MEM_EXPR_TIME - 1);
+        assert(strided_time[re] > 0);
+        strided_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(T), strided_time[re]);
+        cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
+            <<"("<<localSize*gridSize*(re)<<')'
+            <<" Time: "<<strided_time[re]<<" ms\t"<<"Throughput: "<<strided_throughput[re]<<" GB/s"<<endl;
     }
     cout<<endl;
 
+    cout<<"------------------ Warpwise Strided Access ------------------"<<endl;
+    for(int re = 1; re <= repeat; re++) {
+        for(int i = 0; i < MEM_EXPR_TIME; i++) {
+            status |= clSetKernelArg(mul_mix_kernel, 2, sizeof(int), &re);
+            checkErr(status, ERR_SET_ARGUMENTS);
+            status = clEnqueueNDRangeKernel(info.currentQueue, mul_mix_kernel, 1, 0, global, local, 0, 0, &event);
+            clFlush(info.currentQueue);
+            status = clFinish(info.currentQueue);
+        
+            checkErr(status, ERR_EXEC_KERNEL);
+            double tempTime = clEventTime(event);
+
+            //throw away the first result
+            if (i != 0)     mix_time[re] += tempTime;
+        }  
+        // status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(T)*length, h_dest_values, 0, 0, 0);
+        // checkErr(status, ERR_READ_BUFFER);
+
+        // for(int i = 0; i < length; i++) {
+        //     cout<<h_source_values_1[i]<<' '<<h_dest_values[i]<<endl;
+        // }
+
+    }
+
+    for(int re = 1; re <= repeat; re++) {
+        mix_time[re] /= (MEM_EXPR_TIME - 1);
+        assert(mix_time[re] > 0);
+        mix_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(T), mix_time[re]);
+        cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
+            <<"("<<localSize*gridSize*(re)<<')'
+            <<" Time: "<<mix_time[re]<<" ms\t"<<"Throughput: "<<mix_throughput[re]<<" GB/s"<<endl;
+    }
+    cout<<endl;
 
     //memory written back for not being optimized out
-    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(T)*localSize*gridSize, h_dest_values, 0, 0, 0);
+    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(T)*length, h_dest_values, 0, 0, 0);
     checkErr(status, ERR_READ_BUFFER);
 
-    status = clFinish(info.currentQueue);                                        
+    status = clFinish(info.currentQueue);          
 
-    status = clReleaseMemObject(d_source_values_1);
-    status = clReleaseMemObject(d_source_values_2);
+    //for python formating
+    cout<<endl;
+    cout<<"strided_bandwidth = ["<<strided_throughput[1];
+    for(int re = 2; re <= repeat; re++) {      
+        cout<<','<<strided_throughput[re];
+    }               
+    cout<<"]"<<endl;
+
+    cout<<"coalesced_bandwidth = ["<<coalesced_throughput[1];
+    for(int re = 2; re <= repeat; re++) {      
+        cout<<','<<coalesced_throughput[re];
+    }               
+    cout<<"]"<<endl;
+
+    cout<<"mix_bandwidth = ["<<mix_throughput[1];
+    for(int re = 2; re <= repeat; re++) {      
+        cout<<','<<mix_throughput[re];
+    }               
+    cout<<"]"<<endl;
+
+    status = clReleaseMemObject(d_source_values);
     status = clReleaseMemObject(d_dest_values);
     checkErr(status, ERR_RELEASE_MEM);
 
-    delete [] h_source_values_1;
-    delete [] h_source_values_2;
+    delete [] h_source_values;
     delete [] h_dest_values;
 
     delete[] coalesced_time;
     delete[] coalesced_throughput;
     delete[] strided_time;
     delete[] strided_throughput;
+    delete[] mix_time;
+    delete[] mix_throughput;
 
 #ifndef SILENCE
     FUNC_END;
@@ -650,8 +793,11 @@ void testAtomic(PlatInfo& info , double& totalTime, int localSize, int gridSize,
     }
 }
 
-template void testVPU<float>(float *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
+template void testVPU<int>(int *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
 template void testVPU<double>(double *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
 
-template void testMem<float>(PlatInfo& info , const int blockSize, const int gridSize, double& readTime, double& writeTime, double& addTime, double& triadTime, int repeat);
-template void testMem<double>(PlatInfo& info ,  const int blockSize, const int gridSize,double& readTime, double& writeTime, double& addTime, double& triadTime, int repeat);
+template void testMem<int>(PlatInfo& info , const int blockSize, const int gridSize, double& readTime, double& writeTime, double& addTime, int repeat);
+template void testMem<double>(PlatInfo& info ,  const int blockSize, const int gridSize,double& readTime, double& writeTime, double& addTime, int repeat);
+
+template void testAccess<int>(PlatInfo& info , const int blockSize, const int gridSize, int repeat);
+template void testAccess<double>(PlatInfo& info ,  const int blockSize, const int gridSize, int repeat);

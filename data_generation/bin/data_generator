@@ -40,6 +40,7 @@ while true ; do
 			echo " -L, --location				generate location data(distinct int array starting from 0)"
 			echo " --all						generate record, array and location data(default)"
 			echo " -n						set the data size(default=16,000,000)";
+			exit 1 
 		shift
 		;;	
 		
@@ -66,7 +67,8 @@ REC_PREFIX="rec"
 ARR_PREFIX="arr"
 LOC_PREFIX="loc"
 
-POSTFIX="${DATASIZE}_`date +%Y%m%d_%k%M%S`"
+#POSTFIX="${DATASIZE}_`date +%Y%m%d_%k%M%S`"
+POSTFIX="${DATASIZE}"
 
 FOLDER_NAME="data_$POSTFIX"
 FOLDER_DIR=$DATA_DIR$FOLDER_NAME
@@ -98,8 +100,7 @@ else
 
 	if [ $GEN_LOC == true ]
 	then
-		OUTPUT_LOC_DIR=$FOLDER_DIR"/${LOC_PREFIX}_$POSTFIX.data"
-		echo "Output location data directory : $OUTPUT_LOC_DIR"
+		OUTPUT_LOC_DIR=$DATA_DIR"/${LOC_PREFIX}_$POSTFIX.data"
 		echo "Output location data directory : $OUTPUT_LOC_DIR"
 	fi
 

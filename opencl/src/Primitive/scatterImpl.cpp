@@ -8,14 +8,17 @@
 
 #include "Foundation.h"
 
-double scatter(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int localSize, int gridSize, PlatInfo& info) {
+double scatter(
+#ifdef RECORDS
+    cl_mem d_source_keys, cl_mem &d_dest_keys, bool isRecord,
+#endif
+    cl_mem d_source_values, cl_mem& d_dest_values, int length, int length_output, cl_mem d_loc, int localSize, int gridSize, PlatInfo& info, int numOfRun) {
     
     double totalTime = 0;
-
+    
     cl_int status = 0;
     int argsNum = 0;
     
-
     //kernel reading
     char path[100] = PROJECT_ROOT;
     strcat(path, "/Kernels/scatterKernel.cl");
@@ -25,15 +28,24 @@ double scatter(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int lo
     KernelProcessor reader(&kerAddr,1,info.context);
     cl_kernel scatterKernel = reader.getKernel(kerName);
     
-    int globalSize = localSize * gridSize;
-    int ele_per_thread = (length + globalSize - 1) / (globalSize);
     //set kernel arguments
     argsNum = 0;
-    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_source);
-    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_dest);
+
+    int globalSize = gridSize * localSize;
+    int ele_per_thread = (length + globalSize - 1) / globalSize;
+
+#ifdef RECORDS
+    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_source_keys);
+    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_dest_keys);
+    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(bool), &isRecord);
+#endif
+    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_source_values);
+    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_dest_values);
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &length);
+    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &length_output);
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_loc);
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &ele_per_thread);
+    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &numOfRun);
 
     checkErr(status, ERR_SET_ARGUMENTS);
     
@@ -42,15 +54,20 @@ double scatter(cl_mem d_source, cl_mem& d_dest, int length, cl_mem d_loc, int lo
     size_t global[1] = {(size_t)(localSize * gridSize)};
     
     //launch the kernel
+    
 #ifdef PRINT_KERNEL
     printExecutingKernel(scatterKernel);
 #endif
 
+    status = clFinish(info.currentQueue);
+
     cl_event event;
     status = clEnqueueNDRangeKernel(info.currentQueue, scatterKernel, 1, 0, global, local, 0, 0, &event);
     clFlush(info.currentQueue);
-    clWaitForEvents(1, &event);
+    status = clFinish(info.currentQueue);
+
     checkErr(status, ERR_EXEC_KERNEL);
+
     totalTime = clEventTime(event);
 
     return totalTime;

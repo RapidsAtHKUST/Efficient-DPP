@@ -2,7 +2,7 @@
 #define VPU_KERNEL_CL
 
 //the TYPEing 
-#define MADD1_OP  temp = 10.0f - temp * 0.9899f;
+#define MADD1_OP  temp = 1 - temp *  ;
 
 #define MADD1_MOP20  \
      MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP MADD1_OP \
@@ -15,7 +15,7 @@ kernel void vpu1 (
 {
     int globalId = get_global_id(0);
 
-    TYPE temp = d_values[globalId] + (TYPE)(0.1);
+    TYPE temp = d_values[globalId] + (TYPE)(1);
     for(int i = 0; i < repeatTime; i++) {
         MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
         MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
@@ -30,7 +30,7 @@ kernel void vpu2 (
 {
     int globalId = get_global_id(0);
 
-    TYPE2 temp = d_values[globalId] + (TYPE2)(0.1,0.2);
+    TYPE2 temp = d_values[globalId] + (TYPE2)(1,2);
     for(int i = 0; i < repeatTime; i++) {
         MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
         MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
@@ -45,7 +45,7 @@ kernel void vpu4 (
 {
     int globalId = get_global_id(0);
 
-    TYPE4 temp = d_values[globalId] + (TYPE4)(0.1,0.2,0.3,0.4);
+    TYPE4 temp = d_values[globalId] + (TYPE4)(1,2,3,4);
     for(int i = 0; i < repeatTime; i++) {
         MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
         MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
@@ -60,7 +60,7 @@ kernel void vpu8 (
 {
     int globalId = get_global_id(0);
 
-    TYPE8 temp = d_values[globalId] + (TYPE8)(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8);
+    TYPE8 temp = d_values[globalId] + (TYPE8)(1,2,3,4,5,6,7,8);
     for(int i = 0; i < repeatTime; i++) {
         MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
         MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
@@ -76,7 +76,7 @@ kernel void vpu16 (
     int globalId = get_global_id(0);
     int globalSize = get_global_size(0);
 
-    TYPE16 temp = d_values[globalId] + (TYPE16)(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6);
+    TYPE16 temp = d_values[globalId] + (TYPE16)(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
     for(int i = 0; i < repeatTime; i++) {
         MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20
         MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20 MADD1_MOP20

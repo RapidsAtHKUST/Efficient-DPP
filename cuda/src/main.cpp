@@ -89,6 +89,29 @@ int main(int argc, char *argv[]) {
 	bool res;
 	int experiNum = 10;
 
+	int blockSize = 1024, gridSize = 32768;
+//-------------------------------- Basic test-----------------------------
+	// float bestTime_read, bestTime_write, bestTime_mul;
+	// float throughput_read, throughput_write, throughput_mul;
+	// //basic test
+	// int repeat_read = 100;
+	// testMem(blockSize, gridSize, bestTime_read, bestTime_write, bestTime_mul, repeat_read);
+
+	// throughput_read = computeMem(blockSize*gridSize/4, sizeof(int), bestTime_read);
+ //    throughput_write = computeMem(blockSize*gridSize, sizeof(int), bestTime_write);
+ //    throughput_mul = computeMem(blockSize*gridSize*2*2, sizeof(int), bestTime_mul);
+
+ //    cout<<"Time for memory read(Repeat:"<<repeat_read<<"): "<<bestTime_read<<" ms."<<'\t'
+ //        <<"Bandwidth: "<<throughput_read<<" GB/s"<<endl;
+
+ //    cout<<"Time for memory write: "<<bestTime_write<<" ms."<<'\t'
+ //        <<"Bandwidth: "<<throughput_write<<" GB/s"<<endl;
+
+ //    cout<<"Time for memory mul: "<<bestTime_mul<<" ms."<<'\t'
+ //    <<"Bandwidth: "<<throughput_mul<<" GB/s"<<endl;
+//-------------------------------- Basic test end-----------------------------
+
+
 	//total time for each primitive
 	float idnElapsedTime;
 	float mapTime = MAX_TIME;
@@ -100,7 +123,7 @@ int main(int argc, char *argv[]) {
 	float radixSortTime = MAX_TIME;
 
 	for(int i = 0; i < experiNum; i++) {
-		cout<<"Round "<<i<<" :"<<endl;
+		// cout<<"Round "<<i<<" :"<<endl;
 
 // //--------------testing map--------------
 // 		res = testMap<int>(
@@ -115,16 +138,16 @@ int main(int argc, char *argv[]) {
 // 		if (idnElapsedTime < mapTime)		mapTime = idnElapsedTime;
 
 // //--------------testing gather--------------
-// 		res = testGather<int>(
-// #ifdef RECORDS
-// 		fixedKeys, fixedValues,
-// #else
-// 		fixedArray, 
-// #endif
-// 		dataSize, fixedLoc, idnElapsedTime);
+		res = testGather<int>(
+#ifdef RECORDS
+		fixedKeys, fixedValues,
+#else
+		fixedArray, 
+#endif
+		dataSize, fixedLoc, idnElapsedTime, blockSize, gridSize);
 
-// 		printRes("gather", res,idnElapsedTime);
-// 		if (idnElapsedTime < gatherTime)		gatherTime = idnElapsedTime;
+		printRes("gather", res,idnElapsedTime);
+		if (idnElapsedTime < gatherTime)		gatherTime = idnElapsedTime;
 		
 
 // //--------------testing scatter--------------
@@ -164,17 +187,18 @@ int main(int argc, char *argv[]) {
 		// scanImpl(fixedArray, dataSize, BLOCKSIZE, GRIDSIZE, 1);
 //--------------testing radix sort (no need to specify the block and grid size)--------------
 
-		res = testRadixSort<int>(
-#ifdef RECORDS
-		fixedKeys, fixedValues,
-#else
-		fixedArray, 
-#endif
-		dataSize, idnElapsedTime);
+// 		res = testRadixSort<int>(
+// #ifdef RECORDS
+// 		fixedKeys, fixedValues,
+// #else
+// 		fixedArray, 
+// #endif
+// 		dataSize, idnElapsedTime);
 
-		printRes("radix sort", res,idnElapsedTime);
-		if (idnElapsedTime < radixSortTime)		radixSortTime = idnElapsedTime;
+// 		printRes("radix sort", res,idnElapsedTime);
+// 		if (idnElapsedTime < radixSortTime)		radixSortTime = idnElapsedTime;
 	}
+	gatherTime = gatherTime / dataSize * 1e6;		//get per tuple result
 
 	cout<<"-----------------------------------------"<<endl;
 #ifdef RECORDS
@@ -183,9 +207,9 @@ int main(int argc, char *argv[]) {
     cout<<"Using type: Basic type."<<endl;
 #endif
 	cout<<"Data Size: "<<dataSize<<endl;
-	cout<<"Map time: "<<mapTime<<" ms."<<endl;
-	cout<<"Gather time: "<<gatherTime<<" ms."<<endl;
-	cout<<"Scatter time: "<<scatterTime<<" ms."<<endl;
+	cout<<"Map time: "<<mapTime<<" ns."<<endl;
+	cout<<"Gather time per tuple: "<<gatherTime<<" ns."<<endl;
+	cout<<"Scatter time: "<<scatterTime<<" ns."<<endl;
 	cout<<"Split time: "<<splitTime<<" ms."<<endl;
 	cout<<"Scan time:"<<scanTime<<" ms."<<endl;
 	cout<<"Scan ble time:"<<scanTime_ble<<" ms."<<endl;

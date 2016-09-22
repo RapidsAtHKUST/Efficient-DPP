@@ -85,21 +85,28 @@ void valRandom(T *arr, int length, T max) {
 }
 
 template<typename T>
-void valRandom_Only(T *arr, int length,  int times) {
+void valRandom_Only(T *arr, int length,  int times, int max) {
     srand((unsigned)time(NULL));
     sleep(1);
-    for(int i = 0; i < length; i++) {
-        arr[i] = i;
+    int *maxArray = new int[max];
+    for(int i = 0; i < max; i++) {
+        maxArray[i] = i;
     }
+    
     T temp; 
     int from = 0, to = 0;
     for(int i = 0; i < times; i++) {
-        from = rand() % length;
-        to = rand() % length;
-        temp = arr[from];
-        arr[from] = arr[to];
-        arr[to] = temp;
+        from = rand() % max;
+        to = rand() % max;
+        temp = maxArray[from];
+        maxArray[from] = maxArray[to];
+        maxArray[to] = temp;
     }
+    
+    for(int i = 0; i < length; i++) {
+        arr[i] = maxArray[i];
+    }
+    delete[] maxArray;
 }
 
 double calCPUTime(clock_t start, clock_t end) {
@@ -196,7 +203,7 @@ void readFixedArray(int* fixedArray, char *file, int & arrayLength) {
     
     in>>arrayLength;
     
-    fixedArray = new int[arrayLength];
+    // fixedArray = new int[arrayLength];
     
     for(int i = 0; i < arrayLength; i++) {
         in>>fixedArray[i];
@@ -283,7 +290,7 @@ template void recordSorted_Only<int>(int *keys, int *values, int length);
 template void recordRandom<int>(int *keys, int *values, int length, int max);
 template void recordRandom_Only<int>(int *keys, int *values, int length,  int times);
 template void valRandom<int>(int *arr, int length, int max);
-template void valRandom_Only<int>(int *arr, int length,  int times);
+template void valRandom_Only<int>(int *arr, int length,  int times, int max);
 
 //long
 template void recordSorted<long>(int *keys, long *values, int length, long max);
@@ -291,7 +298,7 @@ template void recordSorted_Only<long>(int *keys, long *values, int length);
 template void recordRandom<long>(int *keys, long *values, int length, long max);
 template void recordRandom_Only<long>(int *keys, long *values, int length,  int times);
 template void valRandom<long>(long *arr, int length, long max);
-template void valRandom_Only<long>(long *arr, int length,  int times);
+template void valRandom_Only<long>(long *arr, int length,  int times, int max);
 
 //float
 template void recordSorted<float>(int *keys, float *values, int length, float max);
@@ -299,9 +306,8 @@ template void recordSorted_Only<float>(int *keys, float *values, int length);
 template void recordRandom<float>(int *keys, float *values, int length, float max);
 template void recordRandom_Only<float>(int *keys, float *values, int length,  int times);
 template void valRandom<float>(float *arr, int length, float max);
-template void valRandom_Only<float>(float *arr, int length,  int times);
+template void valRandom_Only<float>(float *arr, int length,  int times, int max);
 
 //double
-template void recordSorted<double>(int *keys, double *values, int length, double max);
-template void recordSorted_Only<double>(int *keys, double *values, int length);
-template void recordRandom<double>(int *keys, double *values, int length, double max);
+// template void recordSorted<double>(int *keys, double *values, int length, float max);
+template void valRandom<double>(double *arr, int length, double max);

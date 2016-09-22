@@ -91,7 +91,7 @@ void PlatInit::initPlat() {
     
     cout<<"Selected device: "<<dname[chosenDevice]<<endl;
     chosenDeviceID = devices[chosenDevice];
-    
+
     //step 2 : create the context
     const cl_context_properties prop[3] = {CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(this->platform),0};
     
