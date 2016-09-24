@@ -77,6 +77,8 @@ void testBarrier(
 
 void testAtomic(PlatInfo& info , double& totalTime, int localSize, int gridSize, bool isLocal);
 
+void testLatency(PlatInfo& info);
+
 bool testMap(PlatInfo& info, int repeat, int repeatTrans, int localSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 
 

@@ -1,0 +1,383 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 512000000
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+------ End of hardware checking ------
+
+-------------------------------------------
+totalSize: 16KB		totalNum: 2048
+latency time: 1.39031 ns.
+latency time: 1.40201 ns.
+latency time: 1.42009 ns.
+latency time: 1.43568 ns.
+latency time: 1.39653 ns.
+latency time: 1.39659 ns.
+latency time: 1.42572 ns.
+latency time: 1.39638 ns.
+latency time: 1.41584 ns.
+latency time: 1.42677 ns.
+latency time: 1.39539 ns.
+latency time: 1.38962 ns.
+latency time: 1.39497 ns.
+latency time: 1.39876 ns.
+latency time: 1.39995 ns.
+latency time: 1.42563 ns.
+latency time: 1.39426 ns.
+latency time: 1.39383 ns.
+-------------------------------------------
+totalSize: 32KB		totalNum: 4096
+latency time: 1.57794 ns.
+latency time: 1.42324 ns.
+latency time: 1.572 ns.
+latency time: 1.47059 ns.
+latency time: 1.53628 ns.
+latency time: 1.56166 ns.
+latency time: 1.64485 ns.
+latency time: 1.67725 ns.
+latency time: 1.57407 ns.
+latency time: 1.55236 ns.
+latency time: 1.55776 ns.
+latency time: 1.55642 ns.
+latency time: 1.57487 ns.
+latency time: 1.55846 ns.
+latency time: 1.57322 ns.
+latency time: 1.57316 ns.
+latency time: 1.5504 ns.
+latency time: 1.53095 ns.
+-------------------------------------------
+totalSize: 64KB		totalNum: 8192
+latency time: 1.96816 ns.
+latency time: 2.54336 ns.
+latency time: 2.88754 ns.
+latency time: 4.02038 ns.
+latency time: 4.54669 ns.
+latency time: 4.20262 ns.
+latency time: 4.11349 ns.
+latency time: 4.11257 ns.
+latency time: 4.21432 ns.
+latency time: 4.1156 ns.
+latency time: 1.46395 ns.
+latency time: 1.41963 ns.
+latency time: 1.39915 ns.
+latency time: 1.42214 ns.
+latency time: 1.39326 ns.
+latency time: 1.39608 ns.
+latency time: 1.39339 ns.
+latency time: 1.40074 ns.
+-------------------------------------------
+totalSize: 128KB		totalNum: 16384
+latency time: 1.9755 ns.
+latency time: 2.56257 ns.
+latency time: 2.89449 ns.
+latency time: 4.17512 ns.
+latency time: 7.06306 ns.
+latency time: 4.13334 ns.
+latency time: 4.12457 ns.
+latency time: 4.13452 ns.
+latency time: 4.07685 ns.
+latency time: 8.82351 ns.
+latency time: 4.13246 ns.
+latency time: 1.45904 ns.
+latency time: 1.42848 ns.
+latency time: 1.51169 ns.
+latency time: 1.46216 ns.
+latency time: 1.49526 ns.
+latency time: 1.47097 ns.
+latency time: 1.4033 ns.
+-------------------------------------------
+totalSize: 256KB		totalNum: 32768
+latency time: 1.97829 ns.
+latency time: 2.53161 ns.
+latency time: 2.92277 ns.
+latency time: 4.16833 ns.
+latency time: 5.63046 ns.
+latency time: 9.76299 ns.
+latency time: 11.8475 ns.
+latency time: 9.44199 ns.
+latency time: 11.2808 ns.
+latency time: 15.0396 ns.
+latency time: 4.07029 ns.
+latency time: 4.16865 ns.
+latency time: 1.39792 ns.
+latency time: 1.40747 ns.
+latency time: 1.50443 ns.
+latency time: 1.53938 ns.
+latency time: 1.47961 ns.
+latency time: 1.5055 ns.
+-------------------------------------------
+totalSize: 512KB		totalNum: 65536
+latency time: 1.9845 ns.
+latency time: 2.60156 ns.
+latency time: 2.95773 ns.
+latency time: 4.28142 ns.
+latency time: 6.91356 ns.
+latency time: 17.106 ns.
+latency time: 17.7076 ns.
+latency time: 18.6306 ns.
+latency time: 20.3524 ns.
+latency time: 21.9982 ns.
+latency time: 18.412 ns.
+latency time: 16.9189 ns.
+latency time: 6.75624 ns.
+latency time: 4.06214 ns.
+latency time: 1.39594 ns.
+latency time: 1.38997 ns.
+latency time: 1.3913 ns.
+latency time: 1.39333 ns.
+-------------------------------------------
+totalSize: 1024KB		totalNum: 131072
+latency time: 1.99431 ns.
+latency time: 2.58566 ns.
+latency time: 2.96751 ns.
+latency time: 4.2583 ns.
+latency time: 6.77457 ns.
+latency time: 17.0667 ns.
+latency time: 18.7984 ns.
+latency time: 18.7929 ns.
+latency time: 19.2887 ns.
+latency time: 21.7181 ns.
+latency time: 21.0713 ns.
+latency time: 19.0254 ns.
+latency time: 6.73639 ns.
+latency time: 15.891 ns.
+latency time: 4.12757 ns.
+latency time: 1.39758 ns.
+latency time: 1.39758 ns.
+latency time: 1.39476 ns.
+-------------------------------------------
+totalSize: 2048KB		totalNum: 262144
+latency time: 2.02516 ns.
+latency time: 2.64907 ns.
+latency time: 2.98334 ns.
+latency time: 4.28959 ns.
+latency time: 6.83749 ns.
+latency time: 18.0719 ns.
+latency time: 19.1268 ns.
+latency time: 19.3754 ns.
+latency time: 19.4421 ns.
+latency time: 20.8724 ns.
+latency time: 20.8214 ns.
+latency time: 21.0911 ns.
+latency time: 21.3808 ns.
+latency time: 16.9122 ns.
+latency time: 16.2862 ns.
+latency time: 4.09314 ns.
+latency time: 1.3922 ns.
+latency time: 1.39307 ns.
+-------------------------------------------
+totalSize: 4096KB		totalNum: 524288
+latency time: 1.99582 ns.
+latency time: 2.58672 ns.
+latency time: 2.94651 ns.
+latency time: 4.24363 ns.
+latency time: 6.60442 ns.
+latency time: 16.6257 ns.
+latency time: 18.7582 ns.
+latency time: 17.0264 ns.
+latency time: 18.9667 ns.
+latency time: 19.8459 ns.
+latency time: 19.1995 ns.
+latency time: 19.084 ns.
+latency time: 18.8753 ns.
+latency time: 16.8072 ns.
+latency time: 18.086 ns.
+latency time: 5.4196 ns.
+latency time: 1.40071 ns.
+latency time: 1.39571 ns.
+latency_16 = [1.39031,1.40201,1.42009,1.43568,1.39653,1.39659,1.42572,1.39638,1.41584,1.42677,1.39539,1.38962,1.39497,1.39876,1.39995,1.42563,1.39426,1.39383]
+latency_32 = [1.57794,1.42324,1.572,1.47059,1.53628,1.56166,1.64485,1.67725,1.57407,1.55236,1.55776,1.55642,1.57487,1.55846,1.57322,1.57316,1.5504,1.53095]
+latency_64 = [1.96816,2.54336,2.88754,4.02038,4.54669,4.20262,4.11349,4.11257,4.21432,4.1156,1.46395,1.41963,1.39915,1.42214,1.39326,1.39608,1.39339,1.40074]
+latency_128 = [1.9755,2.56257,2.89449,4.17512,7.06306,4.13334,4.12457,4.13452,4.07685,8.82351,4.13246,1.45904,1.42848,1.51169,1.46216,1.49526,1.47097,1.4033]
+latency_256 = [1.97829,2.53161,2.92277,4.16833,5.63046,9.76299,11.8475,9.44199,11.2808,15.0396,4.07029,4.16865,1.39792,1.40747,1.50443,1.53938,1.47961,1.5055]
+latency_512 = [1.9845,2.60156,2.95773,4.28142,6.91356,17.106,17.7076,18.6306,20.3524,21.9982,18.412,16.9189,6.75624,4.06214,1.39594,1.38997,1.3913,1.39333]
+latency_1024 = [1.99431,2.58566,2.96751,4.2583,6.77457,17.0667,18.7984,18.7929,19.2887,21.7181,21.0713,19.0254,6.73639,15.891,4.12757,1.39758,1.39758,1.39476]
+latency_2048 = [2.02516,2.64907,2.98334,4.28959,6.83749,18.0719,19.1268,19.3754,19.4421,20.8724,20.8214,21.0911,21.3808,16.9122,16.2862,4.09314,1.3922,1.39307]
+latency_4096 = [1.99582,2.58672,2.94651,4.24363,6.60442,16.6257,18.7582,17.0264,18.9667,19.8459,19.1995,19.084,18.8753,16.8072,18.086,5.4196,1.40071,1.39571]
+-------------------------------------------
+totalSize: 16KB		totalNum: 2048
+1.39031
+1.40201
+1.42009
+1.43568
+1.39653
+1.39659
+1.42572
+1.39638
+1.41584
+1.42677
+1.39539
+1.38962
+1.39497
+1.39876
+1.39995
+1.42563
+1.39426
+1.39383
+-------------------------------------------
+totalSize: 32KB		totalNum: 4096
+1.57794
+1.42324
+1.572
+1.47059
+1.53628
+1.56166
+1.64485
+1.67725
+1.57407
+1.55236
+1.55776
+1.55642
+1.57487
+1.55846
+1.57322
+1.57316
+1.5504
+1.53095
+-------------------------------------------
+totalSize: 64KB		totalNum: 8192
+1.96816
+2.54336
+2.88754
+4.02038
+4.54669
+4.20262
+4.11349
+4.11257
+4.21432
+4.1156
+1.46395
+1.41963
+1.39915
+1.42214
+1.39326
+1.39608
+1.39339
+1.40074
+-------------------------------------------
+totalSize: 128KB		totalNum: 16384
+1.9755
+2.56257
+2.89449
+4.17512
+7.06306
+4.13334
+4.12457
+4.13452
+4.07685
+8.82351
+4.13246
+1.45904
+1.42848
+1.51169
+1.46216
+1.49526
+1.47097
+1.4033
+-------------------------------------------
+totalSize: 256KB		totalNum: 32768
+1.97829
+2.53161
+2.92277
+4.16833
+5.63046
+9.76299
+11.8475
+9.44199
+11.2808
+15.0396
+4.07029
+4.16865
+1.39792
+1.40747
+1.50443
+1.53938
+1.47961
+1.5055
+-------------------------------------------
+totalSize: 512KB		totalNum: 65536
+1.9845
+2.60156
+2.95773
+4.28142
+6.91356
+17.106
+17.7076
+18.6306
+20.3524
+21.9982
+18.412
+16.9189
+6.75624
+4.06214
+1.39594
+1.38997
+1.3913
+1.39333
+-------------------------------------------
+totalSize: 1024KB		totalNum: 131072
+1.99431
+2.58566
+2.96751
+4.2583
+6.77457
+17.0667
+18.7984
+18.7929
+19.2887
+21.7181
+21.0713
+19.0254
+6.73639
+15.891
+4.12757
+1.39758
+1.39758
+1.39476
+-------------------------------------------
+totalSize: 2048KB		totalNum: 262144
+2.02516
+2.64907
+2.98334
+4.28959
+6.83749
+18.0719
+19.1268
+19.3754
+19.4421
+20.8724
+20.8214
+21.0911
+21.3808
+16.9122
+16.2862
+4.09314
+1.3922
+1.39307
+-------------------------------------------
+totalSize: 4096KB		totalNum: 524288
+1.99582
+2.58672
+2.94651
+4.24363
+6.60442
+16.6257
+18.7582
+17.0264
+18.9667
+19.8459
+19.1995
+19.084
+18.8753
+16.8072
+18.086
+5.4196
+1.40071
+1.39571

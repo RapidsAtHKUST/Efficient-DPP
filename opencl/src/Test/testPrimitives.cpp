@@ -398,24 +398,28 @@ bool testGather(
     char tempNum[50];
     my_itoa(length, tempNum, 10);
     strcat(filePath, tempNum);
-    strcat(filePath, ".data");
+    // strcat(filePath, ".data");      //the 1M size data
+    strcat(filePath, "_equal.data");    //the equal size data
+
     // cout<<"File Path: "<<filePath<<endl;
 
     int dummy;
     int *h_loc = new int[length_output];
-    readFixedArray(h_loc, filePath, dummy);
-    // valRandom_Only<int>(h_loc, length_output, SHUFFLE_NUM, length);
+    if (length_output != 100000000)
+        readFixedArray(h_loc, filePath, dummy);
+    else
+        valRandom_Only<int>(h_loc, length_output, SHUFFLE_NUM, length);
     
     //Sanity check
     int sameThres = 5;
     int sameIdx = -1;
     int cont = 0;
-    // for(int i = 0; i < length_output; i++) {
-    //     if (i == h_loc[i]) {
-    //         if (sameIdx != -1 && i - sameIdx < sameThres)  cont++;
-    //         sameIdx = i;
-    //     }
-    // }
+    for(int i = 0; i < length_output; i++) {
+        if (i == h_loc[i]) {
+            if (sameIdx != -1 && i - sameIdx < sameThres)  cont++;
+            sameIdx = i;
+        }
+    }
     cout<<"Data size: "<<length_output<<"\tSimilarity: "<<cont<<endl;
 
     struct timeval start, end;
@@ -459,7 +463,7 @@ bool testGather(
             d_source_keys, d_dest_keys,true,
     #endif
             d_source_values, d_dest_values, length, length_output, d_loc, localSize, gridSize, info, currentRun);
-
+            cout<<"tempTime: "<<tempTime<<endl;
             if ( (i != 0) && record) gatherTime[cRun] += tempTime;
         }
         if (record) gatherTime[cRun] /= (experTime - 1);
@@ -545,7 +549,9 @@ bool testScatter(
     char tempNum[50];
     my_itoa(length_output, tempNum, 10);
     strcat(filePath, tempNum);
-    strcat(filePath, ".data");
+    // strcat(filePath, ".data");          // the 1M size data
+    strcat(filePath, "_equal.data");    // the equal size data
+
     // cout<<"File Path: "<<filePath<<endl;
 
     int dummy;

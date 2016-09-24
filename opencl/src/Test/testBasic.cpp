@@ -793,6 +793,139 @@ void testAtomic(PlatInfo& info , double& totalTime, int localSize, int gridSize,
     }
 }
 
+typedef unsigned long ptr_type;
+
+//test cache and memory latency for one workitem
+void testLatency(PlatInfo& info) {
+
+    int numOfSizes = 9, numOfStrides = 18;
+    int testSize[9] = {16,32,64,128,256,512,1024,2048,4096};   //KB
+    int strides[18] = {8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536,131072, 262144, 524288, 1048576};   //Byte
+
+    double latencyTime[9][19] = {0.0};
+
+    //kernel reading
+    char path[100] = PROJECT_ROOT;
+    strcat(path, "/Kernels/latencyKernel.cl");
+    std::string kerAddr = path;
+
+    char kerName[100] = "latency";
+    char add_address_kerName[100] = "add_address";
+
+    KernelProcessor reader(&kerAddr,1,info.context);
+    cl_kernel kernel = reader.getKernel(kerName);
+    cl_kernel address_kernel = reader.getKernel(add_address_kerName);
+
+    //test with different array size and strides
+    for(int cs = 0; cs < numOfSizes; cs++) {
+        int totalSize = testSize[cs] * 1024;    //change to Byte
+        int totalNum = totalSize / sizeof(ptr_type); //change to # of tuples
+        cout<<"-------------------------------------------"<<endl;
+        cout<<"totalSize: "<<testSize[cs]<<"KB\t\t"<<"totalNum: "<<totalNum<<endl;
+
+        for(int ss = 0; ss < numOfStrides; ss++) {
+            //initialization
+            int stride = strides[ss];
+            int strideCount = stride / sizeof(ptr_type);
+
+            //the extra place is used for storing the output
+            ptr_type *h_source_values = new ptr_type[totalNum+1];        
+
+            for(int i = 0; i < totalNum; i++) {
+                h_source_values[i] = (( i + strideCount ) % totalNum) * sizeof(ptr_type);
+            }
+
+            //memory allocation
+            cl_int status = 0;
+            int argsNum = 0;
+
+            cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(ptr_type)*(totalNum+1), NULL, &status);
+            checkErr(status, ERR_HOST_ALLOCATION);
+
+            status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(ptr_type)*(totalNum+1), h_source_values, 0, 0, 0);
+            checkErr(status, ERR_WRITE_BUFFER);   
+
+            //set kernel arguments for add_address kernel 
+            argsNum = 0;
+            status |= clSetKernelArg(address_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
+            status |= clSetKernelArg(address_kernel, argsNum++, sizeof(int), &totalNum);
+            checkErr(status, ERR_SET_ARGUMENTS);
+
+            //set kernel arguments for latency test
+            argsNum = 0;
+            status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_source_values);
+            status |= clSetKernelArg(kernel, argsNum++, sizeof(int), &totalNum);
+            checkErr(status, ERR_SET_ARGUMENTS);
+
+            //for the address adding kernel
+            size_t local[1] = {(size_t)1024};
+            size_t global[1] = {(size_t)(1024 * 1024)};
+            
+            //one workgroup and one workitem per workgroup
+            size_t latency_local[1] = {(size_t)1};
+            size_t latency_global[1] = {(size_t)1};
+
+            //launch the kernel
+        #ifdef PRINT_KERNEL
+            printExecutingKernel(kernel);
+        #endif
+
+            //adjust the device address
+            status = clEnqueueNDRangeKernel(info.currentQueue, address_kernel, 1, 0, global, local, 0, 0, NULL);
+            status = clFinish(info.currentQueue);
+
+            //being latency test
+            int experTime = 10;
+            for(int i = 0; i < experTime; i++) {
+
+                cl_event event;
+                status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, latency_global, latency_local, 0, 0, &event);
+                // clFlush(info.currentQueue);
+                status = clFinish(info.currentQueue);
+
+                checkErr(status, ERR_EXEC_KERNEL);
+                double tempTime = clEventTime(event);
+
+                //throw away the first result
+                if (i != 0)     latencyTime[cs][ss] += tempTime;
+            }    
+            //repeated 2 000 000 times
+            latencyTime[cs][ss] = latencyTime[cs][ss] * 1e6 / (experTime - 1) / 2000000 ;      //change to ns
+            cout<<"latency time: "<<latencyTime[cs][ss]<<" ns." <<endl;
+
+            status = clReleaseMemObject(d_source_values);
+            checkErr(status, ERR_RELEASE_MEM);
+
+            delete[] h_source_values;
+        }
+    }
+
+    //for python
+    for(int cs = 0; cs < numOfSizes; cs++) {
+        int totalSize = testSize[cs] * 1024;    //change to Byte
+        cout<<"latency_"<<testSize[cs]<<" = ["<<latencyTime[cs][0];
+
+        for(int ss = 1; ss < numOfStrides; ss++) {
+            //initialization
+            cout<<','<<latencyTime[cs][ss];
+        }
+        cout<<"]"<<endl;
+    }
+
+    //for excel
+    for(int cs = 0; cs < numOfSizes; cs++) {
+        int totalSize = testSize[cs] * 1024;    //change to Byte
+        int totalNum = totalSize / sizeof(ptr_type);
+        cout<<"-------------------------------------------"<<endl;
+        cout<<"totalSize: "<<testSize[cs]<<"KB\t\t"<<"totalNum: "<<totalNum<<endl;
+
+        for(int ss = 0; ss < numOfStrides; ss++) {
+            //initialization
+            cout<<latencyTime[cs][ss]<<endl;
+        }
+    }
+}
+
 template void testVPU<int>(int *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
 template void testVPU<double>(double *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
 

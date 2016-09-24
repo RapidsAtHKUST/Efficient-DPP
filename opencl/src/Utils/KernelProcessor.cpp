@@ -14,8 +14,8 @@ using namespace std;
 KernelProcessor::KernelProcessor(string *addr,int num, cl_context context, char* extra) {
     this->num = num;
     source = new char*[this->num];
-    kernelRead(addr, num);
 
+    kernelRead(addr, num);
     compile(context, extra);
 }
 
@@ -42,20 +42,20 @@ void KernelProcessor::kernelRead(string *addr, int num) {
 }
 
 void KernelProcessor::compile(cl_context context, char* extra) {
+
     //establish the program the compile it
     cl_int err;
     this->program = clCreateProgramWithSource(context, this->num, (const char**)this->source, 0, &err);
     checkErr(err, "Failed to creat program.");
 
-
     size_t totalSize;
     clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &totalSize);
-    
+
     long num = totalSize/sizeof(cl_device_id);
     cl_device_id devices[num];
     err = clGetContextInfo(context, CL_CONTEXT_DEVICES, totalSize, devices, NULL);
     checkErr(err, "Failed to get the devices of the context.");
-    
+
     //compile
     char comArgs[1000] = "-I";
     strcat(comArgs, PROJECT_ROOT);
