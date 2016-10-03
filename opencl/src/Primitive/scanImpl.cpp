@@ -11,6 +11,81 @@
 
 using namespace std;
 
+/*  grid size should be equal to the # of computing units
+ *  R: number of elements in registers in each work-item
+ *  L: number of elememts in local memory
+ */
+double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int localSize, int gridSize, int R, int L)
+{
+    double totalTime = 0.0f;
+    cl_event event;
+    cl_int status = 0;
+    int argsNum = 0;
+
+    int element_per_block = localSize * R + L;
+    int num_of_blocks = (length + element_per_block - 1) / element_per_block;
+
+    size_t local[1] = {(size_t)localSize};
+    size_t global[1] = {(size_t)(localSize * gridSize)};
+
+    //kernel reading
+    char scanPath[100] = PROJECT_ROOT;
+    strcat(scanPath, "/Kernels/scanKernel.cl");
+    std::string scanKerAddr = scanPath;
+
+    char scanBlock[100] = "scan_fast";
+    
+    char extra[500];        
+    strcpy(extra, "-DREGISTERS=");
+    char R_li[20];
+
+    int DR;
+    if (R == 0) DR = 1;            //
+    else        DR = R;
+    my_itoa(DR, R_li, 10);       //transfer R to string
+    strcat(extra, R_li);
+
+    KernelProcessor scanReader(&scanKerAddr,1,info.context,extra);
+    
+    cl_kernel scanBlockKernel = scanReader.getKernel(scanBlock);
+
+    //initialize the intermediate array
+    int *h_inter = new int[num_of_blocks];
+    cout<<"num of blocks:"<<num_of_blocks<<endl;
+    for(int i = 0; i < num_of_blocks; i++) h_inter[i] = -1;
+    cl_mem d_inter = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)* num_of_blocks, NULL, &status);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_inter, CL_TRUE, 0, sizeof(int)*num_of_blocks, h_inter, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+
+    argsNum = 0;
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_source);
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &length);
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int)*(localSize+L+1), NULL);
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), NULL);    //gss
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &num_of_blocks);
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &R);
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &L);
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isExclusive);
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_inter);
+
+    checkErr(status, ERR_SET_ARGUMENTS);
+    
+#ifdef PRINT_KERNEL
+    printExecutingKernel(scanBlockKernel);
+#endif
+    status = clFinish(info.currentQueue);
+
+    status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, global, local, 0, NULL, &event);
+    status = clFinish(info.currentQueue);
+    checkErr(status, ERR_EXEC_KERNEL);        
+    totalTime += clEventTime(event);
+    
+    clReleaseMemObject(d_inter);
+    delete[] h_inter;
+
+    return totalTime;
+}
+
 double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int localSize)
 {
     double totalTime = 0.0f;
@@ -36,6 +111,9 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
         return 1;
     }
 
+    char extra[500];        
+    strcpy(extra, "-DREGISTERS=10");
+
     //kernel reading
     char scanPath[100] = PROJECT_ROOT;
     strcat(scanPath, "/Kernels/scanKernel.cl");
@@ -44,7 +122,7 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
     char scanBlock[100] = "scan_block";
     char scanAddBlock[100] = "scan_addBlock";
     
-    KernelProcessor scanReader(&scanKerAddr,1,info.context);
+    KernelProcessor scanReader(&scanKerAddr,1,info.context, extra);
     
     cl_kernel scanBlockKernel = scanReader.getKernel(scanBlock);
     cl_kernel scanAddBlockKernel = scanReader.getKernel(scanAddBlock);
@@ -52,7 +130,6 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
     int warpSize = SCAN_WARPSIZE;
     int numOfWarps = localSize / warpSize;
     
-
     if (firstLevelBlockNum == 1) {      //length <= element_per_block, only 1 level is enough
         int isWriteSum = 0;
         argsNum = 0;
@@ -81,7 +158,6 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
 
         status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, firstGlobal, local, 0, NULL, &event);
         clFlush(info.currentQueue);
-        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);        
         totalTime += clEventTime(event);
 
@@ -112,7 +188,6 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
 
         status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, firstGlobal, local, 0, NULL, &event);
         clFlush(info.currentQueue);
-        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
         totalTime += clEventTime(event);
 
@@ -143,7 +218,6 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
 
         status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, secondGlobal, local, 0, NULL, &event);
         clFlush(info.currentQueue);
-        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
         totalTime += clEventTime(event);
 
@@ -164,9 +238,9 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
 
         status = clEnqueueNDRangeKernel(info.currentQueue, scanAddBlockKernel, 1, 0, firstGlobal, local, 0, NULL, &event);
         clFlush(info.currentQueue);
-        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
         totalTime += clEventTime(event);
+
     }
     else {                              //length <= element_per_block^3, 3 levels are enough
         cl_mem firstBlockSum = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*firstLevelBlockNum, NULL, &status);   //first level block sum
@@ -190,20 +264,20 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
         
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanBlockKernel);
-    #endif
+#endif
         status = clFinish(info.currentQueue);
 
         status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, firstGlobal, local, 0, NULL, &event);
-        clFlush(info.currentQueue);
-        clWaitForEvents(1,&event);
+        status = clFinish(info.currentQueue);
+
         checkErr(status, ERR_EXEC_KERNEL);
         totalTime += clEventTime(event);
+        cout<<"totalTime1:"<<totalTime<<endl;
+        // int *firstTemp = new int[firstLevelBlockNum];
+        // int *firstTempAfter = new int[firstLevelBlockNum];
 
-        int *firstTemp = new int[firstLevelBlockNum];
-        int *firstTempAfter = new int[firstLevelBlockNum];
-
-        status = clEnqueueReadBuffer(info.currentQueue, firstBlockSum, CL_TRUE, 0, sizeof(int)*firstLevelBlockNum, firstTemp, 0, NULL, NULL);
-        checkErr(status, ERR_READ_BUFFER);
+        // status = clEnqueueReadBuffer(info.currentQueue, firstBlockSum, CL_TRUE, 0, sizeof(int)*firstLevelBlockNum, firstTemp, 0, NULL, NULL);
+        // checkErr(status, ERR_READ_BUFFER);
 
         argsNum = 0;
         isWriteSum = 1;
@@ -226,12 +300,13 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
 
         status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, secondGlobal, local, 0, NULL, &event);
         status = clFinish(info.currentQueue);
-        clWaitForEvents(1,&event);
+        // clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
         totalTime += clEventTime(event);
+        cout<<"totalTime2:"<<totalTime<<endl;
 
-        status = clEnqueueReadBuffer(info.currentQueue, firstBlockSum, CL_TRUE, 0, sizeof(int)*firstLevelBlockNum, firstTempAfter, 0, NULL, NULL);
-        checkErr(status, ERR_READ_BUFFER);
+        // status = clEnqueueReadBuffer(info.currentQueue, firstBlockSum, CL_TRUE, 0, sizeof(int)*firstLevelBlockNum, firstTempAfter, 0, NULL, NULL);
+        // checkErr(status, ERR_READ_BUFFER);
 
         //3rd
         int *secondTemp = new int[secondLevelBlockNum];
@@ -256,14 +331,14 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
     #ifdef PRINT_KERNEL
         printExecutingKernel(scanBlockKernel);
     #endif
-        clFlush(info.currentQueue);
+        status = clFinish(info.currentQueue);
 
         status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, thirdGlobal, local, 0, NULL, &event);
         status = clFinish(info.currentQueue);
-        clWaitForEvents(1,&event);
         checkErr(status, ERR_EXEC_KERNEL);
 
         totalTime += clEventTime(event);
+        cout<<"totalTime3:"<<totalTime<<endl;
 
         status = clEnqueueReadBuffer(info.currentQueue, secondBlockSum, CL_TRUE, 0, sizeof(int)*secondLevelBlockNum, secondTemp, 0, NULL, NULL);
         checkErr(status, ERR_READ_BUFFER);
@@ -281,10 +356,11 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
         status = clFinish(info.currentQueue);
 
         status = clEnqueueNDRangeKernel(info.currentQueue, scanAddBlockKernel, 1, 0, secondGlobal, local, 0, NULL, &event);
-        clFlush(info.currentQueue);
-        clWaitForEvents(1,&event);
+        status = clFinish(info.currentQueue);
+        
         checkErr(status, ERR_EXEC_KERNEL);
         totalTime += clEventTime(event);
+        cout<<"totalTime4:"<<totalTime<<endl;
         
         //add block 2nd
         argsNum = 0;
@@ -299,10 +375,12 @@ double scan(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int l
         status = clFinish(info.currentQueue);
 
         status = clEnqueueNDRangeKernel(info.currentQueue, scanAddBlockKernel, 1, 0, firstGlobal, local, 0, NULL, &event);
-        clFlush(info.currentQueue);
-        clWaitForEvents(1,&event);
+        status = clFinish(info.currentQueue);
+
         checkErr(status, ERR_EXEC_KERNEL);
         totalTime += clEventTime(event);
+        cout<<"totalTime5:"<<totalTime<<endl;
+
 
     }
     return totalTime;

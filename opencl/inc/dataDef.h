@@ -1,6 +1,7 @@
 #ifndef __DATA_DEF_H__
 #define __DATA_DEF_H__
 
+//------------------- Var used both on host and devices ------------ 
 //throughput processing
 #define VPU_REPEAT_TIME             (120)               //repeat time for madd operation
 #define VPU_EXPR_TIME               (10)
@@ -14,7 +15,7 @@
 #define ATOMIC_REPEAT_TIME          (1000)
 
 //scan definition
-#define SCAN_BITS        			(4)
+#define SCAN_BITS        			(5)
 #define SCAN_MASK        			((1<<SCAN_BITS)-1)
 #define SCAN_ELE_PER_THREAD  		(2)
 #define SCAN_WARPSIZE    			(1<<SCAN_BITS)
@@ -50,39 +51,43 @@ typedef struct {
 #endif
 } ScatterData;
 
+//------------------- Var used only on host  ---------------
+
 //CSS tree structer for INLJ
-typedef struct CSS_Tree_Info {
-	cl_mem d_CSS;
-	int CSS_length;
-	int mPart;
-	int numOfInternalNodes;
-	int mark;
-} CSS_Tree_Info;
+#ifndef KERNEL
 
-//Basic test information
-typedef struct Basic_info {
+    typedef struct CSS_Tree_Info {
+        cl_mem d_CSS;
+        int CSS_length;
+        int mPart;
+        int numOfInternalNodes;
+        int mark;
+    } CSS_Tree_Info;
+
+    typedef struct Basic_info {
     //vpu testing
-    double vpu_time;
-    double vpu_throughput;
+        double vpu_time;
+        double vpu_throughput;
 
-    int vpu_blockSize;
-    int vpu_gridSize;
-    int vpu_vecSize;
+        int vpu_blockSize;
+        int vpu_gridSize;
+        int vpu_vecSize;
 
-    //memory bandwidth
-    double mem_read_time;
-    double mem_read_throughput;
+        //memory bandwidth
+        double mem_read_time;
+        double mem_read_throughput;
 
-    double mem_write_time;
-    double mem_write_throughput;
+        double mem_write_time;
+        double mem_write_throughput;
 
-    double mem_mul_time;
-    double mem_mul_throughput;
-} Basic_info;
+        double mem_mul_time;
+        double mem_mul_throughput;
+    } Basic_info;
 
-typedef struct Device_perf_info {
-    Basic_info float_info;
-    Basic_info double_info;
-} Device_perf_info;
+    typedef struct Device_perf_info {
+        Basic_info float_info;
+        Basic_info double_info;
+    } Device_perf_info;
+#endif
 
 #endif

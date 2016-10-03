@@ -44,8 +44,11 @@ double scatter(
     cl_mem d_loc, int localSize, int gridSize, PlatInfo& info, int numOfRun);
 
 
+double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int localSize, int gridSize, int R, int L);
+
 double scan(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize = BLOCKSIZE);
 double scan_ble(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize = BLOCKSIZE);
+
 DEPRECATED double scan_blelloch(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize = BLOCKSIZE);
 
 double split(cl_mem d_source, cl_mem &d_dest, int length, int fanout, PlatInfo& info, int localSize, int gridSize);

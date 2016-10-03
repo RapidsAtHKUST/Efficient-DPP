@@ -113,22 +113,20 @@ int main(int argc, const char * argv[]) {
         std::cout<<"Finish reading data..."<<std::endl;
     }
     else {
-        // dataSize = atoi(argv[1]);
-        dataSize = 1000000000;
+        dataSize = atoi(argv[1]);
+        // dataSize = 16000000;
         assert(dataSize > 0);
         outputSizeGS = 1000000;
 
     #ifdef RECORDS
         fixedKeys = new int[dataSize];
     #endif
-        // fixedValues = new int[dataSize];
-        // fixedLoc = new int[outputSizeGS];
+        fixedValues = new int[dataSize];
     #ifdef RECORDS
         recordRandom<int>(fixedKeys, fixedValues, dataSize);
     #else
-        // valRandom<int>(fixedValues,dataSize, MAX_NUM);
+        valRandom<int>(fixedValues,dataSize, MAX_NUM);
     #endif
-        // valRandom_Only<int>(fixedLoc, outputSizeGS, dataSize, dataSize);
     }
 
     int map_blockSize = -1, map_gridSize = -1;
@@ -139,36 +137,21 @@ int main(int argc, const char * argv[]) {
     int experTime = 1;
     double mapTime = 0.0f, gatherTime = 0.0f, scatterTime = 0.0f, scanTime = 0.0f, radixSortTime = 0.0f;
 
-	// runBarrier(experTime);
-
     // runVPU<int>();
     // runMem<int>();
     // runAccess<int>();
     // runMem<double>();
-    // runMap();
+    // runAtomic();
+    // runBarrier(experTime);
+    // runLatency();
 
-    runLatency();
+    // runMap();
     // runGather();
     // runScatter();
-    // scatterTime = runScatter(experTime, scatter_blockSize, scatter_gridSize);
-    // scanTime = runScan(experTime, scan_blockSize);
+    scanTime = runScan(experTime, scan_blockSize);
     // radixSortTime = runRadixSort(experTime);
 
-	// runAtomic();
-
-//bandwidth calculation
-    // bytes[0] = dataSize * sizeof(int) * 2;
-
-    // cout<<"Time for map: "<<mapTime<<" ms."<<'\t'
-    //     <<"BlockSize: "<<map_blockSize<<'\t'
-    //     <<"GridSize: "<<map_gridSize<<'\t'
-    //     <<"Bandwidth:"<<1.0E-06 * bytes[0] / mapTime<<" GB/s." 
-    //     <<endl;
-    
-
-    // cout<<"Time for gather per tuple: "<<gatherTime<<" ns."<<'\t'<<"BlockSize: "<<gather_blockSize<<'\t'<<"GridSize: "<<gather_gridSize<<endl;
-    // cout<<"Time for scatter: "<<scatterTime<<" ms."<<'\t'<<"BlockSize: "<<scatter_blockSize<<'\t'<<"GridSize: "<<scatter_gridSize<<endl;
-    // cout<<"Time for scan: "<<scanTime<<" ms."<<'\t'<<"BlockSize: "<<scan_blockSize<<endl;
+    cout<<"Time for scan: "<<scanTime<<" ms."<<'\t'<<"BlockSize: "<<scan_blockSize<<endl;
     // cout<<"Time for radix sort: "<<radixSortTime<<" ms."<<endl;
     
 //    testSplit(fixedRecords, dataSize, info, 20, totalTime);           //fanout: 20
@@ -722,8 +705,8 @@ double runScan(int experTime, int& bestBlockSize) {
     bestBlockSize = -1;
     bool res;
 
-    int block_min = 128, block_max = 1024;
-    int grid_min = 256, grid_max = 32768;
+    int block_min = 1024, block_max = 1024;
+    int grid_min = 1024, grid_max = 1024;
      
     for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {   
         double tempTime = MAX_TIME;
