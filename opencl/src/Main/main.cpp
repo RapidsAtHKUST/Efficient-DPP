@@ -408,12 +408,16 @@ void runMem() {
     double bestTime_mul = MAX_TIME;
     double throughput_mul = 0.0;
 
+    double bestTime_add = MAX_TIME;
+    double throughput_add = 0.0;
+
     //run the memory test
-    testMem<T>(info, blockSize, gridSize, bestTime_read, bestTime_write, bestTime_mul, repeat_for_read);
+    testMem<T>(info, blockSize, gridSize, bestTime_read, bestTime_write, bestTime_mul, bestTime_add , repeat_for_read);
     //compute the throughput
     throughput_read = computeMem(blockSize*gridSize/4, sizeof(T), bestTime_read);
     throughput_write = computeMem(blockSize*gridSize, sizeof(T), bestTime_write);
     throughput_mul = computeMem(blockSize*gridSize*2*2, sizeof(T), bestTime_mul);
+    throughput_add = computeMem(blockSize*gridSize*2*3, sizeof(T), bestTime_add);
 
     currentBestInfo.mem_read_time = bestTime_read;
     currentBestInfo.mem_read_throughput = throughput_read;
@@ -424,6 +428,9 @@ void runMem() {
     currentBestInfo.mem_mul_time = bestTime_mul;
     currentBestInfo.mem_mul_throughput = throughput_mul;
 
+    currentBestInfo.mem_add_time = bestTime_add;
+    currentBestInfo.mem_add_throughput = throughput_add;
+
     cout<<"Time for memory read(Repeat:"<<repeat_for_read<<"): "<<currentBestInfo.mem_read_time<<" ms."<<'\t'
         <<"Bandwidth: "<<currentBestInfo.mem_read_throughput<<" GB/s"<<endl;
 
@@ -432,6 +439,9 @@ void runMem() {
 
     cout<<"Time for memory mul: "<<currentBestInfo.mem_mul_time<<" ms."<<'\t'
     <<"Bandwidth: "<<currentBestInfo.mem_mul_throughput<<" GB/s"<<endl;
+
+    cout<<"Time for memory add: "<<currentBestInfo.mem_add_time<<" ms."<<'\t'
+    <<"Bandwidth: "<<currentBestInfo.mem_add_throughput<<" GB/s"<<endl;
 }
 
 template<typename T>
@@ -558,30 +568,29 @@ void runGather() {
 
     int blockSize = 1024, gridSize = 2048;
 
-    int run = 1, dataBegin = 6, dataRun = 9;
+    int run = 7, dataBegin = 0, dataEnd = 19;
     
     //multi-pass : 7 choices
     int numOfRun[7] = {1,2,4,8,16,32,64};
-    int myDataSize[17] = {1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
+    int myDataSize[19] = {250000, 500000, 1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
 
     //warm up
-    // testGather(            
-    // #ifdef RECORDS
-    //         fixedKeys,
-    // #endif
-    //         fixedValues,
-    //         1000000, 1000000, info , numOfRun, run, NULL, false, blockSize, gridSize);
+    testGather(            
+    #ifdef RECORDS
+            fixedKeys,
+    #endif
+            fixedValues,
+            1000000, 1000000, info , numOfRun, run, NULL, false, blockSize, gridSize);
     
     cout<<"---------- Warm up over, begin test ---------"<<endl;
     
-    double gatherTime[17][7] = {0.0};
+    double gatherTime[19][7] = {0.0};
 
-    for(int idx = dataBegin; idx < dataRun; idx++) {
+    for(int idx = dataBegin; idx < dataEnd; idx++) {
         //input size should be larger or equals to the output size
         int inputSize = myDataSize[idx];
         int outputSize = myDataSize[idx];   //for equal case
         // int outputSize = outputSizeGS;   //for 1M case
-
 
         res = testGather(            
     #ifdef RECORDS
@@ -600,7 +609,7 @@ void runGather() {
     cout<<"Gather stat:"<<endl;
     for(int r = 0; r < run; r++) {
         cout<<"Current # of pass:"<<numOfRun[r]<<endl;
-        for(int i = dataBegin; i < dataRun; i++) {
+        for(int i = dataBegin; i < dataEnd; i++) {
             cout<<"Data size: "<<myDataSize[i]<<'\t'<<"time per tuple: "<<gatherTime[i][r]<<" ns."<<endl;
         }
     }
@@ -610,7 +619,7 @@ void runGather() {
     for(int r = 0; r < run; r++) {
         cout<<"gather_"<<numOfRun[r]<<" = ";
         cout<<"["<<gatherTime[dataBegin][r];
-        for(int i = dataBegin+1; i < dataRun; i++) {
+        for(int i = dataBegin+1; i < dataEnd; i++) {
             cout<<','<<gatherTime[i][r];
         }
         cout<<"]"<<endl;
@@ -619,7 +628,7 @@ void runGather() {
     cout<<"For excel:"<<endl;
     for(int r = 0; r < run; r++) {
         cout<<"Current # of pass:"<<numOfRun[r]<<endl;
-        for(int i = dataBegin; i < dataRun; i++) {
+        for(int i = dataBegin; i < dataEnd; i++) {
             cout<<gatherTime[i][r]<<endl;
         }
         cout<<endl;
@@ -632,10 +641,10 @@ void runScatter() {
     bool res;
 
     int blockSize = 1024, gridSize = 2048;
-    int run = 7, dataBegin = 6, dataRun = 9;
+    int run = 7, dataBegin = 0, dataEnd = 19;
 
     int numOfRun[7] = {1,2,4,8,16,32,64};
-    int myDataSize[17] = {1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
+    int myDataSize[19] = {250000, 500000, 1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
 
     //warm up
     testScatter(            
@@ -648,9 +657,9 @@ void runScatter() {
     cout<<"---------- Warm up over, begin test ---------"<<endl;
     
     // --------test scatter------------
-    double scatterTime[17][7] = {0.0};
+    double scatterTime[19][7] = {0.0};
 
-    for(int idx = dataBegin; idx < dataRun; idx++) {
+    for(int idx = dataBegin; idx < dataEnd; idx++) {
         //input size should be smaller or equals to the output size
         
         // int inputSize = outputSizeGS;   //for 1M size case
@@ -674,7 +683,7 @@ void runScatter() {
     cout<<"Scatter stat:"<<endl;
     for(int r = 0; r < run; r++) {
         cout<<"Current # of pass:"<<numOfRun[r]<<endl;
-        for(int i = dataBegin; i < dataRun; i++) {
+        for(int i = dataBegin; i < dataEnd; i++) {
             cout<<"Data size: "<<myDataSize[i]<<'\t'<<"time per tuple: "<<scatterTime[i][r]<<" ns."<<endl;
         }
     }
@@ -684,7 +693,7 @@ void runScatter() {
     for(int r = 0; r < run; r++) {
         cout<<"scatter_"<<numOfRun[r]<<" = ";
         cout<<"["<<scatterTime[dataBegin][r];
-        for(int i = dataBegin+1; i < dataRun; i++) {
+        for(int i = dataBegin+1; i < dataEnd; i++) {
             cout<<','<<scatterTime[i][r];
         }
         cout<<"]"<<endl;
@@ -693,7 +702,7 @@ void runScatter() {
     cout<<"For excel:"<<endl;
     for(int r = 0; r < run; r++) {
         cout<<"Current # of pass:"<<numOfRun[r]<<endl;
-        for(int i = dataBegin; i < dataRun; i++) {
+        for(int i = dataBegin; i < dataEnd; i++) {
             cout<<scatterTime[i][r]<<endl;
         }
         cout<<endl;
@@ -707,7 +716,21 @@ double runScan(int experTime, int& bestBlockSize) {
 
     int block_min = 1024, block_max = 1024;
     int grid_min = 1024, grid_max = 1024;
-     
+    
+    cout<<"--------- Exclusive --------"<<endl;
+    for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {   
+        double tempTime = MAX_TIME;
+        for(int i = 0 ; i < experTime; i++) {       
+            // --------test scan------------
+            res = testScan(fixedValues, dataSize, info, tempTime, 1, blockSize);             //0: inclusive
+        }
+        if (tempTime < bestTime && res == true) {
+            bestTime = tempTime;
+            bestBlockSize = blockSize;
+        }
+    }
+
+    cout<<"--------- Inclusive --------"<<endl;
     for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {   
         double tempTime = MAX_TIME;
         for(int i = 0 ; i < experTime; i++) {       

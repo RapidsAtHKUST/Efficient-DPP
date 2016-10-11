@@ -79,11 +79,11 @@ int main(int argc, char *argv[]) {
         recordRandom<int>(fixedKeys, fixedValues, dataSize, MAX_NUM);
 		recordRandom<int>(splitKeys, splitVals, dataSize, fanout);
 
-        valRandom<int>(fixedArray, dataSize, 10);
+        // valRandom<int>(fixedArray, dataSize, 10);
         // valRandom<int>(fixedArray, dataSize, MAX_NUM);
 
-        valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
-		valRandom<int>(splitArray, dataSize, fanout);			//fanout
+        // valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
+		// valRandom<int>(splitArray, dataSize, fanout);			//fanout
     }
 
 	bool res;
@@ -91,15 +91,16 @@ int main(int argc, char *argv[]) {
 
 	int blockSize = 1024, gridSize = 32768;
 //-------------------------------- Basic test-----------------------------
-	// float bestTime_read, bestTime_write, bestTime_mul;
-	// float throughput_read, throughput_write, throughput_mul;
-	// //basic test
-	// int repeat_read = 100;
-	// testMem(blockSize, gridSize, bestTime_read, bestTime_write, bestTime_mul, repeat_read);
+	float bestTime_read, bestTime_write, bestTime_mul, bestTime_add;
+	float throughput_read, throughput_write, throughput_mul, throughput_add;
+	//basic test
+	int repeat_read = 100;
+	// testMem(blockSize, gridSize, bestTime_read, bestTime_write, bestTime_mul, bestTime_add, repeat_read);
 
 	// throughput_read = computeMem(blockSize*gridSize/4, sizeof(int), bestTime_read);
  //    throughput_write = computeMem(blockSize*gridSize, sizeof(int), bestTime_write);
  //    throughput_mul = computeMem(blockSize*gridSize*2*2, sizeof(int), bestTime_mul);
+ //    throughput_add = computeMem(blockSize*gridSize*2*3, sizeof(int), bestTime_add);
 
  //    cout<<"Time for memory read(Repeat:"<<repeat_read<<"): "<<bestTime_read<<" ms."<<'\t'
  //        <<"Bandwidth: "<<throughput_read<<" GB/s"<<endl;
@@ -109,6 +110,9 @@ int main(int argc, char *argv[]) {
 
  //    cout<<"Time for memory mul: "<<bestTime_mul<<" ms."<<'\t'
  //    <<"Bandwidth: "<<throughput_mul<<" GB/s"<<endl;
+	
+	// cout<<"Time for memory add: "<<bestTime_add<<" ms."<<'\t'
+ //    <<"Bandwidth: "<<throughput_add<<" GB/s"<<endl;
 //-------------------------------- Basic test end-----------------------------
 
 
@@ -138,16 +142,16 @@ int main(int argc, char *argv[]) {
 // 		if (idnElapsedTime < mapTime)		mapTime = idnElapsedTime;
 
 // //--------------testing gather--------------
-		res = testGather<int>(
-#ifdef RECORDS
-		fixedKeys, fixedValues,
-#else
-		fixedArray, 
-#endif
-		dataSize, fixedLoc, idnElapsedTime, blockSize, gridSize);
+// 		res = testGather<int>(
+// #ifdef RECORDS
+// 		fixedKeys, fixedValues,
+// #else
+// 		fixedArray, 
+// #endif
+// 		dataSize, fixedLoc, idnElapsedTime, blockSize, gridSize);
 
-		printRes("gather", res,idnElapsedTime);
-		if (idnElapsedTime < gatherTime)		gatherTime = idnElapsedTime;
+// 		printRes("gather", res,idnElapsedTime);
+// 		if (idnElapsedTime < gatherTime)		gatherTime = idnElapsedTime;
 		
 
 // //--------------testing scatter--------------
@@ -184,7 +188,7 @@ int main(int argc, char *argv[]) {
 		// res = testScan_ble<int>(fixedArray, dataSize, idnElapsedTime, 1);
 		// printRes("scan_ble", res,idnElapsedTime);
 		// if (idnElapsedTime < scanTime_ble)		scanTime_ble = idnElapsedTime;
-		// scanImpl(fixedArray, dataSize, BLOCKSIZE, GRIDSIZE, 1);
+		scanImpl(fixedArray, dataSize, BLOCKSIZE, GRIDSIZE, 1);
 //--------------testing radix sort (no need to specify the block and grid size)--------------
 
 // 		res = testRadixSort<int>(

@@ -55,6 +55,17 @@ __global__ void mem_mul(
 
 }
 
+__global__ void mem_add(
+	int2 *d_source_values,
+	int2 *d_source_values_2,
+	int2 *d_dest_values) 
+{
+	int globalId = blockIdx.x * blockDim.x + threadIdx.x;
+    d_dest_values[globalId].x = d_source_values[globalId].x + d_source_values_2[globalId].x;
+    d_dest_values[globalId].y = d_source_values[globalId].y + d_source_values_2[globalId].y;
+
+}
+
 float testMemRead(int *d_source_values, int *d_dest_values, int blockSize, int gridSize) 
 {
 	dim3 grid(gridSize);
@@ -117,4 +128,27 @@ float testMemMul(int2 *d_source_values, int2 *d_dest_values, int blockSize, int 
 
 	return totalTime;
 }
+
+
+float testMemAdd(int2 *d_source_values, int2 *d_source_values_2, int2 *d_dest_values, int blockSize, int gridSize) 
+{
+	dim3 grid(gridSize);
+	dim3 block(blockSize);
+
+	float totalTime = 0.0f;
+
+	cudaEvent_t start, end;
+	cudaEventCreate(&start);
+	cudaEventCreate(&end);
+
+	cudaEventRecord(start);
+	mem_add<<<grid, block>>>(d_source_values, d_source_values_2,d_dest_values);
+	cudaEventRecord(end);
+	cudaEventSynchronize(end);
+
+	cudaEventElapsedTime(&totalTime, start, end);
+
+	return totalTime;
+}
+
 

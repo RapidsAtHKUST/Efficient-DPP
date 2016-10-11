@@ -39,6 +39,32 @@ double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, 
     strcpy(extra, "-DREGISTERS=");
     char R_li[20];
 
+    //calculating the demanding intermediate local memory size
+    int lo_size;            //intermediate memory size
+    int localMem_size;      //actual memory size
+
+    if (length < L)     {
+        R = 0;      //no need to use registers
+        L = length;
+    }
+
+    if ( R == 0 )   {   //no need to use register
+        assert(L != 0);
+        lo_size = L;
+        localMem_size = lo_size;
+    }
+    else if ( L == 0 ) {    //no need to use local memory
+        assert( R != 0);
+        //need R * localSize local memory space
+        lo_size = localSize;
+        localMem_size = R * localSize;
+    }
+    else {          //use both local mem and registers
+        //now length > L
+        lo_size = localSize + L;
+        localMem_size = (lo_size > R * localSize)? lo_size : (R*localSize);
+    }
+    
     int DR;
     if (R == 0) DR = 1;            //
     else        DR = R;
@@ -53,15 +79,24 @@ double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, 
     int *h_inter = new int[num_of_blocks];
     cout<<"num of blocks:"<<num_of_blocks<<endl;
     for(int i = 0; i < num_of_blocks; i++) h_inter[i] = -1;
+
     cl_mem d_inter = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)* num_of_blocks, NULL, &status);
     status = clEnqueueWriteBuffer(info.currentQueue, d_inter, CL_TRUE, 0, sizeof(int)*num_of_blocks, h_inter, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
 
+    int warpNum = localSize / SCAN_WARPSIZE;
+
     argsNum = 0;
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_source);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &length);
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int)*(localSize+L+1), NULL);
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int)*localMem_size, NULL);    //local memory lo
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &lo_size);           //local mem size
+
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), NULL);    //gs
+
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), NULL);    //gss
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int)*warpNum, NULL);    //help memory
+
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &num_of_blocks);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &R);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &L);
@@ -79,7 +114,7 @@ double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, 
     status = clFinish(info.currentQueue);
     checkErr(status, ERR_EXEC_KERNEL);        
     totalTime += clEventTime(event);
-    
+
     clReleaseMemObject(d_inter);
     delete[] h_inter;
 

@@ -8,7 +8,8 @@
 double vpu_test(float *hostMem, int n, int repeatTime);
 double mem_read_test(int *data, int n);
 double mem_write_test(int *data, int n);
-double mem_mul_test(double *input, double*output, int n);
+double mem_mul_test(int *input, int*output, int n);
+double mem_add_test(int *input,int *input_2,  int*output, int n);
 
 
 void testRadixSort(unsigned *arr, int len) ;

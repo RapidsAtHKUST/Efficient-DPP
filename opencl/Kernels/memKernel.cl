@@ -85,6 +85,15 @@ kernel void mem_mul (
     d_dest_values[globalId] = d_source_values[globalId] * 3;
 }
 
+kernel void mem_add (
+    global const TYPE2* restrict d_source_values_1, 
+    global const TYPE2* restrict d_source_values_2, 
+    global TYPE2* restrict d_dest_values)
+{
+    int globalId = get_global_id(0);
+    d_dest_values[globalId] = d_source_values_1[globalId] + d_source_values_2[globalId];
+}
+
 kernel void mem_mul_coalesced (
     global const TYPE* restrict d_source_values, 
     global TYPE* restrict d_dest_values,

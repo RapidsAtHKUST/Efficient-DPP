@@ -70,7 +70,7 @@ template<typename T>
 void testVPU(T *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
 
 template<typename T>
-void testMem(PlatInfo& info , const int blockSize, const int gridSize, double& readTime, double& writeTime, double& mulTime, int repeat);
+void testMem(PlatInfo& info , const int blockSize, const int gridSize, double& readTime, double& writeTime, double& mulTime, double& addTime, int repeat);
 
 template<typename T>
 void testAccess(PlatInfo& info , const int blockSize, const int gridSize, int repeat);

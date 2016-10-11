@@ -1,0 +1,336 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 1024000000
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+------ End of hardware checking ------
+
+---------- Gather test ---------
+Data size: 1000000	Similarity: 0
+---------- Warm up over, begin test ---------
+Data size: 250000	Similarity: 0
+Data size: 500000	Similarity: 0
+Data size: 1000000	Similarity: 0
+Data size: 2000000	Similarity: 0
+Data size: 4000000	Similarity: 0
+Data size: 8000000	Similarity: 0
+Data size: 16000000	Similarity: 0
+Data size: 32000000	Similarity: 0
+Data size: 64000000	Similarity: 0
+Data size: 100000000	Similarity: 0
+Data size: 200000000	Similarity: 0
+Data size: 300000000	Similarity: 0
+Data size: 400000000	Similarity: 3
+Data size: 500000000	Similarity: 268
+Data size: 600000000	Similarity: 8439
+Data size: 700000000	Similarity: 20644
+Data size: 800000000	Similarity: 410136
+Data size: 900000000	Similarity: 870566
+Data size: 1000000000	Similarity: 1328026
+------------------------------
+Gather stat:
+Current # of pass:1
+Data size: 250000	time per tuple: 4.32476 ns.
+Data size: 500000	time per tuple: 2.34289 ns.
+Data size: 1000000	time per tuple: 1.54016 ns.
+Data size: 2000000	time per tuple: 1.16408 ns.
+Data size: 4000000	time per tuple: 0.902214 ns.
+Data size: 8000000	time per tuple: 1.15402 ns.
+Data size: 16000000	time per tuple: 1.25396 ns.
+Data size: 32000000	time per tuple: 1.27006 ns.
+Data size: 64000000	time per tuple: 1.35225 ns.
+Data size: 100000000	time per tuple: 1.37824 ns.
+Data size: 200000000	time per tuple: 1.43815 ns.
+Data size: 300000000	time per tuple: 1.38583 ns.
+Data size: 400000000	time per tuple: 1.39386 ns.
+Data size: 500000000	time per tuple: 1.41141 ns.
+Data size: 600000000	time per tuple: 1.39013 ns.
+Data size: 700000000	time per tuple: 1.37903 ns.
+Data size: 800000000	time per tuple: 1.44948 ns.
+Data size: 900000000	time per tuple: 1.44242 ns.
+Data size: 1000000000	time per tuple: 1.41492 ns.
+Current # of pass:2
+Data size: 250000	time per tuple: 4.0439 ns.
+Data size: 500000	time per tuple: 2.84752 ns.
+Data size: 1000000	time per tuple: 1.85854 ns.
+Data size: 2000000	time per tuple: 1.58867 ns.
+Data size: 4000000	time per tuple: 1.18678 ns.
+Data size: 8000000	time per tuple: 1.54888 ns.
+Data size: 16000000	time per tuple: 1.62332 ns.
+Data size: 32000000	time per tuple: 1.58353 ns.
+Data size: 64000000	time per tuple: 1.61877 ns.
+Data size: 100000000	time per tuple: 1.58977 ns.
+Data size: 200000000	time per tuple: 1.50252 ns.
+Data size: 300000000	time per tuple: 1.4782 ns.
+Data size: 400000000	time per tuple: 1.51936 ns.
+Data size: 500000000	time per tuple: 1.55145 ns.
+Data size: 600000000	time per tuple: 1.52813 ns.
+Data size: 700000000	time per tuple: 1.51622 ns.
+Data size: 800000000	time per tuple: 1.5759 ns.
+Data size: 900000000	time per tuple: 1.57894 ns.
+Data size: 1000000000	time per tuple: 1.52981 ns.
+Current # of pass:4
+Data size: 250000	time per tuple: 4.99973 ns.
+Data size: 500000	time per tuple: 3.36 ns.
+Data size: 1000000	time per tuple: 2.50127 ns.
+Data size: 2000000	time per tuple: 2.16605 ns.
+Data size: 4000000	time per tuple: 1.75334 ns.
+Data size: 8000000	time per tuple: 2.13607 ns.
+Data size: 16000000	time per tuple: 2.66774 ns.
+Data size: 32000000	time per tuple: 2.52273 ns.
+Data size: 64000000	time per tuple: 2.37348 ns.
+Data size: 100000000	time per tuple: 2.01146 ns.
+Data size: 200000000	time per tuple: 1.86373 ns.
+Data size: 300000000	time per tuple: 1.86629 ns.
+Data size: 400000000	time per tuple: 1.90125 ns.
+Data size: 500000000	time per tuple: 1.92361 ns.
+Data size: 600000000	time per tuple: 1.91037 ns.
+Data size: 700000000	time per tuple: 1.91144 ns.
+Data size: 800000000	time per tuple: 1.94708 ns.
+Data size: 900000000	time per tuple: 1.94656 ns.
+Data size: 1000000000	time per tuple: 1.94072 ns.
+Current # of pass:8
+Data size: 250000	time per tuple: 6.2113 ns.
+Data size: 500000	time per tuple: 4.71847 ns.
+Data size: 1000000	time per tuple: 3.70571 ns.
+Data size: 2000000	time per tuple: 3.30028 ns.
+Data size: 4000000	time per tuple: 2.5338 ns.
+Data size: 8000000	time per tuple: 2.93287 ns.
+Data size: 16000000	time per tuple: 4.10218 ns.
+Data size: 32000000	time per tuple: 4.0373 ns.
+Data size: 64000000	time per tuple: 3.24215 ns.
+Data size: 100000000	time per tuple: 2.58677 ns.
+Data size: 200000000	time per tuple: 2.57316 ns.
+Data size: 300000000	time per tuple: 2.58244 ns.
+Data size: 400000000	time per tuple: 2.6403 ns.
+Data size: 500000000	time per tuple: 2.64443 ns.
+Data size: 600000000	time per tuple: 2.6468 ns.
+Data size: 700000000	time per tuple: 2.63459 ns.
+Data size: 800000000	time per tuple: 2.67141 ns.
+Data size: 900000000	time per tuple: 2.66099 ns.
+Data size: 1000000000	time per tuple: 2.64217 ns.
+Current # of pass:16
+Data size: 250000	time per tuple: 8.53142 ns.
+Data size: 500000	time per tuple: 6.67853 ns.
+Data size: 1000000	time per tuple: 5.64186 ns.
+Data size: 2000000	time per tuple: 5.20624 ns.
+Data size: 4000000	time per tuple: 4.08467 ns.
+Data size: 8000000	time per tuple: 4.3561 ns.
+Data size: 16000000	time per tuple: 6.55663 ns.
+Data size: 32000000	time per tuple: 5.71738 ns.
+Data size: 64000000	time per tuple: 3.75589 ns.
+Data size: 100000000	time per tuple: 3.57379 ns.
+Data size: 200000000	time per tuple: 3.55346 ns.
+Data size: 300000000	time per tuple: 3.59331 ns.
+Data size: 400000000	time per tuple: 3.66257 ns.
+Data size: 500000000	time per tuple: 3.70258 ns.
+Data size: 600000000	time per tuple: 3.70231 ns.
+Data size: 700000000	time per tuple: 3.70636 ns.
+Data size: 800000000	time per tuple: 3.73169 ns.
+Data size: 900000000	time per tuple: 3.71976 ns.
+Data size: 1000000000	time per tuple: 3.71574 ns.
+Current # of pass:32
+Data size: 250000	time per tuple: 11.8368 ns.
+Data size: 500000	time per tuple: 9.73763 ns.
+Data size: 1000000	time per tuple: 8.80619 ns.
+Data size: 2000000	time per tuple: 8.34715 ns.
+Data size: 4000000	time per tuple: 6.62044 ns.
+Data size: 8000000	time per tuple: 6.90635 ns.
+Data size: 16000000	time per tuple: 9.81411 ns.
+Data size: 32000000	time per tuple: 6.78886 ns.
+Data size: 64000000	time per tuple: 5.52518 ns.
+Data size: 100000000	time per tuple: 5.51858 ns.
+Data size: 200000000	time per tuple: 5.54324 ns.
+Data size: 300000000	time per tuple: 5.65144 ns.
+Data size: 400000000	time per tuple: 5.78639 ns.
+Data size: 500000000	time per tuple: 5.82866 ns.
+Data size: 600000000	time per tuple: 5.8276 ns.
+Data size: 700000000	time per tuple: 5.8664 ns.
+Data size: 800000000	time per tuple: 5.8776 ns.
+Data size: 900000000	time per tuple: 5.86829 ns.
+Data size: 1000000000	time per tuple: 5.86191 ns.
+Current # of pass:64
+Data size: 250000	time per tuple: 18.5744 ns.
+Data size: 500000	time per tuple: 16.4169 ns.
+Data size: 1000000	time per tuple: 15.9628 ns.
+Data size: 2000000	time per tuple: 14.3255 ns.
+Data size: 4000000	time per tuple: 10.9985 ns.
+Data size: 8000000	time per tuple: 11.8995 ns.
+Data size: 16000000	time per tuple: 12.5657 ns.
+Data size: 32000000	time per tuple: 8.77751 ns.
+Data size: 64000000	time per tuple: 8.89089 ns.
+Data size: 100000000	time per tuple: 9.0931 ns.
+Data size: 200000000	time per tuple: 9.25693 ns.
+Data size: 300000000	time per tuple: 9.54783 ns.
+Data size: 400000000	time per tuple: 9.87433 ns.
+Data size: 500000000	time per tuple: 9.90504 ns.
+Data size: 600000000	time per tuple: 10.0527 ns.
+Data size: 700000000	time per tuple: 10.0632 ns.
+Data size: 800000000	time per tuple: 10.1155 ns.
+Data size: 900000000	time per tuple: 10.1307 ns.
+Data size: 1000000000	time per tuple: 10.1352 ns.
+
+For python:
+gather_1 = [4.32476,2.34289,1.54016,1.16408,0.902214,1.15402,1.25396,1.27006,1.35225,1.37824,1.43815,1.38583,1.39386,1.41141,1.39013,1.37903,1.44948,1.44242,1.41492]
+gather_2 = [4.0439,2.84752,1.85854,1.58867,1.18678,1.54888,1.62332,1.58353,1.61877,1.58977,1.50252,1.4782,1.51936,1.55145,1.52813,1.51622,1.5759,1.57894,1.52981]
+gather_4 = [4.99973,3.36,2.50127,2.16605,1.75334,2.13607,2.66774,2.52273,2.37348,2.01146,1.86373,1.86629,1.90125,1.92361,1.91037,1.91144,1.94708,1.94656,1.94072]
+gather_8 = [6.2113,4.71847,3.70571,3.30028,2.5338,2.93287,4.10218,4.0373,3.24215,2.58677,2.57316,2.58244,2.6403,2.64443,2.6468,2.63459,2.67141,2.66099,2.64217]
+gather_16 = [8.53142,6.67853,5.64186,5.20624,4.08467,4.3561,6.55663,5.71738,3.75589,3.57379,3.55346,3.59331,3.66257,3.70258,3.70231,3.70636,3.73169,3.71976,3.71574]
+gather_32 = [11.8368,9.73763,8.80619,8.34715,6.62044,6.90635,9.81411,6.78886,5.52518,5.51858,5.54324,5.65144,5.78639,5.82866,5.8276,5.8664,5.8776,5.86829,5.86191]
+gather_64 = [18.5744,16.4169,15.9628,14.3255,10.9985,11.8995,12.5657,8.77751,8.89089,9.0931,9.25693,9.54783,9.87433,9.90504,10.0527,10.0632,10.1155,10.1307,10.1352]
+For excel:
+Current # of pass:1
+4.32476
+2.34289
+1.54016
+1.16408
+0.902214
+1.15402
+1.25396
+1.27006
+1.35225
+1.37824
+1.43815
+1.38583
+1.39386
+1.41141
+1.39013
+1.37903
+1.44948
+1.44242
+1.41492
+
+Current # of pass:2
+4.0439
+2.84752
+1.85854
+1.58867
+1.18678
+1.54888
+1.62332
+1.58353
+1.61877
+1.58977
+1.50252
+1.4782
+1.51936
+1.55145
+1.52813
+1.51622
+1.5759
+1.57894
+1.52981
+
+Current # of pass:4
+4.99973
+3.36
+2.50127
+2.16605
+1.75334
+2.13607
+2.66774
+2.52273
+2.37348
+2.01146
+1.86373
+1.86629
+1.90125
+1.92361
+1.91037
+1.91144
+1.94708
+1.94656
+1.94072
+
+Current # of pass:8
+6.2113
+4.71847
+3.70571
+3.30028
+2.5338
+2.93287
+4.10218
+4.0373
+3.24215
+2.58677
+2.57316
+2.58244
+2.6403
+2.64443
+2.6468
+2.63459
+2.67141
+2.66099
+2.64217
+
+Current # of pass:16
+8.53142
+6.67853
+5.64186
+5.20624
+4.08467
+4.3561
+6.55663
+5.71738
+3.75589
+3.57379
+3.55346
+3.59331
+3.66257
+3.70258
+3.70231
+3.70636
+3.73169
+3.71976
+3.71574
+
+Current # of pass:32
+11.8368
+9.73763
+8.80619
+8.34715
+6.62044
+6.90635
+9.81411
+6.78886
+5.52518
+5.51858
+5.54324
+5.65144
+5.78639
+5.82866
+5.8276
+5.8664
+5.8776
+5.86829
+5.86191
+
+Current # of pass:64
+18.5744
+16.4169
+15.9628
+14.3255
+10.9985
+11.8995
+12.5657
+8.77751
+8.89089
+9.0931
+9.25693
+9.54783
+9.87433
+9.90504
+10.0527
+10.0632
+10.1155
+10.1307
+10.1352
+
+Time for scan: 0 ms.	BlockSize: -1

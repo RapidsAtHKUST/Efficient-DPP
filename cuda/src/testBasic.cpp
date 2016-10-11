@@ -1,7 +1,7 @@
 #include "test.h"
 #define MEM_EXPR_TIME (20)
 
-void testMem(const int localSize, const int gridSize, float& readTime, float& writeTime, float& mulTime, int repeat) {
+void testMem(const int localSize, const int gridSize, float& readTime, float& writeTime, float& mulTime, float& addTime,int repeat) {
 
 	int input_length_read = localSize / 2 * gridSize / 2 * repeat;  //shrink the localsize and gridsize
 
@@ -10,7 +10,7 @@ void testMem(const int localSize, const int gridSize, float& readTime, float& wr
     int output_length = localSize * gridSize * 2;
 
     std::cout<<"Input data size(read): "<<input_length_read<<std::endl;
-    std::cout<<"Input data size(write & mul): "<<input_length_others<<std::endl;
+    std::cout<<"Input data size(write,add & mul): "<<input_length_others<<std::endl;
     std::cout<<"Output data size: "<<output_length<<std::endl;
 
     assert(input_length_read > 0);
@@ -18,14 +18,16 @@ void testMem(const int localSize, const int gridSize, float& readTime, float& wr
     assert(output_length > 0);
 
 	//allocate for the host memory
-	int *h_source_values = new int[input_length_read];  
+	int *h_source_values = new int[input_length_read]; 
+    int *h_source_values_2 = new int[input_length_read];  
     int *h_dest_values = new int[output_length];
     
     for(int i = 0; i < input_length_read; i++) {
         h_source_values[i] = rand() % 10000;
+        h_source_values_2[i] = rand() % 10000;
     }
 
-    readTime = 0.0; writeTime = 0.0; mulTime = 0.0;
+    readTime = 0.0; writeTime = 0.0; mulTime = 0.0, addTime = 0.0;
 	
 	//-------------------------- read ---------------------------------
 	int *d_source_values, *d_dest_values;
@@ -71,14 +73,34 @@ void testMem(const int localSize, const int gridSize, float& readTime, float& wr
         if (i != 0)     mulTime += tempTime;
     }    
 
+    //-------------------------- add ---------------------------------
+    int2 *d_source_values_3, *d_source_values_4;
+    checkCudaErrors(cudaMalloc(&d_source_values_3,sizeof(int)*input_length_others));
+    checkCudaErrors(cudaMalloc(&d_source_values_4,sizeof(int)*input_length_others));
+
+    checkCudaErrors(cudaMalloc(&d_dest_values_2,sizeof(int)*output_length));
+    cudaMemcpy(d_source_values_3, h_source_values, sizeof(int) * input_length_others, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_source_values_4, h_source_values_2, sizeof(int) * input_length_others, cudaMemcpyHostToDevice);
+
+    for(int i = 0; i < MEM_EXPR_TIME; i++) {
+        float tempTime = testMemAdd(d_source_values_3, d_source_values_4,d_dest_values_2, localSize, gridSize);
+
+        //throw away the first result
+        if (i != 0)     addTime += tempTime;
+    }    
+
     readTime /= ((MEM_EXPR_TIME - 1)*repeat);
     writeTime /= (MEM_EXPR_TIME - 1);
     mulTime /= (MEM_EXPR_TIME - 1);
-	
+    addTime /= (MEM_EXPR_TIME - 1);
+
     cudaMemcpy(h_dest_values, d_dest_values_2, sizeof(int)*output_length, cudaMemcpyDeviceToHost);	
-	checkCudaErrors(cudaFree(d_source_values_2));
+	checkCudaErrors(cudaFree(d_source_values_3));
+    checkCudaErrors(cudaFree(d_source_values_4));
+
 	checkCudaErrors(cudaFree(d_dest_values_2));
 
-	delete[] h_source_values;
+    delete[] h_source_values;
+	delete[] h_source_values_2;
 	delete[] h_dest_values;
 }

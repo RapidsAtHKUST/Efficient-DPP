@@ -117,7 +117,7 @@ void testVPU(T *fixedValues, PlatInfo& info , double& totalTime, int localSize, 
 
 //for memory read bandwidth test
 template<typename T>
-void testMem(PlatInfo& info , const int localSize, const int gridSize, double& readTime, double& writeTime, double& mulTime, int repeat) {
+void testMem(PlatInfo& info , const int localSize, const int gridSize, double& readTime, double& writeTime, double& mulTime, double& addTime, int repeat) {
 
     cl_int status = 0;
     int argsNum = 0;
@@ -129,7 +129,7 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
     int output_length = localSize * gridSize * 2;
 
     std::cout<<"Input data size(read): "<<input_length_read<<std::endl;
-    std::cout<<"Input data size(write & mul): "<<input_length_others<<std::endl;
+    std::cout<<"Input data size(write, add & mul): "<<input_length_others<<std::endl;
     std::cout<<"Output data size: "<<output_length<<std::endl;
 
     assert(input_length_read > 0);
@@ -142,13 +142,15 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
 #endif
 
     T *h_source_values = new T[input_length_read];  
+    T *h_source_values_2 = new T[input_length_read];  
     T *h_dest_values = new T[output_length];
     
     for(int i = 0; i < input_length_read; i++) {
         h_source_values[i] = rand() % 10000;
+        h_source_values_2[i] = rand() % 10000;
     }
 
-    readTime = 0.0; writeTime = 0.0; mulTime = 0.0;
+    readTime = 0.0; writeTime = 0.0; mulTime = 0.0; addTime = 0.0;
 
     //memory allocation
     cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*input_length_read, NULL, &status);
@@ -173,12 +175,16 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
     char read_kerName[100] = "mem_read";
     char write_kerName[100] = "mem_write";
     char mul_kerName[100] = "mem_mul";
+    char add_kerName[100] = "mem_add";
+
 
     //get the kernel
     KernelProcessor reader(&kerAddr,1,info.context, extra);
     cl_kernel read_kernel = reader.getKernel(read_kerName);
     cl_kernel mul_kernel = reader.getKernel(mul_kerName);
     cl_kernel write_kernel = reader.getKernel(write_kerName);
+    cl_kernel add_kernel = reader.getKernel(add_kerName);
+
 
     //set kernel arguments: read_kernel
     argsNum = 0;
@@ -199,7 +205,7 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
     clFlush(info.currentQueue);
     status = clFinish(info.currentQueue);
     
-    //executing read, write, mul, triad
+    //executing read
     for(int i = 0; i < MEM_EXPR_TIME; i++) {
 
         status = clEnqueueNDRangeKernel(info.currentQueue, read_kernel, 1, 0, global, local, 0, 0, &event);
@@ -225,6 +231,12 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
     status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(T)*input_length_others, h_source_values, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER); 
 
+    cl_mem d_source_values_2 = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*input_length_others, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values_2, CL_TRUE, 0, sizeof(T)*input_length_others, h_source_values_2, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER); 
+
     //set kernel arguments: write_kernel
     argsNum = 0;
     status |= clSetKernelArg(write_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
@@ -234,6 +246,13 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
     argsNum = 0;
     status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
     status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    //set kernel arguments: add_kernel
+    argsNum = 0;
+    status |= clSetKernelArg(add_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
+    status |= clSetKernelArg(add_kernel, argsNum++, sizeof(cl_mem), &d_source_values_2);
+    status |= clSetKernelArg(add_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
     checkErr(status, ERR_SET_ARGUMENTS);
 
     local[0] = {(size_t)localSize};
@@ -263,9 +282,22 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
         if (i != 0)     mulTime += tempTime;
     }    
 
+    for(int i = 0; i < MEM_EXPR_TIME; i++) {
+        status = clEnqueueNDRangeKernel(info.currentQueue, add_kernel, 1, 0, global, local, 0, 0, &event);
+        clFlush(info.currentQueue);
+        status = clFinish(info.currentQueue);
+        
+        checkErr(status, ERR_EXEC_KERNEL);
+        double tempTime = clEventTime(event);
+
+        //throw away the first result
+        if (i != 0)     addTime += tempTime;
+    }  
+
     readTime /= ((MEM_EXPR_TIME - 1)*repeat);
     writeTime /= (MEM_EXPR_TIME - 1);
     mulTime /= (MEM_EXPR_TIME - 1);
+    addTime /= (MEM_EXPR_TIME - 1);
 
     //memory written back for not being optimized out
     status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(T)*output_length, h_dest_values, 0, 0, 0);
@@ -274,11 +306,13 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
     status = clFinish(info.currentQueue);                                        
 
     status = clReleaseMemObject(d_source_values);
+    status = clReleaseMemObject(d_source_values_2);
     status = clReleaseMemObject(d_dest_values);
 
     checkErr(status, ERR_RELEASE_MEM);
 
     delete [] h_source_values;
+    delete [] h_source_values_2;
     delete [] h_dest_values;
 
 #ifndef SILENCE
@@ -929,8 +963,8 @@ void testLatency(PlatInfo& info) {
 template void testVPU<int>(int *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
 template void testVPU<double>(double *fixedValues, PlatInfo& info , double& totalTime, int localSize, int gridSize, int basicSize);
 
-template void testMem<int>(PlatInfo& info , const int blockSize, const int gridSize, double& readTime, double& writeTime, double& addTime, int repeat);
-template void testMem<double>(PlatInfo& info ,  const int blockSize, const int gridSize,double& readTime, double& writeTime, double& addTime, int repeat);
+template void testMem<int>(PlatInfo& info , const int blockSize, const int gridSize, double& readTime, double& writeTime, double& mulTime,double& addTime, int repeat);
+template void testMem<double>(PlatInfo& info ,  const int blockSize, const int gridSize,double& readTime, double& writeTime, double& mulTime, double& addTime, int repeat);
 
 template void testAccess<int>(PlatInfo& info , const int blockSize, const int gridSize, int repeat);
 template void testAccess<double>(PlatInfo& info ,  const int blockSize, const int gridSize, int repeat);

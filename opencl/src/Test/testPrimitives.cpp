@@ -58,55 +58,55 @@ bool testMap(PlatInfo& info, int repeat, int repeatTrans, int localSize, int gri
     checkErr(status, ERR_WRITE_BUFFER);  
 
 //--------------------------------- branching test -------------------------
-    for(int branch = 1; branch <= category; branch++) {
-        // cout<<branch<<endl;
-        for(int i = 0; i < experTime; i++) {
-            double tempTime = map_branching(d_source_values, d_dest_values, localSize, gridSize, info, repeat, branch);
-            if (i != 0) {
-                bTime[branch-1] += tempTime;
-            }
-        }
+    // for(int branch = 1; branch <= category; branch++) {
+    //     // cout<<branch<<endl;
+    //     for(int i = 0; i < experTime; i++) {
+    //         double tempTime = map_branching(d_source_values, d_dest_values, localSize, gridSize, info, repeat, branch);
+    //         if (i != 0) {
+    //             bTime[branch-1] += tempTime;
+    //         }
+    //     }
 
-        //checking
-        status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
-        checkErr(status, ERR_READ_BUFFER);
+    //     //checking
+    //     status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
+    //     checkErr(status, ERR_READ_BUFFER);
 
-        for(int i = 0; i < length; i++) {
-            int key = h_source_values[i] % branch;
-            if (h_dest_values[i] != h_source_values[i] + key) {
-                res = false;
-                cerr<<"Wrong for branch "<<branch<<" in common branch."<<endl;
-                cout<<h_dest_values[i]<<' '<<h_source_values[i]<<' '<<key<<' '<<h_source_values[i] + key<<endl;
-                exit(1);
-            }
-        }
-        bTime[branch-1] /= (experTime - 1);
-    }
+    //     for(int i = 0; i < length; i++) {
+    //         int key = h_source_values[i] % branch;
+    //         if (h_dest_values[i] != h_source_values[i] + key) {
+    //             res = false;
+    //             cerr<<"Wrong for branch "<<branch<<" in common branch."<<endl;
+    //             cout<<h_dest_values[i]<<' '<<h_source_values[i]<<' '<<key<<' '<<h_source_values[i] + key<<endl;
+    //             exit(1);
+    //         }
+    //     }
+    //     bTime[branch-1] /= (experTime - 1);
+    // }
 
-    for(int branch = 1; branch <= category; branch++) {
-        // cout<<branch<<endl;
-        for(int i = 0; i < experTime; i++) {
-            double tempTime = map_branching_for(d_source_values, d_dest_values, localSize, gridSize, info, repeat, branch);
-            if (i != 0) {
-                bForTime[branch-1] += tempTime;
-            }
-        }
+    // for(int branch = 1; branch <= category; branch++) {
+    //     // cout<<branch<<endl;
+    //     for(int i = 0; i < experTime; i++) {
+    //         double tempTime = map_branching_for(d_source_values, d_dest_values, localSize, gridSize, info, repeat, branch);
+    //         if (i != 0) {
+    //             bForTime[branch-1] += tempTime;
+    //         }
+    //     }
 
-        //checking
-        status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
-        checkErr(status, ERR_READ_BUFFER);
+    //     //checking
+    //     status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
+    //     checkErr(status, ERR_READ_BUFFER);
 
-        for(int i = 0; i < length; i++) {
-            int key = h_source_values[i] % branch;
-            if (h_dest_values[i] != h_source_values[i] + key) {
-                res = false;
-                cerr<<"Wrong for branch "<<branch<<" in for branch."<<endl;
-                cout<<h_dest_values[i]<<' '<<h_source_values[i]<<' '<<key<<' '<<h_source_values[i] + key<<endl;
-                exit(1);
-            }
-        }
-        bForTime[branch-1] /= (experTime - 1);
-    }
+    //     for(int i = 0; i < length; i++) {
+    //         int key = h_source_values[i] % branch;
+    //         if (h_dest_values[i] != h_source_values[i] + key) {
+    //             res = false;
+    //             cerr<<"Wrong for branch "<<branch<<" in for branch."<<endl;
+    //             cout<<h_dest_values[i]<<' '<<h_source_values[i]<<' '<<key<<' '<<h_source_values[i] + key<<endl;
+    //             exit(1);
+    //         }
+    //     }
+    //     bForTime[branch-1] /= (experTime - 1);
+    // }
 
 //--------------------------------- hashing test -------------------------
     //call map hashing
@@ -405,10 +405,12 @@ bool testGather(
 
     int dummy;
     int *h_loc = new int[length_output];
-    if (length_output != 100000000)
-        readFixedArray(h_loc, filePath, dummy);
-    else
+    
+    if (length_output == 250000 || length_output == 500000)
         valRandom_Only<int>(h_loc, length_output, SHUFFLE_NUM, length);
+    else
+        readFixedArray(h_loc, filePath, dummy);
+    
     
     //Sanity check
     int sameThres = 5;
@@ -463,7 +465,6 @@ bool testGather(
             d_source_keys, d_dest_keys,true,
     #endif
             d_source_values, d_dest_values, length, length_output, d_loc, localSize, gridSize, info, currentRun);
-            cout<<"tempTime: "<<tempTime<<endl;
             if ( (i != 0) && record) gatherTime[cRun] += tempTime;
         }
         if (record) gatherTime[cRun] /= (experTime - 1);
@@ -556,8 +557,12 @@ bool testScatter(
 
     int dummy;
     int *h_loc = new int[length];
-    readFixedArray(h_loc, filePath, dummy);
-    // valRandom_Only<int>(h_loc, length_output, SHUFFLE_NUM, length);
+
+    if (length_output == 250000 || length_output == 500000)
+        valRandom_Only<int>(h_loc, length_output, SHUFFLE_NUM, length);
+    else
+        readFixedArray(h_loc, filePath, dummy);
+
     
     //Sanity check
     int sameThres = 5;
@@ -673,9 +678,9 @@ bool testScatter(
 bool testScan(int *fixedSource, int length, PlatInfo& info, double& totalTime, int isExclusive, int localSize) {
     
     bool res = true;
-    FUNC_BEGIN;
-    SHOW_PARALLEL(localSize, "not fixed");
-    SHOW_DATA_NUM(length);
+    // FUNC_BEGIN;
+    // SHOW_PARALLEL(localSize, "not fixed");
+    // SHOW_DATA_NUM(length);
     
     if (isExclusive == 0)   cout<<"Type: Inclusive."<<endl;
     else                    cout<<"Type: Exclusive."<<endl;
@@ -713,7 +718,7 @@ bool testScan(int *fixedSource, int length, PlatInfo& info, double& totalTime, i
     gettimeofday(&end, NULL);
     
     //check
-    SHOW_CHECKING;
+    // SHOW_CHECKING;
     if (isExclusive == 0) {         //inclusive
         cpu_output[0] = cpu_input[0];
         for(int i = 1 ; i < length; i++) {
@@ -728,12 +733,10 @@ bool testScan(int *fixedSource, int length, PlatInfo& info, double& totalTime, i
     }
     
     for(int i = 0; i < length; i++) {
+        // std::cout<<cpu_output[i]<<' '<<gpu_io[i]<<std::endl;
         if (cpu_output[i] != gpu_io[i])  {
             res = false;
-            // std::cout<<cpu_output[i-1]<<' '<<gpu_io[i-1]<<std::endl;
-            
-            // std::cout<<cpu_output[i]<<' '<<gpu_io[i]<<std::endl;
-
+            std::cout<<cpu_output[i]<<' '<<gpu_io[i]<<std::endl;
             break;
         }
     }
@@ -748,8 +751,8 @@ bool testScan(int *fixedSource, int length, PlatInfo& info, double& totalTime, i
     delete [] cpu_output;
     
     SHOW_TIME(totalTime);
-    SHOW_TOTAL_TIME(diffTime(end, start));
-    FUNC_END;
+    // SHOW_TOTAL_TIME(diffTime(end, start));
+    // FUNC_END;
     
     return res;
 }

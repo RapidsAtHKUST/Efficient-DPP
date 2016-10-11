@@ -22,20 +22,23 @@ int main(int argc, char* argv[]) {
 	double readTime = 9999.0;
 	double writeTime = 9999.0;
 	double mulTime = 9999.0;
+	double addTime = 9999.0;
 
 	int n = atoi(argv[1]);
 	int expr = 10;
 
 	cout<<"num:"<<n<<endl;
 
-	double *input = new double[n];
-	double *output = new double[n];
+	int *input = new int[n];
+	int *input_2 = new int[n];
+	int *output = new int[n];
 
 	// double *input = (double*)_mm_malloc(sizeof(double) * n, 64);
 	// double *output = (double*)_mm_malloc(sizeof(double) * n, 64);
 
 	for(int i = 0; i < n;i++) {
 		input[i] = rand() & 0xffffff;
+		input_2[i] = rand() & 0xffffff;
 	}
 
 
@@ -58,6 +61,12 @@ cout<<"---------------- begin test ----------------"<<endl;
 		totalTime = mem_mul_test(input, output, n);
 		if (totalTime < mulTime) mulTime = totalTime;
 	}
+
+	for(int i = 0; i < expr; i++) {
+		totalTime = mem_add_test(input,input_2, output, n);
+		if (totalTime < addTime) addTime = totalTime;
+	}
+
 	cout<<"mul test: finished"<<endl;
 
 	cout<<"Read totalTime:"<<readTime<<" ms.\t"
@@ -65,9 +74,12 @@ cout<<"---------------- begin test ----------------"<<endl;
 	cout<<"Write totalTime:"<<writeTime<<" ms.\t"
 	<<"Write Throughput: "<< computeMem(n, sizeof(int), writeTime)<<" GB/s"<<endl;
 	cout<<"Mul totalTime:"<<mulTime<<" ms.\t"
-	<<"Mul Throughput: "<< computeMem(n*2, sizeof(double), mulTime)<<" GB/s"<<endl;
+	<<"Mul Throughput: "<< computeMem(n*2, sizeof(int), mulTime)<<" GB/s"<<endl;
+	cout<<"Add totalTime:"<<addTime<<" ms.\t"
+	<<"Add Throughput: "<< computeMem(n*3, sizeof(int), addTime)<<" GB/s"<<endl;
 
 	delete[] input;
+	delete[] input_2;
 	delete[] output;
 	// _mm_free(input);
 	// _mm_free(output);

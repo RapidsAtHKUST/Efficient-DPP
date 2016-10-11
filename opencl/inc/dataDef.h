@@ -16,9 +16,10 @@
 
 //scan definition
 #define SCAN_BITS        			(5)
-#define SCAN_MASK        			((1<<SCAN_BITS)-1)
+#define SCAN_WARPSIZE               (1<<SCAN_BITS)
+#define SCAN_MASK        			(SCAN_WARPSIZE-1)
 #define SCAN_ELE_PER_THREAD  		(2)
-#define SCAN_WARPSIZE    			(1<<SCAN_BITS)
+
 #define SCAN_MAX_BLOCKSIZE   		(1024)      //a block can have at most 1024 threads
 
 //radix sort definition
@@ -82,6 +83,9 @@ typedef struct {
 
         double mem_mul_time;
         double mem_mul_throughput;
+
+        double mem_add_time;
+        double mem_add_throughput;
     } Basic_info;
 
     typedef struct Device_perf_info {
