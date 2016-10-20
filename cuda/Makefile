@@ -13,8 +13,8 @@ COMDIR := $(HOME_PATH)/common
 NVCC := nvcc
 CC := g++
 
-CC_FLAGS := -g -O3 -DPROJECT_ROOT=\"$(HOME_PATH)\" -DCUDA_PROJ
-NVCC_FLAGS := -g  -Xptxas -dlcm=ca -DCUDA_PROJ
+CC_FLAGS := -O3 -DPROJECT_ROOT=\"$(HOME_PATH)\" -DCUDA_PROJ
+NVCC_FLAGS := -O3 -Xptxas -dlcm=ca -DCUDA_PROJ
 
 PRINT ?= 0
 R ?= 0

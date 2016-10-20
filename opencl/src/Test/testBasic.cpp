@@ -222,13 +222,12 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
     status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(T)*output_length, h_dest_values, 0, 0, 0);
     checkErr(status, ERR_READ_BUFFER);
     status = clFinish(info.currentQueue); 
-    status = clReleaseMemObject(d_source_values);
 
     //for write and mul test -------------------------------
-    d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*input_length_others, NULL, &status);
+    cl_mem d_source_values_1 = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*input_length_others, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(T)*input_length_others, h_source_values, 0, 0, 0);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values_1, CL_TRUE, 0, sizeof(T)*input_length_others, h_source_values, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER); 
 
     cl_mem d_source_values_2 = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(T)*input_length_others, NULL, &status);
@@ -244,23 +243,25 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
 
     //set kernel arguments: mul_kernel
     argsNum = 0;
-    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
+    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
     status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
     checkErr(status, ERR_SET_ARGUMENTS);
 
     //set kernel arguments: add_kernel
     argsNum = 0;
-    status |= clSetKernelArg(add_kernel, argsNum++, sizeof(cl_mem), &d_source_values);
+    status |= clSetKernelArg(add_kernel, argsNum++, sizeof(cl_mem), &d_source_values_1);
     status |= clSetKernelArg(add_kernel, argsNum++, sizeof(cl_mem), &d_source_values_2);
     status |= clSetKernelArg(add_kernel, argsNum++, sizeof(cl_mem), &d_dest_values);
     checkErr(status, ERR_SET_ARGUMENTS);
+
+    status = clFinish(info.currentQueue);
 
     local[0] = {(size_t)localSize};
     global[0] = {(size_t)(localSize * gridSize)};
 
     for(int i = 0; i < MEM_EXPR_TIME; i++) {
         status = clEnqueueNDRangeKernel(info.currentQueue, write_kernel, 1, 0, global, local, 0, 0, &event);
-        clFlush(info.currentQueue);
+        // clFlush(info.currentQueue);
         status = clFinish(info.currentQueue);
         
         checkErr(status, ERR_EXEC_KERNEL);
@@ -272,7 +273,7 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
 
     for(int i = 0; i < MEM_EXPR_TIME; i++) {
         status = clEnqueueNDRangeKernel(info.currentQueue, mul_kernel, 1, 0, global, local, 0, 0, &event);
-        clFlush(info.currentQueue);
+        // clFlush(info.currentQueue);
         status = clFinish(info.currentQueue);
         
         checkErr(status, ERR_EXEC_KERNEL);
@@ -284,7 +285,7 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
 
     for(int i = 0; i < MEM_EXPR_TIME; i++) {
         status = clEnqueueNDRangeKernel(info.currentQueue, add_kernel, 1, 0, global, local, 0, 0, &event);
-        clFlush(info.currentQueue);
+        // clFlush(info.currentQueue);
         status = clFinish(info.currentQueue);
         
         checkErr(status, ERR_EXEC_KERNEL);
@@ -305,9 +306,10 @@ void testMem(PlatInfo& info , const int localSize, const int gridSize, double& r
 
     status = clFinish(info.currentQueue);                                        
 
-    status = clReleaseMemObject(d_source_values);
+    status = clReleaseMemObject(d_source_values_1);
     status = clReleaseMemObject(d_source_values_2);
     status = clReleaseMemObject(d_dest_values);
+    status = clReleaseMemObject(d_source_values);
 
     checkErr(status, ERR_RELEASE_MEM);
 

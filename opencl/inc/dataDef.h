@@ -1,7 +1,12 @@
+
 #ifndef __DATA_DEF_H__
 #define __DATA_DEF_H__
 
 //------------------- Var used both on host and devices ------------ 
+//warp size, tuned for each platform
+#define WARP_BITS                   (5)
+#define WARP_SIZE                   (1<<(WARP_BITS))
+
 //throughput processing
 #define VPU_REPEAT_TIME             (120)               //repeat time for madd operation
 #define VPU_EXPR_TIME               (10)
@@ -15,7 +20,7 @@
 #define ATOMIC_REPEAT_TIME          (1000)
 
 //scan definition
-#define SCAN_BITS        			(5)
+#define SCAN_BITS        			(WARP_BITS)
 #define SCAN_WARPSIZE               (1<<SCAN_BITS)
 #define SCAN_MASK        			(SCAN_WARPSIZE-1)
 #define SCAN_ELE_PER_THREAD  		(2)

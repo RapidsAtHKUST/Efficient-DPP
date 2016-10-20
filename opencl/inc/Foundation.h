@@ -30,18 +30,9 @@ void map_transform(
     cl_mem &d_dest_x, cl_mem& d_dest_y, cl_mem& d_dest_z,
     int localSize, int gridSize, PlatInfo& info, int repeat, double &blank_time, double &total_time);
 
-double gather(
-#ifdef RECORDS
-    cl_mem d_source_keys, cl_mem &d_dest_keys, bool isRecord,
-#endif
-    cl_mem d_source_values, cl_mem& d_dest_values, int length, int length_output, cl_mem d_loc, int localSize, int gridSize, PlatInfo& info, int numOfRun);
+double gather(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, const PlatInfo info, int numOfRun);
 
-double scatter(
-#ifdef RECORDS
-    cl_mem d_source_keys, cl_mem &d_dest_keys, bool isRecord,
-#endif
-    cl_mem d_source_values, cl_mem& d_dest_values, int length, int length_output, 
-    cl_mem d_loc, int localSize, int gridSize, PlatInfo& info, int numOfRun);
+double scatter(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, const PlatInfo info, int numOfRun);
 
 
 double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int localSize, int gridSize, int R, int L);
@@ -85,19 +76,9 @@ void testLatency(PlatInfo& info);
 bool testMap(PlatInfo& info, int repeat, int repeatTrans, int localSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 
 
-bool testGather(
-#ifdef RECORDS
-    int *fixedKeys,
-#endif
-    int *fixedValues, int length, int length_output, PlatInfo& info ,  int *numOfRun, int run, double *gatherTime,bool record,
-    int localSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+bool testGather(int *fixedValues, const int lengthMax, const PlatInfo info);
 
-bool testScatter(
-#ifdef RECORDS
-    int *fixedKeys,
-#endif
-    int *fixedValues, int length, int length_output, PlatInfo& info , int *numOfRun, int run, double *scatterTime,bool record,
-    int localSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+bool testScatter(int *fixedValues, const int lengthMax, const PlatInfo info);
 
 bool testRadixSort(
 #ifdef RECORDS

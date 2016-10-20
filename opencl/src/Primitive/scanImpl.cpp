@@ -74,7 +74,7 @@ double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, 
     KernelProcessor scanReader(&scanKerAddr,1,info.context,extra);
     
     cl_kernel scanBlockKernel = scanReader.getKernel(scanBlock);
-
+    
     //initialize the intermediate array
     int *h_inter = new int[num_of_blocks];
     cout<<"num of blocks:"<<num_of_blocks<<endl;
@@ -100,7 +100,6 @@ double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, 
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &num_of_blocks);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &R);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &L);
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &isExclusive);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_inter);
 
     checkErr(status, ERR_SET_ARGUMENTS);

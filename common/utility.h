@@ -46,7 +46,7 @@
 	#endif
 
     //OpenCL error checking functions
-	void checkErr(cl_int status, const char* name);
+	void checkErr(cl_int status, const char* name, int tag=-1);
 	double clEventTime(cl_event);
 #endif
 

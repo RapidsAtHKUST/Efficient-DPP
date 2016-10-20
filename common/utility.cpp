@@ -264,9 +264,9 @@ double computeMem(int dataSize, int wordSize, double elapsedTime) {
 
 #ifdef OPENCL_PROJ
 //OpenCL error checking functions
-void checkErr(cl_int status, const char* name) {
+void checkErr(cl_int status, const char* name, int tag) {
     if (status != CL_SUCCESS) {
-        std::cout<<"statusError: " << name<< " (" << status <<") "<<std::endl;
+        std::cout<<"statusError: " << name<< " (" << status <<") Tag: "<<tag<<std::endl;
         exit(EXIT_FAILURE);
     }
 }

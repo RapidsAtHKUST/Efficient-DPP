@@ -8,14 +8,9 @@
 
 #include "Foundation.h"
 
-double scatter(
-#ifdef RECORDS
-    cl_mem d_source_keys, cl_mem &d_dest_keys, bool isRecord,
-#endif
-    cl_mem d_source_values, cl_mem& d_dest_values, int length, int length_output, cl_mem d_loc, int localSize, int gridSize, PlatInfo& info, int numOfRun) {
+double scatter(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, const PlatInfo info, int numOfRun) {
     
     double totalTime = 0;
-    
     cl_int status = 0;
     int argsNum = 0;
     
@@ -34,16 +29,10 @@ double scatter(
     int globalSize = gridSize * localSize;
     int ele_per_thread = (length + globalSize - 1) / globalSize;
 
-#ifdef RECORDS
-    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_source_keys);
-    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_dest_keys);
-    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(bool), &isRecord);
-#endif
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_source_values);
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_dest_values);
-    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &length);
-    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &length_output);
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(cl_mem), &d_loc);
+    status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &ele_per_thread);
     status |= clSetKernelArg(scatterKernel, argsNum++, sizeof(int), &numOfRun);
 

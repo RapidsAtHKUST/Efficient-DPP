@@ -65,8 +65,6 @@ void runAtomic();
 void runLatency();
 
 double runMap();
-void runGather();
-void runScatter();
 double runScan(int experTime, int& blockSize);
 double runRadixSort(int experTime);
 
@@ -113,10 +111,8 @@ int main(int argc, const char * argv[]) {
         std::cout<<"Finish reading data..."<<std::endl;
     }
     else {
-        dataSize = atoi(argv[1]);
-        // dataSize = 16000000;
+        dataSize = 1000000000;
         assert(dataSize > 0);
-        outputSizeGS = 1000000;
 
     #ifdef RECORDS
         fixedKeys = new int[dataSize];
@@ -138,20 +134,20 @@ int main(int argc, const char * argv[]) {
     double mapTime = 0.0f, gatherTime = 0.0f, scatterTime = 0.0f, scanTime = 0.0f, radixSortTime = 0.0f;
 
     // runVPU<int>();
-    // runMem<int>();
+    //runMem<int>();
     // runAccess<int>();
     // runMem<double>();
     // runAtomic();
     // runBarrier(experTime);
     // runLatency();
 
-    // runMap();
-    // runGather();
-    // runScatter();
-    scanTime = runScan(experTime, scan_blockSize);
+     // runMap();
+     testGather(fixedValues, 1000000000, info);
+    //testScatter(fixedValues, 1000000000, info);
+    // scanTime = runScan(experTime, scan_blockSize);
     // radixSortTime = runRadixSort(experTime);
 
-    cout<<"Time for scan: "<<scanTime<<" ms."<<'\t'<<"BlockSize: "<<scan_blockSize<<endl;
+    // cout<<"Time for scan: "<<scanTime<<" ms."<<'\t'<<"BlockSize: "<<scan_blockSize<<endl;
     // cout<<"Time for radix sort: "<<radixSortTime<<" ms."<<endl;
     
 //    testSplit(fixedRecords, dataSize, info, 20, totalTime);           //fanout: 20
@@ -415,7 +411,7 @@ void runMem() {
     testMem<T>(info, blockSize, gridSize, bestTime_read, bestTime_write, bestTime_mul, bestTime_add , repeat_for_read);
     //compute the throughput
     throughput_read = computeMem(blockSize*gridSize/4, sizeof(T), bestTime_read);
-    throughput_write = computeMem(blockSize*gridSize, sizeof(T), bestTime_write);
+    throughput_write = computeMem(blockSize*gridSize*2, sizeof(T), bestTime_write);
     throughput_mul = computeMem(blockSize*gridSize*2*2, sizeof(T), bestTime_mul);
     throughput_add = computeMem(blockSize*gridSize*2*3, sizeof(T), bestTime_add);
 
@@ -560,155 +556,6 @@ double runMap() {
     testMap(info, repeat, repeat_trans, blockSize, gridSize);
 }
 
-void runGather() {
-    cout<<"---------- Gather test ---------"<<endl;
-
-    double totalTime;
-    bool res;
-
-    int blockSize = 1024, gridSize = 2048;
-
-    int run = 7, dataBegin = 0, dataEnd = 19;
-    
-    //multi-pass : 7 choices
-    int numOfRun[7] = {1,2,4,8,16,32,64};
-    int myDataSize[19] = {250000, 500000, 1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
-
-    //warm up
-    testGather(            
-    #ifdef RECORDS
-            fixedKeys,
-    #endif
-            fixedValues,
-            1000000, 1000000, info , numOfRun, run, NULL, false, blockSize, gridSize);
-    
-    cout<<"---------- Warm up over, begin test ---------"<<endl;
-    
-    double gatherTime[19][7] = {0.0};
-
-    for(int idx = dataBegin; idx < dataEnd; idx++) {
-        //input size should be larger or equals to the output size
-        int inputSize = myDataSize[idx];
-        int outputSize = myDataSize[idx];   //for equal case
-        // int outputSize = outputSizeGS;   //for 1M case
-
-        res = testGather(            
-    #ifdef RECORDS
-        fixedKeys,
-    #endif
-        fixedValues, 
-        inputSize, outputSize, info , numOfRun, run, gatherTime[idx], true, blockSize, gridSize);
-
-        //time per tuple and change from "ms" to "ns"
-        for(int cRun = 0; cRun < run; cRun++) {
-            gatherTime[idx][cRun] = gatherTime[idx][cRun] / outputSize * 1e6;  
-        }
-    }
-
-    cout<<"------------------------------"<<endl;
-    cout<<"Gather stat:"<<endl;
-    for(int r = 0; r < run; r++) {
-        cout<<"Current # of pass:"<<numOfRun[r]<<endl;
-        for(int i = dataBegin; i < dataEnd; i++) {
-            cout<<"Data size: "<<myDataSize[i]<<'\t'<<"time per tuple: "<<gatherTime[i][r]<<" ns."<<endl;
-        }
-    }
-    cout<<endl;
-
-    cout<<"For python:"<<endl;
-    for(int r = 0; r < run; r++) {
-        cout<<"gather_"<<numOfRun[r]<<" = ";
-        cout<<"["<<gatherTime[dataBegin][r];
-        for(int i = dataBegin+1; i < dataEnd; i++) {
-            cout<<','<<gatherTime[i][r];
-        }
-        cout<<"]"<<endl;
-    }
-    
-    cout<<"For excel:"<<endl;
-    for(int r = 0; r < run; r++) {
-        cout<<"Current # of pass:"<<numOfRun[r]<<endl;
-        for(int i = dataBegin; i < dataEnd; i++) {
-            cout<<gatherTime[i][r]<<endl;
-        }
-        cout<<endl;
-    }
-}
-
-void runScatter() {
-    cout<<"---------- Scatter test ---------"<<endl;
-    double totalTime;
-    bool res;
-
-    int blockSize = 1024, gridSize = 2048;
-    int run = 7, dataBegin = 0, dataEnd = 19;
-
-    int numOfRun[7] = {1,2,4,8,16,32,64};
-    int myDataSize[19] = {250000, 500000, 1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
-
-    //warm up
-    testScatter(            
-    #ifdef RECORDS
-            fixedKeys,
-    #endif
-            fixedValues,
-            1000000,1000000, info , numOfRun, run, NULL, false, blockSize, gridSize);
-    
-    cout<<"---------- Warm up over, begin test ---------"<<endl;
-    
-    // --------test scatter------------
-    double scatterTime[19][7] = {0.0};
-
-    for(int idx = dataBegin; idx < dataEnd; idx++) {
-        //input size should be smaller or equals to the output size
-        
-        // int inputSize = outputSizeGS;   //for 1M size case
-        int inputSize = myDataSize[idx];    //for equal size case
-        int outputSize = myDataSize[idx];
-
-        res = testScatter(            
-    #ifdef RECORDS
-        fixedKeys,
-    #endif
-        fixedValues, 
-        inputSize, outputSize , info , numOfRun, run, scatterTime[idx], true, blockSize, gridSize);
-
-        //time per tuple and change from "ms" to "ns"
-        for(int cRun = 0; cRun < run; cRun++) {
-            scatterTime[idx][cRun] = scatterTime[idx][cRun] / inputSize * 1e6;  
-        }
-    }
-    
-    cout<<"------------------------------"<<endl;
-    cout<<"Scatter stat:"<<endl;
-    for(int r = 0; r < run; r++) {
-        cout<<"Current # of pass:"<<numOfRun[r]<<endl;
-        for(int i = dataBegin; i < dataEnd; i++) {
-            cout<<"Data size: "<<myDataSize[i]<<'\t'<<"time per tuple: "<<scatterTime[i][r]<<" ns."<<endl;
-        }
-    }
-    cout<<endl;
-
-    cout<<"For python:"<<endl;
-    for(int r = 0; r < run; r++) {
-        cout<<"scatter_"<<numOfRun[r]<<" = ";
-        cout<<"["<<scatterTime[dataBegin][r];
-        for(int i = dataBegin+1; i < dataEnd; i++) {
-            cout<<','<<scatterTime[i][r];
-        }
-        cout<<"]"<<endl;
-    }
-    
-    cout<<"For excel:"<<endl;
-    for(int r = 0; r < run; r++) {
-        cout<<"Current # of pass:"<<numOfRun[r]<<endl;
-        for(int i = dataBegin; i < dataEnd; i++) {
-            cout<<scatterTime[i][r]<<endl;
-        }
-        cout<<endl;
-    }
-}
-
 double runScan(int experTime, int& bestBlockSize) {
     double bestTime = MAX_TIME;
     bestBlockSize = -1;
@@ -717,6 +564,7 @@ double runScan(int experTime, int& bestBlockSize) {
     int block_min = 1024, block_max = 1024;
     int grid_min = 1024, grid_max = 1024;
     
+    //we only test exclusive
     cout<<"--------- Exclusive --------"<<endl;
     for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {   
         double tempTime = MAX_TIME;
@@ -730,18 +578,18 @@ double runScan(int experTime, int& bestBlockSize) {
         }
     }
 
-    cout<<"--------- Inclusive --------"<<endl;
-    for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {   
-        double tempTime = MAX_TIME;
-        for(int i = 0 ; i < experTime; i++) {       
-            // --------test scan------------
-            res = testScan(fixedValues, dataSize, info, tempTime, 0, blockSize);             //0: inclusive
-        }
-        if (tempTime < bestTime && res == true) {
-            bestTime = tempTime;
-            bestBlockSize = blockSize;
-        }
-    }
+    // cout<<"--------- Inclusive --------"<<endl;
+    // for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {   
+    //     double tempTime = MAX_TIME;
+    //     for(int i = 0 ; i < experTime; i++) {       
+    //         // --------test scan------------
+    //         res = testScan(fixedValues, dataSize, info, tempTime, 0, blockSize);             //0: inclusive
+    //     }
+    //     if (tempTime < bestTime && res == true) {
+    //         bestTime = tempTime;
+    //         bestBlockSize = blockSize;
+    //     }
+    // }
     return bestTime;
 }
 
