@@ -863,6 +863,7 @@ void testLatency(PlatInfo& info) {
             //initialization
             int stride = strides[ss];
             int strideCount = stride / sizeof(ptr_type);
+            cout<<"Stride: "<<stride<<'\t';
 
             //the extra place is used for storing the output
             ptr_type *h_source_values = new ptr_type[totalNum+1];        

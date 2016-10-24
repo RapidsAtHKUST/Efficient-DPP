@@ -84,19 +84,11 @@ double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, 
     status = clEnqueueWriteBuffer(info.currentQueue, d_inter, CL_TRUE, 0, sizeof(int)*num_of_blocks, h_inter, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
 
-    int warpNum = localSize / SCAN_WARPSIZE;
-
     argsNum = 0;
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_source);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int)*localMem_size, NULL);    //local memory lo
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &lo_size);           //local mem size
-
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), NULL);    //gs
-
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), NULL);    //gss
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int)*warpNum, NULL);    //help memory
-
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &num_of_blocks);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &R);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &L);

@@ -23,13 +23,7 @@ Record *fixedRecords;
 
 int *fixedKeys;
 int *fixedValues;
-
 int *fixedLoc;
-
-int experTime = 5;         //experiment time
-
-#define NUM_FUNCS   (6)     //map, scatter, gather, reduce, scan, split
-double bytes[NUM_FUNCS];
 
 //for basic operation testing
 #define MIN_BLOCK       (128)  
@@ -38,14 +32,11 @@ double bytes[NUM_FUNCS];
 #define MAX_GRID        (32768)	
 #define MAX_VEC_SIZE	(16)
 
-
 #define NUM_BLOCK_VAR   (4)	
 #define NUM_GRID_VAR    (8)	
 #define NUM_VEC_SIZE    (5)
 
 int vec[NUM_VEC_SIZE] = {1,2,4,8,16};
-// int vec[NUM_VEC_SIZE] = {1};
-
 
 //device basic operation performance matrix
 
@@ -62,7 +53,6 @@ template<typename T> void runAccess();
 
 void runBarrier(int experTime);
 void runAtomic();
-void runLatency();
 
 double runMap();
 double runScan(int experTime, int& blockSize);
@@ -111,7 +101,8 @@ int main(int argc, const char * argv[]) {
         std::cout<<"Finish reading data..."<<std::endl;
     }
     else {
-        dataSize = 1000000000;
+        // dataSize = 1000000000;
+        dataSize = atoi(argv[1]);
         assert(dataSize > 0);
 
     #ifdef RECORDS
@@ -139,12 +130,12 @@ int main(int argc, const char * argv[]) {
     // runMem<double>();
     // runAtomic();
     // runBarrier(experTime);
-    // runLatency();
+    // testLatency(info);
 
      // runMap();
-     testGather(fixedValues, 1000000000, info);
-    //testScatter(fixedValues, 1000000000, info);
-    // scanTime = runScan(experTime, scan_blockSize);
+     // testGather(fixedValues, 1000000000, info);
+    // testScatter(fixedValues, 1000000000, info);
+    scanTime = runScan(experTime, scan_blockSize);
     // radixSortTime = runRadixSort(experTime);
 
     // cout<<"Time for scan: "<<scanTime<<" ms."<<'\t'<<"BlockSize: "<<scan_blockSize<<endl;
@@ -544,10 +535,6 @@ void runAtomic() {
     //     }
     //     blockIdx++;
     // }
-}
-
-void runLatency() {
-    testLatency(info);
 }
 
 double runMap() {
