@@ -7,7 +7,7 @@
 //
 
 #include "Foundation.h"
-#include "dataDef.h"
+#include "DataDef.h"
 
 using namespace std;
 
@@ -72,12 +72,11 @@ double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, 
     strcat(extra, R_li);
 
     KernelProcessor scanReader(&scanKerAddr,1,info.context,extra);
-    
     cl_kernel scanBlockKernel = scanReader.getKernel(scanBlock);
     
-    //initialize the intermediate array
+//    //initialize the intermediate array
     int *h_inter = new int[num_of_blocks];
-    cout<<"num of blocks:"<<num_of_blocks<<endl;
+//    cout<<"num of blocks:"<<num_of_blocks<<endl;
     for(int i = 0; i < num_of_blocks; i++) h_inter[i] = -1;
 
     cl_mem d_inter = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)* num_of_blocks, NULL, &status);

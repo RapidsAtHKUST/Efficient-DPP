@@ -1,106 +1,62 @@
 #include "test.h"
-#define MEM_EXPR_TIME (20)
+#define MEM_EXPR_TIME (10)
 
-void testMem(const int localSize, const int gridSize, float& readTime, float& writeTime, float& mulTime, float& addTime,int repeat) {
+void testMem() {
+    int blockSize = 1024, gridSize = 8192;
+    int repeat = 80;                                     //for read test
+	int in_length_read = blockSize * gridSize * repeat;  //shrink the localsize and gridsize
+    int out_length_write = blockSize * gridSize;
 
-	int input_length_read = localSize / 2 * gridSize / 2 * repeat;  //shrink the localsize and gridsize
+    std::cout<<"Input data size(read test): "<<in_length_read<<" ("<<in_length_read* sizeof(int)/1024/1024<<"MB)"<<std::endl;
+    std::cout<<"Output data size(write write): "<<out_length_write<<" ("<<out_length_write* sizeof(int)/1024/1024<<"MB)"<<std::endl;
 
-    //for write and mul, no need to repeat
-    int input_length_others = localSize * gridSize * 2; 
-    int output_length = localSize * gridSize * 2;
+    float readTime = 0.0, writeTime = 0.0;
 
-    std::cout<<"Input data size(read): "<<input_length_read<<std::endl;
-    std::cout<<"Input data size(write,add & mul): "<<input_length_others<<std::endl;
-    std::cout<<"Output data size: "<<output_length<<std::endl;
-
-    assert(input_length_read > 0);
-    assert(input_length_others > 0);
-    assert(output_length > 0);
-
+//-------------------- read test ----------------------------
 	//allocate for the host memory
-	int *h_source_values = new int[input_length_read]; 
-    int *h_source_values_2 = new int[input_length_read];  
-    int *h_dest_values = new int[output_length];
-    
-    for(int i = 0; i < input_length_read; i++) {
-        h_source_values[i] = rand() % 10000;
-        h_source_values_2[i] = rand() % 10000;
+    int *h_in = new int[in_length_read];
+    for(int i = 0; i < in_length_read; i++) {
+        h_in[i] = i;
     }
 
-    readTime = 0.0; writeTime = 0.0; mulTime = 0.0, addTime = 0.0;
+    int *d_in, *d_out;
+	checkCudaErrors(cudaMalloc(&d_in,sizeof(int)*in_length_read));
+	checkCudaErrors(cudaMalloc(&d_out,sizeof(int)*blockSize*gridSize));
+	cudaMemcpy(d_in, h_in, sizeof(int)*in_length_read, cudaMemcpyHostToDevice);
 	
-	//-------------------------- read ---------------------------------
-	int *d_source_values, *d_dest_values;
-	checkCudaErrors(cudaMalloc(&d_source_values,sizeof(int)*input_length_read));
-	checkCudaErrors(cudaMalloc(&d_dest_values,sizeof(int)*output_length));
-	cudaMemcpy(d_source_values, h_source_values, sizeof(int) * input_length_read, cudaMemcpyHostToDevice);	
-	
-	//executing read, write, mul, triad
+	//executing read
 	for(int i = 0; i < MEM_EXPR_TIME; i++) {
-        float tempTime = testMemRead(d_source_values, d_dest_values, localSize/2, gridSize/2);
+        float tempTime = testMemRead(d_in, d_out, blockSize, gridSize);
 
         //throw away the first result
         if (i != 0)     readTime += tempTime;
-    }   
+    }
     //finish read test, free the input space
-	cudaMemcpy(h_dest_values, d_dest_values, sizeof(int)*output_length, cudaMemcpyDeviceToHost);	
-	checkCudaErrors(cudaFree(d_source_values));
-    
-	//-------------------------- write ---------------------------------
-	checkCudaErrors(cudaMalloc(&d_source_values,sizeof(int)*input_length_others));
-	cudaMemcpy(d_source_values, h_source_values, sizeof(int) * input_length_others, cudaMemcpyHostToDevice);	
+	checkCudaErrors(cudaFree(d_in));
+    checkCudaErrors(cudaFree(d_out));
+
+//-------------------------- write test ---------------------------------
+	checkCudaErrors(cudaMalloc(&d_out,sizeof(int)*out_length_write));
 
     for(int i = 0; i < MEM_EXPR_TIME; i++) {
-        float tempTime = testMemWrite(d_dest_values, localSize, gridSize);
+        float tempTime = testMemWrite(d_out, blockSize, gridSize);
 
         //throw away the first result
         if (i != 0)     writeTime += tempTime;
     }    
-    cudaMemcpy(h_dest_values, d_dest_values, sizeof(int)*output_length, cudaMemcpyDeviceToHost);
-	checkCudaErrors(cudaFree(d_source_values));
-	checkCudaErrors(cudaFree(d_dest_values));
 
-	//-------------------------- mul ---------------------------------
-	int2 *d_source_values_2, *d_dest_values_2;
-	checkCudaErrors(cudaMalloc(&d_source_values_2,sizeof(int)*input_length_others));
-	checkCudaErrors(cudaMalloc(&d_dest_values_2,sizeof(int)*output_length));
-	cudaMemcpy(d_source_values_2, h_source_values, sizeof(int) * input_length_others, cudaMemcpyHostToDevice);
-
-    for(int i = 0; i < MEM_EXPR_TIME; i++) {
-        float tempTime = testMemMul(d_source_values_2, d_dest_values_2, localSize, gridSize);
-
-        //throw away the first result
-        if (i != 0)     mulTime += tempTime;
-    }    
-
-    //-------------------------- add ---------------------------------
-    int2 *d_source_values_3, *d_source_values_4;
-    checkCudaErrors(cudaMalloc(&d_source_values_3,sizeof(int)*input_length_others));
-    checkCudaErrors(cudaMalloc(&d_source_values_4,sizeof(int)*input_length_others));
-
-    checkCudaErrors(cudaMalloc(&d_dest_values_2,sizeof(int)*output_length));
-    cudaMemcpy(d_source_values_3, h_source_values, sizeof(int) * input_length_others, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_source_values_4, h_source_values_2, sizeof(int) * input_length_others, cudaMemcpyHostToDevice);
-
-    for(int i = 0; i < MEM_EXPR_TIME; i++) {
-        float tempTime = testMemAdd(d_source_values_3, d_source_values_4,d_dest_values_2, localSize, gridSize);
-
-        //throw away the first result
-        if (i != 0)     addTime += tempTime;
-    }    
-
-    readTime /= ((MEM_EXPR_TIME - 1)*repeat);
+    readTime /= (MEM_EXPR_TIME - 1);
     writeTime /= (MEM_EXPR_TIME - 1);
-    mulTime /= (MEM_EXPR_TIME - 1);
-    addTime /= (MEM_EXPR_TIME - 1);
 
-    cudaMemcpy(h_dest_values, d_dest_values_2, sizeof(int)*output_length, cudaMemcpyDeviceToHost);	
-	checkCudaErrors(cudaFree(d_source_values_3));
-    checkCudaErrors(cudaFree(d_source_values_4));
+    delete[] h_in;
+    checkCudaErrors(cudaFree(d_out));
 
-	checkCudaErrors(cudaFree(d_dest_values_2));
+    double throughput_read = computeMem(blockSize*gridSize*repeat, sizeof(int), readTime);
+    double throughput_write = computeMem(blockSize*gridSize, sizeof(int), writeTime);
 
-    delete[] h_source_values;
-	delete[] h_source_values_2;
-	delete[] h_dest_values;
+    std::cout<<"Time for memory read(Repeat:"<<repeat<<"): "<<readTime<<" ms."<<'\t'
+        <<"Bandwidth: "<<throughput_read<<" GB/s"<<std::endl;
+
+    std::cout<<"Time for memory write: "<<writeTime<<" ms."<<'\t'
+        <<"Bandwidth: "<<throughput_write<<" GB/s"<<std::endl;
 }

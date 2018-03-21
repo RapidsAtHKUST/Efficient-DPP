@@ -95,9 +95,9 @@ int main(int argc, char* argv[]) {
 	if (strcmp(argv[2],"none"))	strcat(arr_dir,argv[2]);
 	if (strcmp(argv[3],"none"))	strcat(loc_dir,argv[3]);
 
-	int myDataSize[17] = {1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
+	int myDataSize[18] = {1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,128000000};
 
-	for(int i = 7; i < 8; i++) {
+	for(int i = 16; i < 17; i++) {
 		std::cout<<"now making: "<<myDataSize[i]<<std::endl;
 		generateData(myDataSize[i], sorted, distinct);
 		std::cout<<"generating finished. Start writing... "<<std::endl;

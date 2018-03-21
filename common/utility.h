@@ -107,12 +107,6 @@ void valRandom(T *arr, int length, T max=MAX_NUM);
 template<typename T>
 void valRandom_Only(T *arr, int length,  int times, int max);
 
-// void generateFixedRecords(Record* fixedRecords, int length, bool write, char *file);
-
-// void generateFixedArray(int *fixedArray, int length, bool write, char *file);
-void readFixedRecords(Record* fixedRecords, char *file, int& recordLength);
-void readFixedArray(int* fixedArray, char *file, int & arrayLength);
-
 double calCPUTime(clock_t start, clock_t end);
 double diffTime(struct timeval end, struct timeval start);	//calculate
 

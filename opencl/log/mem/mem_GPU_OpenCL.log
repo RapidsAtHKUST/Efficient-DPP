@@ -12,7 +12,7 @@ Number of devices: 2
 Please enter the index of the device to use (0,1,2...) : Selected device: Tesla K40m
 ------ End of hardware checking ------
 
------  Memory Bandwidth Test ----- 
+-----  Memory Bandwidth Test -----
 Data type: int
 Input data size(read): 838860800
 Input data size(write & mul): 67108864

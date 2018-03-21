@@ -153,6 +153,7 @@ template<class T> bool testScatter(
 #endif
 	checkCudaErrors(cudaFree(d_dest_values));
 	checkCudaErrors(cudaFree(d_source_values));
+	checkCudaErrors(cudaFree(d_loc));
 #ifdef RECORDS
 	checkCudaErrors(cudaFree(d_dest_keys));
 	checkCudaErrors(cudaFree(d_source_keys));

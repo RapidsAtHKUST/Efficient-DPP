@@ -10,7 +10,7 @@
 
 #include "kernels.h"
 
-void testMem(const int localSize, const int gridSize, float& readTime, float& writeTime, float& mulTime, float& addTime,int repeat) ;
+void testMem() ;
 
 template<class T> bool testMap( 
 #ifdef RECORDS

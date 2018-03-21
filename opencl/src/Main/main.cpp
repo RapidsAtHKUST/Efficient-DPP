@@ -47,9 +47,6 @@ Basic_info perfInfo_double[NUM_BLOCK_VAR][NUM_GRID_VAR][NUM_VEC_SIZE];
 //for all
 Device_perf_info bestInfo;
 
-template<typename T> void runVPU();
-template<typename T> void runMem();
-template<typename T> void runAccess();
 
 void runBarrier(int experTime);
 void runAtomic();
@@ -59,13 +56,8 @@ double runScan(int experTime, int& blockSize);
 double runRadixSort(int experTime);
 
 /*parameters:
- * if IS_INPUT==true,  executor INPUT_REC_DIR INPUT_ARR_DIR INPUT_LOC_DIR
- * else                executor DATASIZE
+ * executor DATASIZE
  * DATASIZE : data size
- * IS_INPUT : whether to input file from the file system
- * INPUT_REC_DIR : input directory of the record data if needed
- * INPUT_ARR_DIR : input directory of the array data if needed
- * INPUT_LOC_DIR : input directory of the location data if needed
  */
 int main(int argc, const char * argv[]) {
 
@@ -77,56 +69,40 @@ int main(int argc, const char * argv[]) {
     
     info.context = context;
     info.currentQueue = currentQueue;
-    
-    switch (argc) {
-        case 2:         //fast run
-            is_input = false;
-            break;
-        case 4:         //input
-            is_input = true;
-            break;
-        default:
-            cerr<<"Wrong number of parameters."<<endl;
-            exit(1);
-            break;
+
+    if (argc != 2) {
+        cerr<<"Wrong number of parameters."<<endl;
+        exit(1);
     }
-    
-    if (is_input) {
-        strcat(input_rec_dir, argv[1]);
-        strcat(input_arr_dir, argv[2]);
-        strcat(input_loc_dir, argv[3]);
-        std::cout<<"Start reading data..."<<std::endl;
-        readFixedRecords(fixedRecords, input_rec_dir, dataSize);
-        readFixedArray(fixedLoc, input_loc_dir, dataSize);
-        std::cout<<"Finish reading data..."<<std::endl;
-    }
-    else {
-        // dataSize = 1000000000;
-        dataSize = atoi(argv[1]);
-        assert(dataSize > 0);
+
+    // dataSize = 1000000000;
+    dataSize = atoi(argv[1]);
+    assert(dataSize > 0);
 
     #ifdef RECORDS
-        fixedKeys = new int[dataSize];
+//        fixedKeys = new int[dataSize];
     #endif
-        fixedValues = new int[dataSize];
+//        fixedValues = new int[dataSize];
     #ifdef RECORDS
-        recordRandom<int>(fixedKeys, fixedValues, dataSize);
+//        recordRandom<int>(fixedKeys, fixedValues, dataSize);
     #else
-        valRandom<int>(fixedValues,dataSize, MAX_NUM);
+//        valRandom<int>(fixedValues,dataSize, MAX_NUM);
     #endif
-    }
 
     int map_blockSize = -1, map_gridSize = -1;
     int gather_blockSize = -1, gather_gridSize = -1;
     int scatter_blockSize = -1, scatter_gridSize = -1;
     int scan_blockSize = -1;
 
-    int experTime = 1;
+    int experTime = 10;
     double mapTime = 0.0f, gatherTime = 0.0f, scatterTime = 0.0f, scanTime = 0.0f, radixSortTime = 0.0f;
 
-    // runVPU<int>();
-    //runMem<int>();
-    // runAccess<int>();
+    double totalTime;
+    dataSize = 160000000;
+
+//    testMem(info);
+//     testAccess(info);
+
     // runMem<double>();
     // runAtomic();
     // runBarrier(experTime);
@@ -135,13 +111,14 @@ int main(int argc, const char * argv[]) {
      // runMap();
      // testGather(fixedValues, 1000000000, info);
     // testScatter(fixedValues, 1000000000, info);
-    scanTime = runScan(experTime, scan_blockSize);
     // radixSortTime = runRadixSort(experTime);
 
-    // cout<<"Time for scan: "<<scanTime<<" ms."<<'\t'<<"BlockSize: "<<scan_blockSize<<endl;
+//    scanTime = runScan(experTime, scan_blockSize);
+//    cout<<"Time for scan: "<<scanTime<<" ms."<<'\t'<<"BlockSize: "<<scan_blockSize<<endl;
     // cout<<"Time for radix sort: "<<radixSortTime<<" ms."<<endl;
-    
-//    testSplit(fixedRecords, dataSize, info, 20, totalTime);           //fanout: 20
+
+//    testSplit(dataSize, info, 12, totalTime);
+
 //    testBitonitSort(fixedRecords, dataSize, info, 1, totalTime);      //1:  ascendingls
 //    testBitonitSort(fixedRecords, dataSize, info, 0, totalTime);      //0:  descending
     
@@ -149,311 +126,10 @@ int main(int argc, const char * argv[]) {
 //    testNinlj(num1, num1, info, totalTime);
 //    testInlj(num, num, info, totalTime);
 //    testSmj(num, num, info, totalTime);
-//    testHj(num, num, info, 16, totalTime);         //16: lower 16 bits to generate the buckets
+    int num = 16000;
+    testHj(num, num, info);         //16: lower 16 bits to generate the buckets
 
     return 0;
-}
-
-template<typename T> 
-void runVPU() {
-
-    std::cout<<"----- Vector Instruction Throughput Test -----"<<std::endl;
-
-    //block & grid limits
-    int block_min = 128, block_max = 1024;
-    int grid_min = 256, grid_max = 32768;
-
-    assert(block_min >= block_min && block_max <= block_max &&
-            grid_min >= grid_min && grid_max <= grid_max);
-
-    int dataSize = block_max * grid_max; 
-    std::cout<<"Max data size: "<<dataSize<<endl;
-    assert(dataSize>0);
-
-    Basic_info (*currentInfo)[NUM_GRID_VAR][NUM_VEC_SIZE];
-    Basic_info currentBestInfo;
-
-    char dataType[20];
-
-    if (sizeof(T) == sizeof(int)) {
-    	std::cout<<"Data type: int"<<std::endl;
-    	strcpy(dataType, "int");
-        currentInfo = perfInfo_float;
-        currentBestInfo = bestInfo.float_info;
-    }
-
-    else if (sizeof(T) == sizeof(double))   {
-    	std::cout<<"Data type: double"<<std::endl;
-    	strcpy(dataType, "double");
-        currentInfo = perfInfo_double;
-        currentBestInfo = bestInfo.double_info;
-    }
-    else {
-        std::cerr<<"Wrong data type!"<<std::endl;
-        exit(1);
-    }
-
-    double bestTime = MAX_TIME;
-    double bestThroughput = 0.0;
-    double bestBlockSize = -1;
-    double bestGridSize = -1;
-    double bestVecSize = -1;
-
-    T *input = (T*)malloc(sizeof(T)*dataSize);
-    for(int i = 0; i < dataSize;i++) {
-        input[i] = i / 2;
-    }
-
-    int blockIdx = 0, gridIdx = 0;
-    for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {
-        gridIdx = 0;
-        for(int gridSize = grid_min; gridSize <= grid_max; gridSize <<= 1) {
-            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
-                int vecSize = vec[vecIdx];
-                double localTime, localThroughput;
-
-                //--------test vpu------------
-                testVPU<T>(input, info,localTime, blockSize, gridSize, vecSize);
-
-                localThroughput = computeGFLOPS(blockSize * gridSize * vecSize, localTime, true, VPU_REPEAT_TIME,240);
-
-                //print done!
-                cout<<"blockSize="<<blockSize<<'\t'<<"gridSize="<<gridSize<<'\t'<<dataType<<vecSize<<'\t'<<localTime<<" ms"<<'\t'<<localThroughput<<" GFlops"<<"\tdone!"<<endl;
-
-                //global update
-                if (localThroughput > bestThroughput) {
-                    bestThroughput = localThroughput;
-                    bestTime = localTime;
-                    bestBlockSize = blockSize;
-                    bestGridSize = gridSize;
-                    bestVecSize = vecSize;
-                }
-
-                //recording time and throughput
-                currentInfo[blockIdx][gridIdx][vecIdx].vpu_time = localTime;
-                currentInfo[blockIdx][gridIdx][vecIdx].vpu_throughput = localThroughput;
-            }   
-            gridIdx++;
-        }
-        blockIdx++;
-    }
-
-    //show information
-    cout<<endl;
-    cout<<"----------- Original ------------"<<endl;
-    blockIdx = 0, gridIdx = 0;
-    for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {
-        gridIdx = 0;
-        for(int gridSize = grid_min; gridSize <= grid_max; gridSize <<= 1) {
-            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
-                int vecSize = vec[vecIdx];
-                
-                //show information
-                cout<<"# [vpu]:"
-                    <<blockSize<<'\t'
-                    <<gridSize<<'\t'
-                    <<dataType<<vecSize<<'\t'
-                    <<currentInfo[blockIdx][gridIdx][vecIdx].vpu_time<<" ms"<<'\t'
-                    <<currentInfo[blockIdx][gridIdx][vecIdx].vpu_throughput<<" GFlops"<<endl;
-            }
-            gridIdx++;
-        }
-        blockIdx++;
-    }
-
-    cout<<endl;
-    cout<<"----------- Aggregated at vec_size ------------"<<endl;
-    for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
-        blockIdx = 0, gridIdx = 0;
-        double bestTime = MAX_TIME;
-        double bestThroughput = 0;
-        double bestBlock = -1, bestGrid = -1;
-
-        for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {
-            gridIdx = 0;
-            for(int gridSize = grid_min; gridSize <= grid_max; gridSize <<= 1) {
-                double elapsedTime = currentInfo[blockIdx][gridIdx][vecIdx].vpu_time;
-                double throughput = currentInfo[blockIdx][gridIdx][vecIdx].vpu_throughput;
-                cout<<"# [vpu]:"
-                    <<dataType<<vec[vecIdx]<<'\t'
-                    <<blockSize<<'\t'
-                    <<gridSize<<'\t'
-                    <<elapsedTime<<" ms\t"
-                    <<throughput<<" GFlops"<<endl;
-                if (throughput > bestThroughput) {
-                    bestThroughput = throughput;
-                    bestTime = elapsedTime;
-                    bestBlock = blockSize;
-                    bestGrid = gridSize;
-                }
-                gridIdx++;   
-            }
-            blockIdx++;
-        }
-        cout<<endl;
-        cout<<"summary: "<<dataType<<vec[vecIdx]<<'\t'<<bestTime<<" ms\t"<<bestThroughput<<" GFlops\t"<<bestBlock<<'\t'<<bestGrid<<endl;
-        cout<<"--------------------------------------------"<<endl;
-    }
-
-    cout<<endl;
-    cout<<"----------- Aggregated at block & grid size ------------"<<endl;
-    blockIdx = 0, gridIdx = 0;
-    for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {
-        gridIdx = 0;
-        for(int gridSize = grid_min; gridSize <= grid_max; gridSize <<= 1) {
-
-            double bestTime = MAX_TIME;
-            double bestThroughput = 0;
-            int bestVecIdx = -1;
-
-            for(int vecIdx = 0; vecIdx < NUM_VEC_SIZE; vecIdx++) {
-                double elapsedTime = currentInfo[blockIdx][gridIdx][vecIdx].vpu_time;
-                double throughput = currentInfo[blockIdx][gridIdx][vecIdx].vpu_throughput;
-                
-                //show information
-                cout<<"# [vpu]:"
-                    <<blockSize<<'\t'
-                    <<gridSize<<'\t'
-                    <<dataType<<vec[vecIdx]<<'\t'
-                    <<currentInfo[blockIdx][gridIdx][vecIdx].vpu_time<<" ms\t"
-                    <<currentInfo[blockIdx][gridIdx][vecIdx].vpu_throughput<<" GFlops"<<endl;
-
-                if (throughput > bestThroughput) {
-                    bestThroughput = throughput;
-                    bestTime = elapsedTime;
-                    bestVecIdx = vecIdx;
-                }
-            }
-            cout<<endl;
-            cout<<"summary: "
-                <<blockSize<<'\t'
-                <<gridSize<<'\t'
-                <<bestTime<<" ms\t"
-                <<bestThroughput<<" GFlops\t"
-                <<dataType<<vec[bestVecIdx]<<endl;
-            cout<<"--------------------------------------------"<<endl;
-            gridIdx++;
-        }
-        blockIdx++;
-    }
-
-    delete[] input;
-
-    currentBestInfo.vpu_time = bestTime;
-    currentBestInfo.vpu_throughput = bestThroughput;
-    currentBestInfo.vpu_blockSize = bestBlockSize;
-    currentBestInfo.vpu_gridSize = bestGridSize;
-    currentBestInfo.vpu_vecSize = bestVecSize;
-
-    cout<<"Data type: "<<dataType<<endl;
-    cout<<"Time for VPU: "<<currentBestInfo.vpu_time<<" ms."<<'\t'
-        <<"BlockSize: "<<currentBestInfo.vpu_blockSize<<'\t'
-        <<"GridSize: "<<currentBestInfo.vpu_gridSize<<'\t'
-        <<"VecSize: "<<currentBestInfo.vpu_vecSize<<'\t'
-        <<"Bandwidth: "<<currentBestInfo.vpu_throughput<<" GFLOPS"<<endl;
-}
-
-//when testing memory bandwidth, the dataSize should be sufficiently large, eg: 500M (2GB), larger than the LLC
-template<typename T>
-void runMem() {
-
-    std::cout<<"-----  Memory Bandwidth Test ----- "<<std::endl;
-
-    //this is the configuration for write and mul test
-    //for read, shrink blockSize and gridSize by 2 respectively
-    int blockSize = 1024, gridSize = 32768;
-    int repeat_for_read = 100;
-
-    Basic_info (*currentInfo)[NUM_GRID_VAR][NUM_VEC_SIZE];
-    Basic_info currentBestInfo;
-
-    char dataType[20];
-    if (sizeof(T) == sizeof(int)) {
-        std::cout<<"Data type: int"<<std::endl;
-        strcpy(dataType, "int");
-        currentInfo = perfInfo_float;
-        currentBestInfo = bestInfo.float_info;
-    }
-
-    else if (sizeof(T) == sizeof(double))   {
-        std::cout<<"Data type: double"<<std::endl;
-        strcpy(dataType, "double");
-        currentInfo = perfInfo_double;
-        currentBestInfo = bestInfo.double_info;
-    }
-    else {
-        std::cerr<<"Wrong data type!"<<std::endl;
-        exit(1);
-    }
-
-    double bestTime_read = MAX_TIME;
-    double throughput_read = 0.0;
-
-    double bestTime_write = MAX_TIME;
-    double throughput_write = 0.0;
-
-    double bestTime_mul = MAX_TIME;
-    double throughput_mul = 0.0;
-
-    double bestTime_add = MAX_TIME;
-    double throughput_add = 0.0;
-
-    //run the memory test
-    testMem<T>(info, blockSize, gridSize, bestTime_read, bestTime_write, bestTime_mul, bestTime_add , repeat_for_read);
-    //compute the throughput
-    throughput_read = computeMem(blockSize*gridSize/4, sizeof(T), bestTime_read);
-    throughput_write = computeMem(blockSize*gridSize*2, sizeof(T), bestTime_write);
-    throughput_mul = computeMem(blockSize*gridSize*2*2, sizeof(T), bestTime_mul);
-    throughput_add = computeMem(blockSize*gridSize*2*3, sizeof(T), bestTime_add);
-
-    currentBestInfo.mem_read_time = bestTime_read;
-    currentBestInfo.mem_read_throughput = throughput_read;
-
-    currentBestInfo.mem_write_time = bestTime_write;
-    currentBestInfo.mem_write_throughput = throughput_write;
-    
-    currentBestInfo.mem_mul_time = bestTime_mul;
-    currentBestInfo.mem_mul_throughput = throughput_mul;
-
-    currentBestInfo.mem_add_time = bestTime_add;
-    currentBestInfo.mem_add_throughput = throughput_add;
-
-    cout<<"Time for memory read(Repeat:"<<repeat_for_read<<"): "<<currentBestInfo.mem_read_time<<" ms."<<'\t'
-        <<"Bandwidth: "<<currentBestInfo.mem_read_throughput<<" GB/s"<<endl;
-
-    cout<<"Time for memory write: "<<currentBestInfo.mem_write_time<<" ms."<<'\t'
-        <<"Bandwidth: "<<currentBestInfo.mem_write_throughput<<" GB/s"<<endl;
-
-    cout<<"Time for memory mul: "<<currentBestInfo.mem_mul_time<<" ms."<<'\t'
-    <<"Bandwidth: "<<currentBestInfo.mem_mul_throughput<<" GB/s"<<endl;
-
-    cout<<"Time for memory add: "<<currentBestInfo.mem_add_time<<" ms."<<'\t'
-    <<"Bandwidth: "<<currentBestInfo.mem_add_throughput<<" GB/s"<<endl;
-}
-
-template<typename T>
-void runAccess() {
-
-    std::cout<<"-----  Memory Access Test ----- "<<std::endl;
-
-    int blockSize = 512, gridSize = 16384;
-    int access_repeat = 100;
-
-    char dataType[20];
-    if (sizeof(T) == sizeof(int)) {
-        std::cout<<"Data type: int"<<std::endl;
-    }
-
-    else if (sizeof(T) == sizeof(double))   {
-        std::cout<<"Data type: double"<<std::endl;
-    }
-    else {
-        std::cerr<<"Wrong data type!"<<std::endl;
-        exit(1);
-    }
-
-    //run the memory access test
-    testAccess<T>(info, blockSize, gridSize, access_repeat);
 }
 
 void runBarrier(int experTime) {

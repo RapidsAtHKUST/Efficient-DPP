@@ -83,7 +83,7 @@ void PlatInit::initPlat() {
     
     cout<<"Please enter the index of the device to use (0,1,2...) : ";
     cin >> chosenDevice;
-    // chosenDevice = 0;   //cpu
+    // chosenDevice = 1;   //cpu
     if (chosenDevice < 0 || chosenDevice >= numOfDev)   {
         cerr<<"Wrong parameter."<<endl;
         exit(1);

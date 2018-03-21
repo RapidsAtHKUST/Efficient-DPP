@@ -10,7 +10,7 @@ OPENCL_COMPARE_HOME="$(cd "`dirname "$0"`"/..; pwd)"
 
 # parameters
 IS_INPUT=false						# whether to input the data file
-DATASIZE=512000000					# default data size is 2^25
+DATASIZE=1000000000					# default data size is 2^25
 
 # data directory
 INPUT_REC_DIR=

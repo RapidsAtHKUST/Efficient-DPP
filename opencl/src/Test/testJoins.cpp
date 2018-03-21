@@ -12,6 +12,14 @@ using namespace std;
 //shadowing function
 void recordRandom_Only(Record* a, int len, int time) {}
 void recordRandom(Record* a, int len) {}
+void recordRandom1(Record* a, int len, int max) {
+    srand((unsigned)time(NULL));
+    sleep(1);
+    for(int i = 0; i < len ; i++) {
+        a[i].x = rand()% max;
+        a[i].y = i;
+    }
+}
 void recordSorted_Only(Record* a, int len) {}
 void recordSorted(Record* a, int len) {}
 
@@ -522,164 +530,177 @@ bool testSmj(int rLen, int sLen, PlatInfo info, double &totalTime, int localSize
     return res;
 }
 
-bool testHj(int rLen, int sLen, PlatInfo info, int countBit, double &totalTime, int localSize, int gridSize) {
-    
+bool testHj(int rLen, int sLen, PlatInfo info) {
+
+    cl_int status = 0;
     bool res = true;
     FUNC_BEGIN;
-    SHOW_PARALLEL(localSize, "not fixed.");
     SHOW_TABLE_R_NUM(rLen);
     SHOW_TABLE_S_NUM(sLen);
-    
+
+    double joinTime = 0, totalTime = 0;
     //------------------------ Test 1: No duplicate key values ------------------------
-    
-    cout<<"--- Test 1 : no duplicate---"<<endl;
+
+//    cout<<"--- Test 1 : no duplicate---"<<endl;
     Record *h_R = new Record[rLen];
     Record *h_S = new Record[sLen];
     Record *h_Out = NULL;
 
-    recordRandom_Only(h_R, rLen, SHUFFLE_TIME(rLen));
-    recordRandom_Only(h_S, sLen, SHUFFLE_TIME(sLen));
-    
+    recordRandom1(h_R, rLen, 10);
+    recordRandom1(h_S, sLen, 10);
+
     struct timeval start, end;
+
     gettimeofday(&start,NULL);
-    
-    cl_int status = 0;
-    
+
     //memory allocation
     cl_mem d_R = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*rLen, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
     cl_mem d_S = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*sLen, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    
-    cl_mem d_Out;
-    int oLen = 0;
-    
+
     status = clEnqueueWriteBuffer(info.currentQueue, d_R, CL_TRUE, 0, sizeof(Record)*rLen, h_R, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
     status = clEnqueueWriteBuffer(info.currentQueue, d_S, CL_TRUE, 0, sizeof(Record)*sLen, h_S, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
-    
-    //partition
-    partitionHJ(d_R, rLen, countBit, info, localSize, gridSize);
-    partitionHJ(d_S, sLen, countBit, info, localSize, gridSize);
-    
+
     //call gather
-    double totalTime1 = hj(d_R, rLen, d_S, sLen, d_Out, oLen, info, countBit, localSize);
-    
-    if (oLen != 0) {
-        h_Out = new Record[oLen];
-        
-        //memory written back
-        status = clEnqueueReadBuffer(info.currentQueue, d_Out, CL_TRUE, 0, sizeof(Record)*oLen, h_Out, 0, 0, 0);
-        checkErr(status, ERR_READ_BUFFER);
-        status = clFinish(info.currentQueue);
-    }
+    int d_res_len;
+    joinTime = hashjoin(d_R, rLen, d_S, sLen, d_res_len, info);
     gettimeofday(&end, NULL);
-    
-    SHOW_CHECKING;
-    if (oLen != 0) {
-        //check
-        for(int i = 0 ; i < oLen; i++) {
-            if (h_R[h_Out[i].x].y != h_S[h_Out[i].y].y) {
-                res = false;
-                break;
-            }
+
+    totalTime = diffTime(end, start);
+
+    int h_res_len= 0;
+    for(int r = 0; r < rLen; r++) {
+        for(int s = 0; s < sLen; s++) {
+            if (h_R[r].x == h_S[s].x)   h_res_len++;
         }
-        delete [] h_Out;
-        status = clReleaseMemObject(d_Out);
-        checkErr(status, ERR_RELEASE_MEM);
-    }
-    int smallRes = rLen;
-    if (smallRes > sLen)    smallRes = sLen;
-    if (oLen != smallRes)   res = false;
-    
-    status = clReleaseMemObject(d_R);
-    checkErr(status,ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_S);
-    checkErr(status,ERR_RELEASE_MEM);
-    delete [] h_R;
-    delete [] h_S;
-    
-    FUNC_CHECK(res);
-    SHOW_JOIN_RESULT(oLen);
-    SHOW_TIME(totalTime1);
-    SHOW_TOTAL_TIME(diffTime(end, start));
-    cout<<"--- End of Test 1 ---"<<endl<<endl;
-    
-    //---------------------------------- End fo test 1 -----------------------------------
-    
-    //------------------------ Test 2: Having duplicate key values ------------------------
-    
-    cout<<"--- Test 2 : has duplicate---"<<endl;
-    
-    res = true;
-    h_R = new Record[rLen];
-    h_S = new Record[sLen];
-    
-    recordRandom(h_R, rLen);
-    recordRandom(h_S, sLen);
-    
-    gettimeofday(&start,NULL);
-    
-    //memory allocation
-    d_R = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*rLen, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    d_S = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*sLen, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    
-    status = clEnqueueWriteBuffer(info.currentQueue, d_R, CL_TRUE, 0, sizeof(Record)*rLen, h_R, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-    status = clEnqueueWriteBuffer(info.currentQueue, d_S, CL_TRUE, 0, sizeof(Record)*sLen, h_S, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-    
-    //partition
-    partitionHJ(d_R, rLen, countBit, info, localSize, gridSize);
-    partitionHJ(d_S, sLen, countBit, info, localSize, gridSize);
-    
-    //call gather
-    double totalTime2 = hj(d_R, rLen, d_S, sLen, d_Out, oLen, info, countBit, localSize);
-    
-    if (oLen != 0) {
-        h_Out = new Record[oLen];
-        
-        //memory written back
-        status = clEnqueueReadBuffer(info.currentQueue, d_Out, CL_TRUE, 0, sizeof(Record)*oLen, h_Out, 0, 0, 0);
-        checkErr(status, ERR_READ_BUFFER);
-        status = clFinish(info.currentQueue);
-    }
-    gettimeofday(&end, NULL);
-    
-    SHOW_CHECKING;
-    if (oLen != 0) {
-        //check
-        for(int i = 0 ; i < oLen; i++) {
-            if (h_R[h_Out[i].x].y != h_S[h_Out[i].y].y) {
-                res = false;
-                break;
-            }
-        }
-        delete [] h_Out;
-        status = clReleaseMemObject(d_Out);
-        checkErr(status, ERR_RELEASE_MEM);
     }
 
-    totalTime = (totalTime1 + totalTime2) / 2;
-    
+    if (d_res_len == h_res_len) {
+        std::cout<<"Hash join test passes!"<<std::endl;
+        std::cout<<"# joined results:"<<d_res_len<<std::endl;
+    }
+    else {
+        std::cout<<"Hash join test fails!"<<std::endl;
+        std::cout<<"CPU:"<<h_res_len<<'\t'<<"GPU:"<<d_res_len<<std::endl;
+    }
+    cout<<"Join time: "<<joinTime<<" ms."<<endl;
+    cout<<"Total Execution time: "<<totalTime<<" ms."<<endl;
+//    if (oLen != 0) {
+//        h_Out = new Record[oLen];
+//
+//        //memory written back
+//        status = clEnqueueReadBuffer(info.currentQueue, d_Out, CL_TRUE, 0, sizeof(Record)*oLen, h_Out, 0, 0, 0);
+//        checkErr(status, ERR_READ_BUFFER);
+//        status = clFinish(info.currentQueue);
+//    }
+
+//
+//    SHOW_CHECKING;
+//    if (oLen != 0) {
+//        //check
+//        for(int i = 0 ; i < oLen; i++) {
+//            if (h_R[h_Out[i].x].y != h_S[h_Out[i].y].y) {
+//                res = false;
+//                break;
+//            }
+//        }
+//        delete [] h_Out;
+//        status = clReleaseMemObject(d_Out);
+//        checkErr(status, ERR_RELEASE_MEM);
+//    }
+//    int smallRes = rLen;
+//    if (smallRes > sLen)    smallRes = sLen;
+//    if (oLen != smallRes)   res = false;
+
     status = clReleaseMemObject(d_R);
     checkErr(status,ERR_RELEASE_MEM);
     status = clReleaseMemObject(d_S);
     checkErr(status,ERR_RELEASE_MEM);
     delete [] h_R;
     delete [] h_S;
-    
-    FUNC_CHECK(res);
-    SHOW_JOIN_RESULT(oLen);
-    SHOW_TIME(totalTime2);
-    SHOW_TOTAL_TIME(diffTime(end, start));
-    cout<<"--- End of Test 2 ---"<<endl<<endl;
-    
-    //---------------------------------- End fo test 2 -----------------------------------
-    FUNC_END;
-    
+
+//    FUNC_CHECK(res);
+//    SHOW_TIME(totalTime);
+//    SHOW_TOTAL_TIME(diffTime(end, start));
+//    cout<<"--- End of Test 1 ---"<<endl<<endl;
+
+    //---------------------------------- End fo test 1 -----------------------------------
+
+    //------------------------ Test 2: Having duplicate key values ------------------------
+
+//    cout<<"--- Test 2 : has duplicate---"<<endl;
+//
+//    res = true;
+//    h_R = new Record[rLen];
+//    h_S = new Record[sLen];
+//
+//    recordRandom(h_R, rLen);
+//    recordRandom(h_S, sLen);
+//
+//    gettimeofday(&start,NULL);
+//
+//    //memory allocation
+//    d_R = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*rLen, NULL, &status);
+//    checkErr(status, ERR_HOST_ALLOCATION);
+//    d_S = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*sLen, NULL, &status);
+//    checkErr(status, ERR_HOST_ALLOCATION);
+//
+//    status = clEnqueueWriteBuffer(info.currentQueue, d_R, CL_TRUE, 0, sizeof(Record)*rLen, h_R, 0, 0, 0);
+//    checkErr(status, ERR_WRITE_BUFFER);
+//    status = clEnqueueWriteBuffer(info.currentQueue, d_S, CL_TRUE, 0, sizeof(Record)*sLen, h_S, 0, 0, 0);
+//    checkErr(status, ERR_WRITE_BUFFER);
+//
+//    //partition
+//    partitionHJ(d_R, rLen, countBit, info, localSize, gridSize);
+//    partitionHJ(d_S, sLen, countBit, info, localSize, gridSize);
+//
+//    //call gather
+//    double totalTime2 = hj(d_R, rLen, d_S, sLen, d_Out, oLen, info, countBit, localSize);
+//
+//    if (oLen != 0) {
+//        h_Out = new Record[oLen];
+//
+//        //memory written back
+//        status = clEnqueueReadBuffer(info.currentQueue, d_Out, CL_TRUE, 0, sizeof(Record)*oLen, h_Out, 0, 0, 0);
+//        checkErr(status, ERR_READ_BUFFER);
+//        status = clFinish(info.currentQueue);
+//    }
+//    gettimeofday(&end, NULL);
+//
+//    SHOW_CHECKING;
+//    if (oLen != 0) {
+//        //check
+//        for(int i = 0 ; i < oLen; i++) {
+//            if (h_R[h_Out[i].x].y != h_S[h_Out[i].y].y) {
+//                res = false;
+//                break;
+//            }
+//        }
+//        delete [] h_Out;
+//        status = clReleaseMemObject(d_Out);
+//        checkErr(status, ERR_RELEASE_MEM);
+//    }
+//
+//    totalTime = (totalTime1 + totalTime2) / 2;
+//
+//    status = clReleaseMemObject(d_R);
+//    checkErr(status,ERR_RELEASE_MEM);
+//    status = clReleaseMemObject(d_S);
+//    checkErr(status,ERR_RELEASE_MEM);
+//    delete [] h_R;
+//    delete [] h_S;
+//
+//    FUNC_CHECK(res);
+//    SHOW_JOIN_RESULT(oLen);
+//    SHOW_TIME(totalTime2);
+//    SHOW_TOTAL_TIME(diffTime(end, start));
+//    cout<<"--- End of Test 2 ---"<<endl<<endl;
+//
+//    //---------------------------------- End fo test 2 -----------------------------------
+//    FUNC_END;
+
     return res;
 }

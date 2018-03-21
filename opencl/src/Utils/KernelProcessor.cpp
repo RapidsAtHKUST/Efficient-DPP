@@ -14,12 +14,12 @@ using namespace std;
 KernelProcessor::KernelProcessor(string *addr,int num, cl_context context, char* extra) {
     this->num = num;
     source = new char*[this->num];
-
     kernelRead(addr, num);
     compile(context, extra);
 }
 
 void KernelProcessor::kernelRead(string *addr, int num) {
+//    std::cout<<"Kernel Address: "<<*addr<<std::endl;
     for(int i = 0; i < num; ++i ) {
         ifstream in(addr[i].c_str(),std::fstream::in| std::fstream::binary);
         
@@ -69,7 +69,7 @@ void KernelProcessor::compile(cl_context context, char* extra) {
 #ifdef RECORDS
     strcat(comArgs,"-DRECORDS");
 #endif
-    
+//    std::cout<<"Compile kernel with flags: "<<comArgs<<std::endl;
     err = clBuildProgram(program, cl_int(num), devices,comArgs, 0, 0);
     checkErr(err, "Compilation error.");
 

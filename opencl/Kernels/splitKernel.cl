@@ -1,126 +1,97 @@
 #ifndef SPLIT_KERNEL_CL
 #define SPLIT_KERNEL_CL
 
-#include "dataDefinition.h"
+#include "DataDef_CL.h"
 
-kernel void createList( global const Record* source,
-                        int length,
-                        global int *L,
-                        local int* temp,        //size: fanout * localSize
-                        int fanout)
+kernel void histogram(  global const Record* d_in,      //input data
+                        int length,                     //input data length
+                        global int *his,                //output to the histogram array
+                        local int* local_his,           //size: buckets * sizeof(int)
+                        short bucketBits)               //number of radix bits
+
 {
     int localId = get_local_id(0);
     int localSize = get_local_size(0);
     int globalId = get_global_id(0);
     int globalSize = get_global_size(0);
 
-    for(int pos = 0; pos < fanout; pos ++) {
-        temp[pos * localSize + localId] = 0;
+    int groupId = get_group_id(0);
+    int groupNum = get_num_groups(0);
+
+    int buckets = (1<<bucketBits);
+    unsigned  mask = buckets - 1;
+
+    //local histogram initialization
+    int i = localId;
+    while (i < buckets) {
+        local_his[i] = 0;
+        i += localSize;
     }
-    
-    for(int pos = globalId; pos < length; pos += globalSize) {
-        int offset = source[pos].y;
-        temp[offset * localSize + localId]++;
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    i = globalId;
+    while (i < length) {
+        int offset = d_in[i].x & mask;
+        atomic_inc(local_his+offset);
+        i += globalSize;
     }
-    
-    for(int pos = 0; pos < fanout; pos ++) {
-        L[pos * globalSize + globalId] = temp[pos * localSize + localId];
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    i = localId;
+    while (i < buckets) {
+        his[i*groupNum+groupId] = local_his[i];
+        i += localSize;
     }
 }
 
-kernel void splitWithList(global const Record *source,
-                          global int* L,
-                          int length,
-                          global Record *dest,
-                          local int* temp,      //size: fanout * localSize
-                          int fanout)
+kernel void scatterWithHistogram(   global const Record *d_in,
+                                    global Record *d_out,
+                                    int length,
+                                    global int *his, //output to the histogram array
+                                    local int* local_his,  //size: buckets * sizeof(int)
+                                    short bucketBits)      //number of radix bits
 {
     int localId = get_local_id(0);
     int localSize = get_local_size(0);
     int globalId = get_global_id(0);
     int globalSize = get_global_size(0);
-    
-    for(int pos = 0; pos < fanout; pos ++) {
-        temp[pos * localSize + localId] = L[pos* globalSize + globalId];
+
+    int groupId = get_group_id(0);
+    int groupNum = get_num_groups(0);
+
+    int buckets = (1<<bucketBits);
+    unsigned mask = buckets - 1;
+    int i;
+
+    i = localId;
+    while (i < buckets) {
+        local_his[i] = his[i*groupNum+groupId];     //scatter global array to local array
+        i += localSize;
     }
-    
-    for(int pos = globalId; pos < length; pos += globalSize) {
-        int offset = source[pos].y;
-        dest[temp[offset * localSize + localId]++] = source[pos];
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    i = globalId;
+    while (i < length) {
+        int offset = d_in[i].x & mask;
+        int pos = atomic_inc(local_his+offset);     //should atomic_inc and return the old value
+        d_out[pos].x = d_in[i].x;
+        d_out[pos].y = d_in[i].y;
+        i += globalSize;
     }
 }
 
-//split for hash join, processing the first 12 digits
-kernel void createListHJ( global const Record * source,
-                          uint length,
-                          global int * histogram,               //size: radix * blockNum * BLOCKSIZE
-                          local int * temp,                     //size: raidx * BLOCKSIZE
-                          uint bits,
-                          uint shift)
+//gather the start position of each partition
+kernel void gatherStartPos( global const int *d_his,
+                            int his_len,
+                            global int *d_start,
+                            int gridSizeUsedInHis)
 {
-    int localId = get_local_id(0);
-    int localSize = get_local_size(0);
     int globalId = get_global_id(0);
     int globalSize = get_global_size(0);
-    
-    int radix = 1 << bits;
-    int mask = radix - 1;
-    int elePerThread = ceil(1.0*length / globalSize);
-    
-    for(int pos = globalId; pos < radix * globalSize; pos += globalSize) {
-        histogram[pos] = 0;
-    }
-    barrier(CLK_GLOBAL_MEM_FENCE);
-    
-    for(int pos = localId; pos < radix * localSize; pos += localSize) {
-        temp[pos] = 0;
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    
-    for(int pos = 0; pos < elePerThread; pos ++) {
-        int id = globalId * elePerThread + pos;
-        if (id >= length)   break;
-        int cur = source[id].y;
-        
-        cur = ( cur >> shift ) & mask;
-        temp[cur * localSize + localId] ++;
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    
-    for(int currentRadix = 0; currentRadix < radix; currentRadix++) {
-        histogram[globalSize * currentRadix + globalId] = temp[localSize *currentRadix + localId];
-    }
-}
 
-kernel void splitWithListHJ( global const Record * source,
-                             global Record *dest,
-                             uint length,
-                             global int * histogram,                 //size: radix * blockNum * BLOCKSIZE
-                             local int * temp,                       //size: raidx * BLOCKSIZE
-                             uint bits,
-                             uint shift)
-{
-    int localId = get_local_id(0);
-    int localSize = get_local_size(0);
-    int globalId = get_global_id(0);
-    int globalSize = get_global_size(0);
-    
-    int radix = 1 << bits;
-    int mask = radix - 1;
-    int elePerThread = ceil(1.0*length / globalSize);
-    
-    for(int currentRadix = 0; currentRadix < radix; currentRadix++) {
-        temp[currentRadix * localSize + localId] = histogram[currentRadix * globalSize + globalId];
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    
-    for(int pos = 0; pos < elePerThread; pos ++) {
-        int id = globalId * elePerThread + pos;
-        if (id >= length)   break;
-        int cur = source[id].y;
-
-        cur = ( cur >> shift ) & mask;
-        dest[temp[cur * localSize + localId]++] = source[id];
+    while (globalId * gridSizeUsedInHis < his_len) {
+        d_start[globalId] = d_his[globalId*gridSizeUsedInHis];
+        globalId += globalSize;
     }
 }
 

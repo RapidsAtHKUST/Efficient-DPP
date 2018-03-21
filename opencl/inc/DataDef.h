@@ -4,14 +4,14 @@
 
 //------------------- Var used both on host and devices ------------ 
 //warp size, tuned for each platform
-#define WARP_BITS                   (5)
+#define WARP_BITS                   (3)
 #define WARP_SIZE                   (1<<(WARP_BITS))
 
 //throughput processing
 #define VPU_REPEAT_TIME             (120)               //repeat time for madd operation
 #define VPU_EXPR_TIME               (10)
 
-#define MEM_EXPR_TIME               (20)
+#define MEM_EXPR_TIME               (10)
 
 #define BARRIER_EXPR_TIME           (10)
 #define BARRIER_REPEAT_TIME         (1000)

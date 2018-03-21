@@ -9,10 +9,6 @@
 
 using namespace std;
 
-char input_rec_dir[500];
-char input_arr_dir[500];
-char input_loc_dir[500];
-
 bool is_input;
 int dataSize;
 int fanout = 10;
@@ -52,50 +48,39 @@ int main(int argc, char *argv[]) {
     std::cout<<"Using type: Basic type"<<std::endl;
 #endif
 
-    if (is_input) {
-        strcat(input_rec_dir, argv[1]);
-        strcat(input_arr_dir, argv[2]);
-        strcat(input_loc_dir, argv[3]);
-        std::cout<<"Start reading data..."<<std::endl;
-        readFixedRecords(fixedRecords, input_rec_dir, dataSize);
-        readFixedArray(fixedArray, input_arr_dir, dataSize);
-        readFixedArray(fixedLoc, input_loc_dir, dataSize);
-        std::cout<<"Finish reading data..."<<std::endl;
-    }
-    else {
-        dataSize = atoi(argv[1]);
-        
-        fixedRecords = new Record[dataSize];
-        fixedArray = new int[dataSize];
-        fixedLoc = new int[dataSize];
+	dataSize = atoi(argv[1]);
 
-        fixedKeys = new int[dataSize];
-        fixedValues = new int[dataSize];
+	fixedRecords = new Record[dataSize];
+	fixedArray = new int[dataSize];
+	fixedLoc = new int[dataSize];
 
-        splitVals = new int[dataSize];
-		splitKeys = new int[dataSize];
-		splitArray = new int[dataSize];
+	fixedKeys = new int[dataSize];
+	fixedValues = new int[dataSize];
 
-        recordRandom<int>(fixedKeys, fixedValues, dataSize, MAX_NUM);
-		recordRandom<int>(splitKeys, splitVals, dataSize, fanout);
+	splitVals = new int[dataSize];
+	splitKeys = new int[dataSize];
+	splitArray = new int[dataSize];
 
-        // valRandom<int>(fixedArray, dataSize, 10);
-        // valRandom<int>(fixedArray, dataSize, MAX_NUM);
+	recordRandom<int>(fixedKeys, fixedValues, dataSize, MAX_NUM);
+	recordRandom<int>(splitKeys, splitVals, dataSize, fanout);
 
-        // valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize));
-		// valRandom<int>(splitArray, dataSize, fanout);			//fanout
-    }
+	// valRandom<int>(fixedArray, dataSize, 10);
+	// valRandom<int>(fixedArray, dataSize, MAX_NUM);
+
+	valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize), dataSize);
+	// valRandom<int>(splitArray, dataSize, fanout);			//fanout
+
 
 	bool res;
-	int experiNum = 10;
+	int experiNum = 1;
 
-	int blockSize = 1024, gridSize = 32768;
+	int blockSize = 1024, gridSize = 8192;
 //-------------------------------- Basic test-----------------------------
 	float bestTime_read, bestTime_write, bestTime_mul, bestTime_add;
 	float throughput_read, throughput_write, throughput_mul, throughput_add;
 	//basic test
-	int repeat_read = 100;
-	// testMem(blockSize, gridSize, bestTime_read, bestTime_write, bestTime_mul, bestTime_add, repeat_read);
+	int repeat_read = 80;
+	testMem();
 
 	// throughput_read = computeMem(blockSize*gridSize/4, sizeof(int), bestTime_read);
  //    throughput_write = computeMem(blockSize*gridSize, sizeof(int), bestTime_write);
@@ -155,16 +140,16 @@ int main(int argc, char *argv[]) {
 		
 
 // //--------------testing scatter--------------
-// 		res = testScatter<int>(
-// #ifdef RECORDS
-// 		fixedKeys, fixedValues,
-// #else
-// 		fixedArray, 
-// #endif
-// 		dataSize, fixedLoc, idnElapsedTime);
-
-// 		printRes("scatter", res,idnElapsedTime);
-// 		if (idnElapsedTime < scatterTime)		scatterTime = idnElapsedTime;
+//		res = testScatter<int>(
+//#ifdef RECORDS
+//		fixedKeys, fixedValues,
+//#else
+//		fixedArray,
+//#endif
+//		dataSize, fixedLoc, idnElapsedTime);
+//
+//		printRes("scatter", res,idnElapsedTime);
+//		if (idnElapsedTime < scatterTime)		scatterTime = idnElapsedTime;
 
 // // --------------testing split--------------
 // 		//use blockSize of 256 in fix
@@ -188,7 +173,7 @@ int main(int argc, char *argv[]) {
 		// res = testScan_ble<int>(fixedArray, dataSize, idnElapsedTime, 1);
 		// printRes("scan_ble", res,idnElapsedTime);
 		// if (idnElapsedTime < scanTime_ble)		scanTime_ble = idnElapsedTime;
-		scanImpl(fixedArray, dataSize, BLOCKSIZE, GRIDSIZE, 1);
+		// scanImpl(fixedArray, dataSize, BLOCKSIZE, GRIDSIZE, 1);
 //--------------testing radix sort (no need to specify the block and grid size)--------------
 
 // 		res = testRadixSort<int>(
@@ -203,6 +188,7 @@ int main(int argc, char *argv[]) {
 // 		if (idnElapsedTime < radixSortTime)		radixSortTime = idnElapsedTime;
 	}
 	gatherTime = gatherTime / dataSize * 1e6;		//get per tuple result
+	scatterTime = scatterTime / dataSize * 1e6;		//get per tuple result
 
 	cout<<"-----------------------------------------"<<endl;
 #ifdef RECORDS
