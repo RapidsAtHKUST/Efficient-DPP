@@ -98,7 +98,7 @@ int main(int argc, const char * argv[]) {
     double mapTime = 0.0f, gatherTime = 0.0f, scatterTime = 0.0f, scanTime = 0.0f, radixSortTime = 0.0f;
 
     double totalTime;
-    dataSize = 160000000;
+//    dataSize = 160000000;
 
 //    testMem(info);
 //     testAccess(info);
@@ -126,8 +126,8 @@ int main(int argc, const char * argv[]) {
 //    testNinlj(num1, num1, info, totalTime);
 //    testInlj(num, num, info, totalTime);
 //    testSmj(num, num, info, totalTime);
-    int num = 16000;
-    testHj(num, num, info);         //16: lower 16 bits to generate the buckets
+//    int num = 1600000;
+    testHj(dataSize, dataSize, info);         //16: lower 16 bits to generate the buckets
 
     return 0;
 }

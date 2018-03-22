@@ -3,182 +3,18 @@
 
 #include "DataDef_CL.h"
 
-//--------------------- deprecated start ------------------------
-
-int getMasked(int input, int maskBits)
-{
-    int mask = ( 1 << maskBits ) - 1;
-    return input  & mask;
-}
-
-int bisearchLeast(global Record *input, int num, int obj, int maskBits) {
-    int res = -1;
-    int begin = 0, end = num - 1, mid;
-
-    while (begin <= end) {
-        mid = (begin + end)/2;
-        int masked = getMasked( input[mid].y, maskBits );
-        if (obj >  masked )   begin = mid+1;
-        else {
-            if (obj ==  masked )  res = mid;
-            end = mid-1;
-        }
-    }
-    return res;
-}
-
-int bisearchMost(global Record *input, int num, int obj, int maskBits) {
-    int res = -1;
-    int begin = 0, end = num - 1, mid;
-
-    while (begin <= end) {
-        mid = (begin + end)/2;
-        int masked = getMasked( input[mid].y, maskBits );
-        if (obj < masked)   end = mid-1;
-        else {
-            if (obj == masked)  res = mid;
-            begin = mid+1;
-        }
-    }
-    return res;
-}
-
-kernel void matchCount (global const Record * d_R,
-                        int rLen,
-                        global const Record * d_S,
-                        int sLen,
-                        int maskBits,
-                        global int * his,
-                        int localMaxNum,
-                        local Record *sTemp,
-                        local int* temp)
-{
-    int localId = get_local_id(0);
-    int localSize = get_local_size(0);
-    int globalId = get_global_id(0);
-    int globalSize = get_global_size(0);
-    int groupId = get_group_id(0);
-
-    local int s_begin, s_end, r_begin, r_end;
-
-    //binary search for the corresponding partition of R and S
-    if (localId == 0)           s_begin = bisearchLeast(d_S,sLen,groupId,maskBits);
-    else if (localId == 1)      s_end = bisearchMost(d_S,sLen,groupId,maskBits);
-    else if (localId == 2)      r_begin = bisearchLeast(d_R,rLen,groupId,maskBits);
-    else if (localId == 3)      r_end = bisearchMost(d_R,rLen,groupId,maskBits);
-    temp[localId] = 0;
-
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    if (s_begin == -1 || r_begin == -1) {
-        his[globalId] = temp[localId];
-        return;
-    }
-
-    int pass = 1;
-    int fetchNum = s_end - s_begin + 1;
-    if (fetchNum > localMaxNum)     {
-        pass = ceil( 1.0 * fetchNum / localMaxNum );
-        fetchNum = localMaxNum;
-    }
-
-    for(int i = 0; i < pass; i++) {
-        for(int pos = localId; pos < fetchNum; pos += localSize) {
-            if (s_begin + i * fetchNum + pos > s_end) {
-                sTemp[pos].x = -1;
-                break;
-            }
-            sTemp[pos] = d_S[s_begin + i * fetchNum + pos];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-
-        for(int pos = r_begin + localId; pos <= r_end; pos += localSize) {
-            for(int probe = 0; probe < fetchNum; probe ++) {
-                if (sTemp[probe].x == -1)   break;
-                if (d_R[pos].y == sTemp[probe].y)   temp[localId]++;
-            }
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-
-    his[globalId] = temp[localId];
-}
-
-kernel void matchWrite (global const Record * d_R,
-                        int rLen,
-                        global const Record * d_S,
-                        int sLen,
-                        global Record * d_out,
-                        int maskBits,
-                        global int * his,
-                        int localMaxNum,
-                        local Record *sTemp,
-                        local int* temp)
-{
-    int localId = get_local_id(0);
-    int localSize = get_local_size(0);
-    int globalId = get_global_id(0);
-    int globalSize = get_global_size(0);
-    int groupId = get_group_id(0);
-
-    local int s_begin, s_end, r_begin, r_end;
-
-    //binary search for the corresponding partition of R and S
-    if (localId == 0)           s_begin = bisearchLeast(d_S,sLen,groupId,maskBits);
-    else if (localId == 1)      s_end = bisearchMost(d_S,sLen,groupId,maskBits);
-    else if (localId == 2)      r_begin = bisearchLeast(d_R,rLen,groupId,maskBits);
-    else if (localId == 3)      r_end = bisearchMost(d_R,rLen,groupId,maskBits);
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    if (s_begin == -1 || r_begin == -1) {
-        return;
-    }
-
-    int pass = 1;
-    int fetchNum = s_end - s_begin + 1;
-    if (fetchNum > localMaxNum)     {
-        pass = ceil( 1.0 * fetchNum / localMaxNum );
-        fetchNum = localMaxNum;
-    }
-
-    temp[localId] =  his[globalId];
-    barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
-
-    for(int i = 0; i < pass; i++) {
-        for(int pos = localId; pos < fetchNum; pos += localSize) {
-            if (s_begin + i * fetchNum + pos > s_end) {
-                sTemp[pos].x = -1;
-                break;
-            }
-            sTemp[pos] = d_S[s_begin + i * fetchNum + pos];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-
-        for(int pos = r_begin + localId; pos <= r_end; pos += localSize) {
-            for(int probe = 0; probe < fetchNum; probe ++) {
-                if (sTemp[probe].x == -1)   break;
-                if (d_R[pos].y == sTemp[probe].y) {
-                    d_out[temp[localId]].x = d_R[pos].x;
-                    d_out[temp[localId]++].y = sTemp[probe].x;
-                }
-            }
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-}
-//--------------------- deprecated  end ------------------------
-
 // # of work-groups is equal to the number of partitions (buckets) in R and S
 //the start_R and start_S array are generated through 1024 work-groups
-kernel void probe  (    global const Record* d_R,
-                        const int r_len,
-                        global const Record* d_S,
-                        const int s_len,
-                        global const int *start_R,
-                        global const int *start_S,
-                        global int *d_out,
-                        local Record* d_R_local,
-                        local Record* d_S_local)
+kernel void build_probe (   global const Record* d_R,
+                            const int r_len,
+                            global const Record* d_S,
+                            const int s_len,
+                            global const int *start_R,
+                            global const int *start_S,
+                            global int *d_out,
+                            local Record* d_R_local,        //size: 15.5KB
+                            local int* d_S_local_keys,
+                            local int* d_S_local_values)        //size: 15.5KB
 {
     int localId = get_local_id(0);
     int localSize = get_local_size(0);
@@ -193,8 +29,8 @@ kernel void probe  (    global const Record* d_R,
     s_begin = start_S[groupId];
 
     if (groupId == groupNum - 1) {
-        r_end = r_len + 1;
-        s_end = s_len + 1;
+        r_end = r_len;
+        s_end = s_len;
     }
     else {
         r_end = start_R[groupId+1];
@@ -204,7 +40,7 @@ kernel void probe  (    global const Record* d_R,
     unsigned r_par_len = r_end - r_begin;
     unsigned s_par_len = s_end - s_begin;
 
-    //copy my partition of d_R to d_R_local
+//1.copy d_R partitions to the local memory
     int i = r_begin + localId;
     while (i < r_end) {
         d_R_local[i-r_begin].x = d_R[i].x;
@@ -213,29 +49,52 @@ kernel void probe  (    global const Record* d_R,
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    //copy my partition of d_S to d_S_local
-    i = s_begin + localId;
-    while (i < s_end) {
-        d_S_local[i-s_begin].x = d_S[i].x;
-        d_S_local[i-s_begin].y = d_S[i].y;
+//2.build the hash table from S
+    //initialize the hash table
+    int hash_total = 15.5*1024/sizeof(int);
+    i = localId;
+    while (i < hash_total) {
+        d_S_local_keys[i] = -1;        //default key (empty)
         i += localSize;
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
+    //s partition is at most 16KB(2048 tuples)
+    //open addressing radix hashing using the middle 11 bits (exclude the right most 13 bits)
+    int collision = 0;
+    i = s_begin + localId;
+    while (i < s_end) {
+        int myKey = ((d_S[i].x >> 13) & 0b11111111111)<<1;   //radix hashing
+        int d_S_key = d_S[i].x;
+        int delta = 1;
+        while (atomic_cmpxchg(d_S_local_keys+myKey ,-1,d_S_key) != -1) {
+            collision ++;
+            myKey = (myKey+delta*delta)%hash_total;
+            delta ++;
+        }
+        d_S_local_values[myKey] = d_S[i].y;
+        i += localSize;
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+//3.probe
+    //R as the outer relation
     int res = 0;
     i = localId;
-
-    //R as the outer relation
     while (i < r_par_len) {
-        for(int j = 0; j < s_par_len; j++) {
-            if (d_R_local[i].x == d_S_local[j].x) {
-                res ++;
-            }
+        int d_R_local_key = d_R_local[i].x;
+        int myKey = ((d_R_local_key >> 13) & 0b11111111111)<<1;
+        int delta = 1;
+        while (d_S_local_keys[myKey] != -1) {
+            if (d_R_local_key == d_S_local_keys[myKey])
+                res++;
+            myKey = (myKey + delta*delta)%hash_total;
+            delta++;
         }
         i += localSize;
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-
+//    if (groupId == 1)
     atomic_add(&d_out[0], res);
 }
 

@@ -94,9 +94,36 @@ double split(cl_mem d_in, cl_mem d_out, cl_mem d_start, int length, int bits, Pl
     status = clFinish(info.currentQueue);
     gettimeofday(&end, NULL);
     double gatherTime = diffTime(end, start);
-//    std::cout<<"Gather time: "<<tempTime<<" ms."<<std::endl;
+//    std::cout<<"Gather time: "<<gatherTime<<" ms."<<std::endl;
 
     totalTime += gatherTime;
+
+// -----------------  Test the size of each partition ------------------
+
+//    int *h_start = new int[buckets];
+//    status = clEnqueueReadBuffer(info.currentQueue, d_start, CL_TRUE, 0, sizeof(int)*buckets, h_start, 0, 0, 0);
+//    checkErr(status, ERR_READ_BUFFER);
+//    status = clFinish(info.currentQueue);
+//
+//    int largest = 0;
+//    int smallest = 9999;
+//    float ave = 0;
+//
+//    for(int i = 0; i < buckets; i++) {
+//        int car;
+//        if (i != buckets - 1)   car = h_start[i+1] - h_start[i];
+//        else                    car = length - h_start[i];
+//        if (car > largest)  largest = car;
+//        if (car < smallest) smallest = car;
+//        ave += car;
+//    }
+//    ave /= buckets;
+//
+//    std::cout<<"Partition results:"<<std::endl;
+//    std::cout<<"\tBuckets: "<<buckets<<std::endl;
+//    std::cout<<"\tLargest Part: "<<largest<<" ("<<largest* 2*sizeof(int)/1024<<" KB)"<<std::endl;
+//    std::cout<<"\tSmallest Part: "<<smallest<<" ("<<smallest* 2*sizeof(int)/1024<<" KB)"<<std::endl;
+//    std::cout<<"\tAverage Part: "<<ave<<" ("<<ave* 2*sizeof(int)/1024<<" KB)"<<std::endl;
 
     argsNum = 0;
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_in);
