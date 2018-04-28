@@ -22,7 +22,7 @@ INCLUDE := 	-I$(INCDIR) \
 			-I$(COMDIR) \
 			-I/ghome/zlai/intel/tbb/include
 
-LINK :=  -tbb
+LINK := 
 
 CPP_SRC :=  $(filter-out ._%,$(notdir $(shell find -L $(SRCDIR) $(COMDIR) -name *.cpp)))
 CPP_OBJ := $(CPP_SRC:%.cpp=$(OBJDIR)/%.o)

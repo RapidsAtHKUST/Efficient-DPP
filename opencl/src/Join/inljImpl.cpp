@@ -25,17 +25,8 @@ double inlj(cl_mem d_R, int rLen, cl_mem d_S, int sLen, cl_mem& d_Out, int & oLe
     uint tempCount = 0;
     
     //kernel reading
-    char inljPath[100] = PROJECT_ROOT;
-    strcat(inljPath, "/Kernels/inljKernel.cl");
-    std::string inljKerAddr = inljPath;
-    
-    char countMatchSource[100] = "countMatch";
-    char writeMatchSource[100] = "writeMatch";
-    
-    KernelProcessor inljReader(&inljKerAddr,1,info.context);
-    
-    cl_kernel countMatchKernel = inljReader.getKernel(countMatchSource);
-    cl_kernel writeMatchKernel = inljReader.getKernel(writeMatchSource);
+    cl_kernel countMatchKernel = KernelProcessor::getKernel("inljKernel.cl", "countMatch", info.context);
+    cl_kernel writeMatchKernel = KernelProcessor::getKernel("inljKernel.cl", "writeMatch", info.context);
 
     //memory allocation
     cl_mem d_count = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(uint)*itemNum, NULL, &status);

@@ -50,36 +50,8 @@ int main(int argc, char *argv[]) {
 
 	dataSize = atoi(argv[1]);
 
-	fixedRecords = new Record[dataSize];
-	fixedArray = new int[dataSize];
-	fixedLoc = new int[dataSize];
-
-	fixedKeys = new int[dataSize];
-	fixedValues = new int[dataSize];
-
-	splitVals = new int[dataSize];
-	splitKeys = new int[dataSize];
-	splitArray = new int[dataSize];
-
-	recordRandom<int>(fixedKeys, fixedValues, dataSize, MAX_NUM);
-	recordRandom<int>(splitKeys, splitVals, dataSize, fanout);
-
-	// valRandom<int>(fixedArray, dataSize, 10);
-	// valRandom<int>(fixedArray, dataSize, MAX_NUM);
-
-	valRandom_Only<int>(fixedLoc, dataSize, SHUFFLE_TIME(dataSize), dataSize);
-	// valRandom<int>(splitArray, dataSize, fanout);			//fanout
-
-
-	bool res;
-	int experiNum = 1;
-
-	int blockSize = 1024, gridSize = 8192;
-//-------------------------------- Basic test-----------------------------
-	float bestTime_read, bestTime_write, bestTime_mul, bestTime_add;
-	float throughput_read, throughput_write, throughput_mul, throughput_add;
 	//basic test
-	int repeat_read = 80;
+    cudaSetDevice(0);
 	testMem();
 
 	// throughput_read = computeMem(blockSize*gridSize/4, sizeof(int), bestTime_read);
@@ -102,16 +74,8 @@ int main(int argc, char *argv[]) {
 
 
 	//total time for each primitive
-	float idnElapsedTime;
-	float mapTime = MAX_TIME;
-	float gatherTime = MAX_TIME;
-	float scatterTime = MAX_TIME;
-	float splitTime = MAX_TIME;
-	float scanTime = MAX_TIME;
-	float scanTime_ble = MAX_TIME;
-	float radixSortTime = MAX_TIME;
 
-	for(int i = 0; i < experiNum; i++) {
+//	for(int i = 0; i < experiNum; i++) {
 		// cout<<"Round "<<i<<" :"<<endl;
 
 // //--------------testing map--------------
@@ -186,35 +150,8 @@ int main(int argc, char *argv[]) {
 
 // 		printRes("radix sort", res,idnElapsedTime);
 // 		if (idnElapsedTime < radixSortTime)		radixSortTime = idnElapsedTime;
-	}
-	gatherTime = gatherTime / dataSize * 1e6;		//get per tuple result
-	scatterTime = scatterTime / dataSize * 1e6;		//get per tuple result
+//	}
 
-	cout<<"-----------------------------------------"<<endl;
-#ifdef RECORDS
-    cout<<"Using type: Record."<<endl;
-#else
-    cout<<"Using type: Basic type."<<endl;
-#endif
-	cout<<"Data Size: "<<dataSize<<endl;
-	cout<<"Map time: "<<mapTime<<" ns."<<endl;
-	cout<<"Gather time per tuple: "<<gatherTime<<" ns."<<endl;
-	cout<<"Scatter time: "<<scatterTime<<" ns."<<endl;
-	cout<<"Split time: "<<splitTime<<" ms."<<endl;
-	cout<<"Scan time:"<<scanTime<<" ms."<<endl;
-	cout<<"Scan ble time:"<<scanTime_ble<<" ms."<<endl;
-	cout<<"Radix sort time:"<<radixSortTime<<" ms."<<endl;
-	
-	delete[] fixedRecords;
-	delete[] fixedArray;
-	delete[] fixedLoc;
-
-	delete[] fixedKeys;
-	delete[] fixedValues;
-
-	delete[] splitVals;
-	delete[] splitKeys;
-	delete[] splitArray;
 
 	return 0;
 }

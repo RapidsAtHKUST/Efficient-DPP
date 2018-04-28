@@ -127,7 +127,7 @@ set(SOURCE_FILES
         opencl/Kernels/barrierKernel.cl
         opencl/Kernels/bitonicSortKernel.cl
         opencl/Kernels/gatherKernel.cl
-        opencl/Kernels/hjKernel.cl
+        opencl/Kernels/hjPartitionedKernel.cl
         opencl/Kernels/inljKernel.cl
         opencl/Kernels/latencyKernel.cl
         opencl/Kernels/mapKernel.cl

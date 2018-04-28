@@ -50,29 +50,33 @@ double mem_read_test(int *data, int n){
 	return diffTime(end, start);
 }
 
-double mem_write_test(int *data, int n){
+double mem_mul(int *d_in, int *d_out, int n, int scalar)
+{
 
     struct timeval start, end;
 
-    #pragma offload target(mic)	\
-    in(data:length(n) alloc_if(1) free_if(0))
+#pragma offload target(mic)	\
+    in(d_in:length(n) alloc_if(1) free_if(0) )	\
+    out(d_out:length(n) alloc_if(1) free_if(0))
     {}
 
     gettimeofday(&start, NULL);
-    		
-    #pragma offload target(mic)	\
-    nocopy(data:length(n) alloc_if(0) free_if(0))
+
+#pragma offload target(mic)	\
+    nocopy(d_in:length(n) alloc_if(0) free_if(0) )	\
+    nocopy(d_out:length(n) alloc_if(0) free_if(0))
     {
-    	#pragma omp parallel for schedule(auto) 
-	    for (int idx = 0; idx < n; idx++) {
-	       	data[idx] = idx;
-	    }
+#pragma omp parallel for schedule(auto)
+        for (int idx = 0; idx < n; idx++) {
+            d_out[idx] = d_in[idx] * scalar;
+        }
     }
     gettimeofday(&end, NULL);
 
-    #pragma offload target(mic)	\
-    out(data:length(n) free_if(1))
+#pragma offload target(mic)	\
+    in(d_in:length(n) free_if(1))	\
+    out(d_out:length(n) free_if(1))
     {}
 
-	return diffTime(end, start);
+    return diffTime(end, start);
 }

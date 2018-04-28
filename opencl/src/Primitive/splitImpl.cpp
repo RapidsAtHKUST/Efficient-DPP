@@ -17,7 +17,7 @@
  *          2.Array recording the start position of each partition in the table (d_start)
  *
  */
-double split(cl_mem d_in, cl_mem d_out, cl_mem d_start, int length, int bits, PlatInfo& info) {
+double split(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, cl_mem d_out_values, cl_mem d_start, int length, int bits, PlatInfo& info) {
 
     int localSize = 1024, gridSize = 1024;
     int globalSize = localSize * gridSize;
@@ -31,18 +31,9 @@ double split(cl_mem d_in, cl_mem d_out, cl_mem d_start, int length, int bits, Pl
     checkLocalMemOverflow(sizeof(int) * buckets);    //this small, because of using atomic add
 
     //kernel reading
-    char splitPath[100] = PROJECT_ROOT;
-    strcat(splitPath, "/Kernels/splitKernel.cl");
-    std::string splitkerAddr = splitPath;
-    
-    char histogramSource[100] = "histogram";
-    char scatterWithHisSource[100] = "scatterWithHistogram";
-    char gatherHisSource[100] = "gatherStartPos";
-
-    KernelProcessor splitReader(&splitkerAddr,1,info.context);
-    cl_kernel histogramKernel = splitReader.getKernel(histogramSource);
-    cl_kernel scatterWithHisKernel = splitReader.getKernel(scatterWithHisSource);
-    cl_kernel gatherHisKernel = splitReader.getKernel(gatherHisSource);
+    cl_kernel histogramKernel = KernelProcessor::getKernel("splitKernel.cl", "histogram", info.context);
+    cl_kernel scatterWithHisKernel = KernelProcessor::getKernel("splitKernel.cl", "scatterWithHistogram", info.context);
+    cl_kernel gatherHisKernel = KernelProcessor::getKernel("splitKernel.cl", "gatherStartPos", info.context);
 
     //set work group and NDRange sizes
     size_t local[1] = {(size_t)localSize};
@@ -56,7 +47,7 @@ double split(cl_mem d_in, cl_mem d_out, cl_mem d_start, int length, int bits, Pl
 
     //set kernel arguments
     argsNum = 0;
-    status |= clSetKernelArg(histogramKernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(histogramKernel, argsNum++, sizeof(cl_mem), &d_in_keys);
     status |= clSetKernelArg(histogramKernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(histogramKernel, argsNum++, sizeof(cl_mem), &d_his);
     status |= clSetKernelArg(histogramKernel, argsNum++, sizeof(int) * buckets, NULL);
@@ -71,7 +62,7 @@ double split(cl_mem d_in, cl_mem d_out, cl_mem d_start, int length, int bits, Pl
     status = clFinish(info.currentQueue);
     gettimeofday(&end, NULL);
     double histogramTime = diffTime(end, start);
-//    std::cout<<"Histogram time: "<<tempTime<<" ms."<<std::endl;
+    std::cout<<"Histogram time: "<<histogramTime<<" ms."<<std::endl;
 
     totalTime += histogramTime;
     checkErr(status, ERR_EXEC_KERNEL);
@@ -79,7 +70,7 @@ double split(cl_mem d_in, cl_mem d_out, cl_mem d_start, int length, int bits, Pl
     //prefix scan
     double scanTime = scan_fast(d_his, his_len, 1, info, 1024, 15, 11, 0);
     totalTime += scanTime;
-//    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
+    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
 
     //gather the start position
     argsNum = 0;
@@ -94,7 +85,7 @@ double split(cl_mem d_in, cl_mem d_out, cl_mem d_start, int length, int bits, Pl
     status = clFinish(info.currentQueue);
     gettimeofday(&end, NULL);
     double gatherTime = diffTime(end, start);
-//    std::cout<<"Gather time: "<<gatherTime<<" ms."<<std::endl;
+    std::cout<<"Gather time: "<<gatherTime<<" ms."<<std::endl;
 
     totalTime += gatherTime;
 
@@ -126,8 +117,10 @@ double split(cl_mem d_in, cl_mem d_out, cl_mem d_start, int length, int bits, Pl
 //    std::cout<<"\tAverage Part: "<<ave<<" ("<<ave* 2*sizeof(int)/1024<<" KB)"<<std::endl;
 
     argsNum = 0;
-    status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_in);
-    status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_out);
+    status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_in_keys);
+    status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_in_values);
+    status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_out_keys);
+    status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_out_values);
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_his);
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int) * buckets, NULL);
@@ -142,7 +135,9 @@ double split(cl_mem d_in, cl_mem d_out, cl_mem d_start, int length, int bits, Pl
     status = clFinish(info.currentQueue);
     gettimeofday(&end, NULL);
     double scatterTime = diffTime(end, start);
-//    std::cout<<"Scatter time: "<<tempTime<<" ms."<<std::endl;
+
+    //*2 for keys and values, another *2 for read and write data
+    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
 
     totalTime += scatterTime;
 

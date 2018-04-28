@@ -4,7 +4,7 @@
 
 //------------------- Var used both on host and devices ------------ 
 //warp size, tuned for each platform
-#define WARP_BITS                   (3)
+#define WARP_BITS                   (5)
 #define WARP_SIZE                   (1<<(WARP_BITS))
 
 //throughput processing
@@ -16,7 +16,6 @@
 #define BARRIER_EXPR_TIME           (10)
 #define BARRIER_REPEAT_TIME         (1000)
 
-#define ATOMIC_EXPR_TIME            (2)
 #define ATOMIC_REPEAT_TIME          (1000)
 
 //scan definition

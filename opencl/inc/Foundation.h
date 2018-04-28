@@ -30,9 +30,9 @@ void map_transform(
     cl_mem &d_dest_x, cl_mem& d_dest_y, cl_mem& d_dest_z,
     int localSize, int gridSize, PlatInfo& info, int repeat, double &blank_time, double &total_time);
 
-double gather(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, const PlatInfo info, int numOfRun);
+double gather(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, const PlatInfo info, int pass);
 
-double scatter(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, const PlatInfo info, int numOfRun);
+double scatter(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, const PlatInfo info, int pass);
 
 
 double scan_fast(cl_mem &d_source, int length, int isExclusive, PlatInfo& info, int localSize, int gridSize, int R, int L);
@@ -42,7 +42,7 @@ double scan_ble(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int loc
 
 DEPRECATED double scan_blelloch(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize = BLOCKSIZE);
 
-double split(cl_mem d_in, cl_mem d_out, cl_mem d_his, int length, int bits, PlatInfo& info);
+double split(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, cl_mem d_out_values, cl_mem d_start, int length, int bits, PlatInfo& info) ;
 double radixSort(cl_mem& d_source, int length, PlatInfo& info);
 
 double bisort(cl_mem &d_source, int length, int dir, PlatInfo& info, int localSize, int gridSize);
@@ -52,27 +52,29 @@ double inlj(cl_mem d_R, int rLen, cl_mem d_S, int sLen, cl_mem& d_Out, int & oLe
 double ninlj(cl_mem& d_R, int rLen, cl_mem& d_S, int sLen, cl_mem& d_Out, int & oLen, PlatInfo info, int localSize, int gridSize);
 double smj(cl_mem d_R, int rLen, cl_mem d_S, int sLen, cl_mem& d_Out, int & oLen, PlatInfo info, int localSize);
 double partitionHJ(cl_mem& d_R, int rLen,int totalCountBits, PlatInfo info, int localSize, int gridSize) ;
-double hashjoin(cl_mem d_R, int rLen, cl_mem d_S, int sLen, int &res_len, PlatInfo info);
+double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len, PlatInfo info);
+double hashjoin_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len, PlatInfo info);
 
 
 
 //-------------------------test primitives-------------------------
 void testMem(PlatInfo& info);
 void testAccess(PlatInfo& info);
+bool testGather(int len, const PlatInfo info);
+bool testScatter(int len, const PlatInfo info);
+void testAtomic(PlatInfo& info);
+bool testScan(int length, int isExclusive, PlatInfo& info);
 
 void testBarrier(
     float *fixedValues, PlatInfo& info , double& totalTime, double& percentage, int localSize, int gridSize);
 
-void testAtomic(PlatInfo& info , double& totalTime, int localSize, int gridSize, bool isLocal);
+
 
 void testLatency(PlatInfo& info);
 
 bool testMap(PlatInfo& info, int repeat, int repeatTrans, int localSize=BLOCKSIZE, int gridSize=GRIDSIZE);
 
 
-bool testGather(int *fixedValues, const int lengthMax, const PlatInfo info);
-
-bool testScatter(int *fixedValues, const int lengthMax, const PlatInfo info);
 
 bool testRadixSort(
 #ifdef RECORDS

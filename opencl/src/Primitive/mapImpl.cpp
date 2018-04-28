@@ -15,13 +15,15 @@ double map_hashing(
     cl_int status = 0;
     
     //kernel reading
-    char path[100] = PROJECT_ROOT;
-    strcat(path, "/Kernels/mapKernel.cl");
-    std::string kerAddr = path;
-    
-    char kerName[100] = "map_hash";
-    KernelProcessor reader(&kerAddr,1,info.context);
-    cl_kernel mapKernel = reader.getKernel(kerName);
+//    char path[100] = PROJECT_ROOT;
+//    strcat(path, "/Kernels/mapKernel.cl");
+//    std::string kerAddr = path;
+//
+//    char kerName[100] = "map_hash";
+//    KernelProcessor reader(&kerAddr,1,info.context);
+//    cl_kernel mapKernel = reader.getKernel(kerName);
+
+    cl_kernel mapKernel = KernelProcessor::getKernel("mapKernel.cl", "map_hash", info.context);
 
     //set kernel arguments
     int argsNum = 0;
@@ -59,17 +61,7 @@ double map_branching(
     cl_int status = 0;
     
     //kernel reading
-    char path[100] = PROJECT_ROOT;
-    strcat(path, "/Kernels/mapKernel.cl");
-    std::string kerAddr = path;
-    
-    char b1_kerName[100] = "map_branch_";
-    char branch_temp[100] = "";
-    my_itoa(branch, branch_temp, 10 );
-    strcat(b1_kerName, branch_temp);
-
-    KernelProcessor reader(&kerAddr,1,info.context);
-    cl_kernel b1_Kernel = reader.getKernel(b1_kerName);
+    cl_kernel b1_Kernel = KernelProcessor::getKernel("mapKernel.cl", "map_branch_", info.context);
 
     //set kernel arguments for b1
     int argsNum = 0;
@@ -108,14 +100,7 @@ double map_branching_for(
     cl_int status = 0;
     
     //kernel reading
-    char path[100] = PROJECT_ROOT;
-    strcat(path, "/Kernels/mapKernel.cl");
-    std::string kerAddr = path;
-    
-    char b1_kerName[100] = "map_branch_for";
-    
-    KernelProcessor reader(&kerAddr,1,info.context);
-    cl_kernel b1_Kernel = reader.getKernel(b1_kerName);
+    cl_kernel b1_Kernel = KernelProcessor::getKernel("mapKernel.cl", "map_branch_for", info.context);
 
     //set kernel arguments for b1
     int argsNum = 0;
@@ -157,13 +142,8 @@ void map_transform(
     cl_int status = 0;
     
     //kernel reading
-    char path[100] = PROJECT_ROOT;
-    strcat(path, "/Kernels/mapKernel.cl");
-    std::string kerAddr = path;
-    
     char kerName[100] = "map_trans";
     char blank_kerName[100] = "map_trans_blank";
-
 
     if (sizeof(T) == sizeof(float)) {
         strcat(kerName, "_float");
@@ -174,10 +154,8 @@ void map_transform(
         strcat(blank_kerName, "_double");
     }
 
-    KernelProcessor reader(&kerAddr,1,info.context);
-    cl_kernel mapKernel = reader.getKernel(kerName);
-    cl_kernel blank_mapKernel = reader.getKernel(blank_kerName);
-
+    cl_kernel mapKernel = KernelProcessor::getKernel("mapKernel.cl", kerName, info.context);
+    cl_kernel blank_mapKernel = KernelProcessor::getKernel("mapKernel.cl", blank_kerName, info.context);
 
     //set kernel arguments
     int argsNum = 0;

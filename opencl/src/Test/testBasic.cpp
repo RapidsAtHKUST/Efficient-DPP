@@ -9,196 +9,91 @@
 #include "Foundation.h"
 using namespace std;
 
-/* @finished code reconstruction
- * For memory read and write bandwidth test
+/*
+ * Test scalar multiplication bandwidth
  */
 void testMem(PlatInfo& info) {
-
     cl_int status = 0;
     cl_event event;
-
-    int argsNum = 0;
-    int localSize = 1024, gridSize = 8192;
-    int read_repeat = 80;      //each thread reads in read_repeat elements in the read test
-    float readTime = 0.0, writeTime = 0.0;
+    int argsNum;
+    int localSize = 1024;
+    int gridSize = 262144;
+    double mulTime = 0.0;
+    int scalar = 13;
 
     //set work group and NDRange sizes
     size_t local[1] = {(size_t)(localSize)};
     size_t global[1] = {(size_t)(localSize * gridSize)};
 
-    //data size
-    int in_length_read, in_length_write, out_length_write;
+    //get the kernel
+    cl_kernel mul_kernel = KernelProcessor::getKernel("memKernel.cl", "mem_mul_bandwidth", info.context);
 
-#ifndef SILENCE
-    FUNC_BEGIN;
-    SHOW_PARALLEL(localSize, gridSize);
-#endif
+    int len = localSize*gridSize;
+    std::cout<<"Data size for read/write(multiplication test): "<<len<<" ("<<len*sizeof(int)*1.0/1024/1024<<"MB)"<<std::endl;
 
-//-----------------------  Read Test --------------------------------
-    in_length_read = localSize * gridSize * read_repeat * 1;    //int1
-    std::cout<<"Data size(read test): "<<in_length_read<<" ("<<in_length_read*sizeof(int)*1.0/1024/1024<<"MB)"<<std::endl;
-
-    int *h_in = new int[in_length_read];
-
-    for(int i = 0; i < in_length_read; i++) {
-        h_in[i] = i;
-    }
-
-    //memory allocation
-    cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*in_length_read, NULL, &status);
+    //data initialization
+    int *h_in = new int[len];
+    for(int i = 0; i < len; i++) h_in[i] = i;
+    cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int)*len, NULL, &status);
+    cl_mem d_out = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY , sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-
-    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*in_length_read, h_in, 0, 0, 0);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*len, h_in, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
 
-    cl_mem d_out = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int)*localSize*gridSize, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    char extra[500] = "";       //need to be initiated
-
-    //kernel reading
-    char path[200] = PROJECT_ROOT;
-    strcat(path, "/Kernels/memKernel.cl");
-    std::string kerAddr = path;
-
-    char read_kerName[100] = "mem_read";
-    KernelProcessor reader(&kerAddr,1,info.context, extra);
-    cl_kernel read_kernel = reader.getKernel(read_kerName);
-
-//    set kernel arguments: read_kernel
+    //set kernel arguments
     argsNum = 0;
-    status |= clSetKernelArg(read_kernel, argsNum++, sizeof(cl_mem), &d_in);
-    status |= clSetKernelArg(read_kernel, argsNum++, sizeof(int), &in_length_read);
-    status |= clSetKernelArg(read_kernel, argsNum++, sizeof(cl_mem), &d_out);
+    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_out);
+    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(int), &scalar);
     checkErr(status, ERR_SET_ARGUMENTS);
 
-    //launch the kernel
-#ifdef PRINT_KERNEL
-    printExecutingKernel(kernel);
-#endif
-
-    clFlush(info.currentQueue);
     status = clFinish(info.currentQueue);
-
-    //executing read
     for(int i = 0; i < MEM_EXPR_TIME; i++) {
-
-        status = clEnqueueNDRangeKernel(info.currentQueue, read_kernel, 1, 0, global, local, 0, 0, &event);
-        clFlush(info.currentQueue);
+        status = clEnqueueNDRangeKernel(info.currentQueue, mul_kernel, 1, 0, global, local, 0, 0, &event);  //kernel execution
         status = clFinish(info.currentQueue);
-
         checkErr(status, ERR_EXEC_KERNEL);
-        double tempTime = clEventTime(event);
 
         //throw away the first result
-        if (i != 0)     readTime += tempTime;
+        if (i != 0) mulTime += clEventTime(event);
     }
+    mulTime /= (MEM_EXPR_TIME - 1);
+
     status = clFinish(info.currentQueue);
-
-    readTime /= (MEM_EXPR_TIME - 1);
-
     status = clReleaseMemObject(d_in);
     status = clReleaseMemObject(d_out);
     checkErr(status, ERR_RELEASE_MEM);
+    delete[] h_in;
 
-    delete [] h_in;
-
-    double throughput_read = computeMem(in_length_read, sizeof(int), readTime);
-    cout<<"Time for memory read(Repeat:"<<read_repeat<<"): "<<readTime<<" ms."<<'\t'
-        <<"Bandwidth: "<<throughput_read<<" GB/s"<<endl;
-
-//----------------------- write test -------------------------------
-    //get the kernel
-    char write_kerName[100] = "mem_write";
-    cl_kernel write_kernel = reader.getKernel(write_kerName);
-
-    out_length_write = localSize*gridSize;
-    std::cout<<"Data size(write test): "<<out_length_write<<" ("<<out_length_write*sizeof(int)*1.0/1024/1024<<"MB)"<<std::endl;
-
-    d_out = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY , sizeof(int)*out_length_write, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    //set kernel arguments: write_kernel
-    argsNum = 0;
-    status |= clSetKernelArg(write_kernel, argsNum++, sizeof(cl_mem), &d_out);
-    checkErr(status, ERR_SET_ARGUMENTS);
-
-    status = clFinish(info.currentQueue);
-
-    for(int i = 0; i < MEM_EXPR_TIME; i++) {
-        status = clEnqueueNDRangeKernel(info.currentQueue, write_kernel, 1, 0, global, local, 0, 0, &event);
-        // clFlush(info.currentQueue);
-        status = clFinish(info.currentQueue);
-
-        checkErr(status, ERR_EXEC_KERNEL);
-        double tempTime = clEventTime(event);
-
-        //throw away the first result
-        if (i != 0)     writeTime += tempTime;
-    }
-
-    writeTime /= (MEM_EXPR_TIME - 1);
-
-    status = clFinish(info.currentQueue);
-
-    status = clReleaseMemObject(d_out);
-    checkErr(status, ERR_RELEASE_MEM);
-
-    double throughput_write = computeMem(out_length_write, sizeof(int), writeTime);
-    cout<<"Time for memory write: "<<writeTime<<" ms."<<'\t'
-        <<"Bandwidth: "<<throughput_write<<" GB/s"<<endl;
-
-#ifndef SILENCE
-    FUNC_END;
-#endif
+    //compute the bandwidth, including read and write
+    double throughput = computeMem(len*2, sizeof(int), mulTime);
+    cout<<"Time for multiplication: "<<mulTime<<" ms."<<'\t'
+        <<"Bandwidth: "<<throughput<<" GB/s"<<endl;
 }
 
 void testAccess(PlatInfo& info) {
-
+    cl_event event;
     cl_int status = 0;
     int argsNum = 0;
     int localSize = 1024, gridSize = 8192;
     int repeat_max = 100;
-
     int length = localSize * gridSize * repeat_max;
-
     std::cout<<"Maximal data size: "<<length<<" ("<<length* sizeof(int)/1024/1024<<"MB)"<<std::endl;
 
-    int *h_in = new int[length];
-    int *h_out = new int[length];
-
-    for(int i = 0; i < length; i++) {
-        h_in[i] = i;
-    }
+    //kernel reading
+    cl_kernel mul_strided_kernel = KernelProcessor::getKernel("memKernel.cl", "mem_mul_strided", info.context);
+    cl_kernel mul_coalesced_kernel = KernelProcessor::getKernel("memKernel.cl", "mem_mul_coalesced", info.context);
+    cl_kernel mul_warped_kernel = KernelProcessor::getKernel("memKernel.cl", "mem_mul_strided_warpwise", info.context);
 
     //memory allocation
+    int *h_in = new int[length];
+    int *h_out = new int[length];
+    for(int i = 0; i < length; i++) h_in[i] = i;
     cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-
-    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*length, h_in, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-
     cl_mem d_out = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY , sizeof(int)*length, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-
-    char extra[500] = "";       //need to be initiated
-
-    //kernel reading
-    char path[200] = PROJECT_ROOT;
-    strcat(path, "/Kernels/memKernel.cl");
-    std::string kerAddr = path;
-
-    char mul_strided_kerName[100] = "mem_mul_strided";
-    char mul_coalesced_kerName[100] = "mem_mul_coalesced";
-    char mul_mix_kerName[100] = "mem_mul_strided_warpwise";
-
-    //get the kernel
-    KernelProcessor reader(&kerAddr,1,info.context, extra);
-    cl_kernel mul_strided_kernel = reader.getKernel(mul_strided_kerName);
-    cl_kernel mul_coalesced_kernel = reader.getKernel(mul_coalesced_kerName);
-    cl_kernel mul_mix_kernel = reader.getKernel(mul_mix_kerName);
-
-    clFlush(info.currentQueue);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*length, h_in, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
     status = clFinish(info.currentQueue);
 
 #ifndef SILENCE
@@ -219,41 +114,34 @@ void testAccess(PlatInfo& info) {
     status |= clSetKernelArg(mul_strided_kernel, argsNum++, sizeof(cl_mem), &d_out);
     checkErr(status, ERR_SET_ARGUMENTS);
 
-    //set kernel arguments: mul_mix_kernel
+    //set kernel arguments: mul_warped_kernel
     argsNum = 0;
-    status |= clSetKernelArg(mul_mix_kernel, argsNum++, sizeof(cl_mem), &d_in);
-    status |= clSetKernelArg(mul_mix_kernel, argsNum++, sizeof(cl_mem), &d_out);
+    status |= clSetKernelArg(mul_warped_kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(mul_warped_kernel, argsNum++, sizeof(cl_mem), &d_out);
     checkErr(status, ERR_SET_ARGUMENTS);
 
     //set work group and NDRange sizes
     size_t local[1] = {(size_t)localSize};
     size_t global[1] = {(size_t)(localSize * gridSize)};
 
-    //launch the kernel
-#ifdef PRINT_KERNEL
-    printExecutingKernel(kernel);
-#endif
-
-    cl_event event;
     clFlush(info.currentQueue);
     status = clFinish(info.currentQueue);
 
-    //executing mul with coalesced and strided manner
+    //time recorder
     double *coalesced_time = new double[repeat_max+1];
     double *coalesced_throughput = new double[repeat_max+1];
     double *strided_time = new double[repeat_max+1];
     double *strided_throughput = new double[repeat_max+1];
-
-    double *mix_time = new double[repeat_max+1];
-    double *mix_throughput = new double[repeat_max+1];
+    double *warped_time = new double[repeat_max+1];
+    double *warped_throughput = new double[repeat_max+1];
 
     for(int i = 1; i <= repeat_max; i++) {
         coalesced_time[i] = 0.0;
         coalesced_throughput[i] = 0.0;
         strided_time[i] = 0.0;
         strided_throughput[i] = 0.0;
-        mix_time[i] = 0.0;
-        mix_throughput[i] = 0.0;
+        warped_time[i] = 0.0;
+        warped_throughput[i] = 0.0;
     }
 
     //coalesced
@@ -316,9 +204,9 @@ void testAccess(PlatInfo& info) {
     cout<<"------------------ Warpwise Strided Access ------------------"<<endl;
     for(int re = 1; re <= repeat_max; re++) {
         for(int i = 0; i < MEM_EXPR_TIME; i++) {
-            status |= clSetKernelArg(mul_mix_kernel, 2, sizeof(int), &re);
+            status |= clSetKernelArg(mul_warped_kernel, 2, sizeof(int), &re);
             checkErr(status, ERR_SET_ARGUMENTS);
-            status = clEnqueueNDRangeKernel(info.currentQueue, mul_mix_kernel, 1, 0, global, local, 0, 0, &event);
+            status = clEnqueueNDRangeKernel(info.currentQueue, mul_warped_kernel, 1, 0, global, local, 0, 0, &event);
             clFlush(info.currentQueue);
             status = clFinish(info.currentQueue);
 
@@ -326,23 +214,19 @@ void testAccess(PlatInfo& info) {
             double tempTime = clEventTime(event);
 
             //throw away the first result
-            if (i != 0)     mix_time[re] += tempTime;
+            if (i != 0)     warped_time[re] += tempTime;
         }
     }
 
     for(int re = 1; re <= repeat_max; re++) {
-        mix_time[re] /= (MEM_EXPR_TIME - 1);
-        assert(mix_time[re] > 0);
-        mix_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), mix_time[re]);
+        warped_time[re] /= (MEM_EXPR_TIME - 1);
+        assert(warped_time[re] > 0);
+        warped_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), warped_time[re]);
         cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
             <<"("<<localSize*gridSize*(re)<<","<<localSize*gridSize*(re)*1.0* sizeof(int)/1024/1024<<"MB)"
-            <<" Time: "<<mix_time[re]<<" ms\t"<<"Throughput: "<<mix_throughput[re]<<" GB/s"<<endl;
+            <<" Time: "<<warped_time[re]<<" ms\t"<<"Throughput: "<<warped_throughput[re]<<" GB/s"<<endl;
     }
     cout<<endl;
-
-    //memory written back for not being optimized out
-//    status = clEnqueueReadBuffer(info.currentQueue, d_out, CL_TRUE, 0, sizeof(T)*length, h_out, 0, 0, 0);
-//    checkErr(status, ERR_READ_BUFFER);
 
     status = clFinish(info.currentQueue);
 
@@ -360,9 +244,9 @@ void testAccess(PlatInfo& info) {
     }
     cout<<"]"<<endl;
 
-    cout<<"mix_bandwidth = ["<<mix_throughput[1];
+    cout<<"mix_bandwidth = ["<<warped_throughput[1];
     for(int re = 2; re <= repeat_max; re++) {
-        cout<<','<<mix_throughput[re];
+        cout<<','<<warped_throughput[re];
     }
     cout<<"]"<<endl;
 
@@ -377,8 +261,8 @@ void testAccess(PlatInfo& info) {
     delete[] coalesced_throughput;
     delete[] strided_time;
     delete[] strided_throughput;
-    delete[] mix_time;
-    delete[] mix_throughput;
+    delete[] warped_time;
+    delete[] warped_throughput;
 
 #ifndef SILENCE
     FUNC_END;
@@ -416,19 +300,11 @@ void testBarrier(
     status = clFinish(info.currentQueue);
 
     //kernel reading
-    char path[100] = PROJECT_ROOT;
-    char basicSizeName[20] = "";
-    strcat(path, "/Kernels/barrierKernel.cl");
-    std::string kerAddr = path;
+    cl_kernel kernel_in = KernelProcessor::getKernel("barrierKernel.cl", "barrier_in", info.context);
+    cl_kernel kernel_free = KernelProcessor::getKernel("barrierKernel.cl", "barrier_free", info.context);
 
-    char kerName_in[100] = "barrier_in";
-    char kerName_free[100] = "barrier_free";
-
-    KernelProcessor reader(&kerAddr,1,info.context);
-    
-    cl_kernel kernel_in = reader.getKernel(kerName_in);
-    cl_kernel kernel_free = reader.getKernel(kerName_free);
     const int repeatTime = BARRIER_REPEAT_TIME;
+
 
     //set kernel arguments
     argsNum = 0;
@@ -504,146 +380,128 @@ void testBarrier(
 #endif
 }
 
-void testAtomic(PlatInfo& info , double& totalTime, int localSize, int gridSize, bool isLocal) {
+void testAtomic(PlatInfo& info) {
            
-    cl_int status = 0;
-    int argsNum = 0;
+    cl_int status;
+    int args = 0, exper_time = 10;
+    int local_size, grid_size;
+    const int repeat_time = ATOMIC_REPEAT_TIME;
+    double total_time_local = 0, total_time_global = 0;
 
-    //kernel reading
-    char path[100] = PROJECT_ROOT;
-    strcat(path, "/Kernels/atomicKernel.cl");
-    std::string kerAddr = path;
-    KernelProcessor reader(&kerAddr,1,info.context);
+    size_t local[1];
+    size_t global[1];
 
-    const int repeatTime = ATOMIC_REPEAT_TIME;
+//1. test local atomic throughput
+    local_size = 1024;
+    grid_size = 30;          //single-work-group
+    local[0] = local_size;
+    global[0] = local_size*grid_size;
 
-    //set work group and NDRange sizes
-    size_t local[1] = {(size_t)localSize};
-    size_t global[1] = {(size_t)localSize * gridSize};
+    long value_local = 0;
+    cl_mem d_local = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(long)*1, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_local, CL_TRUE, 0, sizeof(long)*1, &value_local, 0, 0, 0);
 
-    if (isLocal) {      //test local atomic
-        // int *testValueLocal = new int[gridSize];
-        int testValueLocal = 0;
-        // memset(testValueLocal, 0, sizeof(int) * gridSize);
+    cl_kernel kernel_local = KernelProcessor::getKernel("atomicKernel.cl", "atomic_local", info.context);
+    status |= clSetKernelArg(kernel_local, args++, sizeof(cl_mem), &d_local);
+    status |= clSetKernelArg(kernel_local, args++, sizeof(int), &repeat_time);
+    checkErr(status, ERR_SET_ARGUMENTS);
 
-        cl_mem d_source_local = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int), NULL, &status);
-        checkErr(status, ERR_HOST_ALLOCATION);
+    double totalTime_local = 0.0;
 
-        status = clEnqueueWriteBuffer(info.currentQueue, d_source_local, CL_TRUE, 0, sizeof(int), &testValueLocal, 0, 0, 0);
+    cl_event event;
+    clFlush(info.currentQueue);
+    status = clFinish(info.currentQueue);
 
-        char kerName_local[100] = "atomic_local";
-        cl_kernel kernel_local = reader.getKernel(kerName_local);
-
-        status |= clSetKernelArg(kernel_local, argsNum++, sizeof(cl_mem), &d_source_local);
-        status |= clSetKernelArg(kernel_local, argsNum++, sizeof(int), &repeatTime);
-        checkErr(status, ERR_SET_ARGUMENTS);
-
-        double totalTime_local = 0.0;
-
-        cl_event event;
+    for(int i = 0; i < exper_time; i++) {
+        status = clEnqueueNDRangeKernel(info.currentQueue, kernel_local, 1, 0, global, local, 0, 0, &event);
         clFlush(info.currentQueue);
         status = clFinish(info.currentQueue);
+        checkErr(status, ERR_EXEC_KERNEL);
+        double tempTime_local = clEventTime(event);
 
-        for(int i = 0; i < ATOMIC_EXPR_TIME; i++) {
-            status = clEnqueueNDRangeKernel(info.currentQueue, kernel_local, 1, 0, global, local, 0, 0, &event);
-            clFlush(info.currentQueue);
-            status = clFinish(info.currentQueue);
-            
-            checkErr(status, ERR_EXEC_KERNEL);
-            double tempTime_local = clEventTime(event);
-
-            //throw away the first result
-            if (i != 0)     totalTime_local += tempTime_local;
-        }    
-        totalTime_local /= (ATOMIC_EXPR_TIME - 1);
-
-        status = clEnqueueReadBuffer(info.currentQueue, d_source_local, CL_TRUE, 0, sizeof(int), &testValueLocal, 0, 0, 0);
-        checkErr(status, ERR_READ_BUFFER);
-
-        //checking
-        cout<<"blockSize="<<localSize<<'\t'
-            <<"gridSize="<<gridSize<<'\t'
-            <<"\tTime: "<<totalTime_local<<" ms. Pertime: "<<totalTime_local / localSize / gridSize / ATOMIC_REPEAT_TIME * 1e6 <<" ns. ";
-
-        // bool res = true;
-        // for(int i = 0; i < gridSize; i++) {
-        //     if (testValueLocal[i] != localSize * ATOMIC_REPEAT_TIME) {
-        //         res = false;
-        //         break;
-        //     }
-        // }
-        // if (res)
-        //     cout<<"local right!"<<endl;
-        // else {
-        //     cout<<"local wrong!"<<endl;
-        // }
-        if (testValueLocal == localSize * gridSize * ATOMIC_EXPR_TIME * ATOMIC_REPEAT_TIME) {
-            cout<<"local right!"<<endl;
-        }
-        else {
-            cout<<"local wrong!"<<endl;
-            cout<<testValueLocal<<' '<<localSize * gridSize * ATOMIC_EXPR_TIME * ATOMIC_REPEAT_TIME<<endl;
-        }
-        status = clFinish(info.currentQueue);
-        status = clReleaseMemObject(d_source_local);
-        checkErr(status, ERR_RELEASE_MEM);
-
-        // delete[] testValueLocal;
-
+        //throw away the first result
+        if (i != 0)     totalTime_local += tempTime_local;
     }
-    else {              //test global atomic
-        int testValueGlobal = 0;
-        
-        cl_mem d_source_global = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int), NULL, &status);
-        checkErr(status, ERR_HOST_ALLOCATION);
+    totalTime_local /= (exper_time - 1);
 
-        status = clEnqueueWriteBuffer(info.currentQueue, d_source_global, CL_TRUE, 0, sizeof(int), &testValueGlobal, 0, 0, 0);
+    status = clEnqueueReadBuffer(info.currentQueue, d_local, CL_TRUE, 0, sizeof(long), &value_local, 0, 0, 0);
+    checkErr(status, ERR_READ_BUFFER);
 
+    //checking
+    long value_cal = local_size * grid_size * exper_time * ATOMIC_REPEAT_TIME;
+    long data_size = (long)local_size * (long)grid_size * ATOMIC_REPEAT_TIME * sizeof(long);
+    if (value_local == value_cal) {
+        cout<<"Local test passes!"<<endl;
+    }
+    else {
+        cout<<"Local test fails!"<<endl;
+        cout<<value_local<<' '<<value_cal<<endl;
+    }
+    status = clFinish(info.currentQueue);
+    status = clReleaseMemObject(d_local);
+    checkErr(status, ERR_RELEASE_MEM);
 
-        char kerName_global[100] = "atomic_global";
-        cl_kernel kernel_global = reader.getKernel(kerName_global);
+    cout<<"Local size: "<<local_size<<'\t'
+        <<"Grid size: "<<grid_size<<'\t'
+        <<"Time: "<<totalTime_local<<" ms."
+        <<"Bandwidth: "<<data_size/totalTime_local /1e6 <<" GB/s."<<endl;
 
-        status |= clSetKernelArg(kernel_global, argsNum++, sizeof(cl_mem), &d_source_global);
-        status |= clSetKernelArg(kernel_global, argsNum++, sizeof(int), &repeatTime);
-        checkErr(status, ERR_SET_ARGUMENTS);
+//2. test global atomic throughput
+    local_size = 1024;
+    grid_size = 15;          //multi-work-group
+    local[0] = local_size;
+    global[0] = local_size*grid_size;
 
-        double totalTime_global = 0.0;
+    long value_global = 0;
+    cl_mem d_global = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int)*1, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_global, CL_TRUE, 0, sizeof(int)*1, &value_global, 0, 0, 0);
 
-        cl_event event;
+    args = 0;
+    cl_kernel kernel_global = KernelProcessor::getKernel("atomicKernel.cl", "atomic_global", info.context);
+    status |= clSetKernelArg(kernel_global, args++, sizeof(cl_mem), &d_global);
+    status |= clSetKernelArg(kernel_global, args++, sizeof(int), &repeat_time);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    double totalTime_global = 0.0;
+
+    clFlush(info.currentQueue);
+    status = clFinish(info.currentQueue);
+
+    for(int i = 0; i < exper_time; i++) {
+        status = clEnqueueNDRangeKernel(info.currentQueue, kernel_global, 1, 0, global, local, 0, 0, &event);
         clFlush(info.currentQueue);
         status = clFinish(info.currentQueue);
+        checkErr(status, ERR_EXEC_KERNEL);
+        double tempTime_global = clEventTime(event);
 
-        for(int i = 0; i < ATOMIC_EXPR_TIME; i++) {
-
-            status = clEnqueueNDRangeKernel(info.currentQueue, kernel_global, 1, 0, global, local, 0, 0, &event);
-            clFlush(info.currentQueue);
-            status = clFinish(info.currentQueue);
-            
-            checkErr(status, ERR_EXEC_KERNEL);
-            double tempTime_global = clEventTime(event);
-
-            //throw away the first result
-            if (i != 0)     totalTime_global += tempTime_global;
-        }    
-        totalTime_global /= (ATOMIC_EXPR_TIME - 1);
-
-        status = clEnqueueReadBuffer(info.currentQueue, d_source_global, CL_TRUE, 0, sizeof(int), &testValueGlobal, 0, 0, 0);
-        checkErr(status, ERR_READ_BUFFER);
-
-        cout<<"blockSize="<<localSize<<'\t'
-            <<"gridSize="<<gridSize<<'\t'
-            <<"\tTime: "<<totalTime_global<<" ms. Pertime: "<<totalTime_global / localSize/gridSize/ATOMIC_REPEAT_TIME * 1e6 <<" ns. ";
-
-        if (testValueGlobal == localSize * gridSize * ATOMIC_EXPR_TIME * ATOMIC_REPEAT_TIME)  {
-                cout<<"Global right!"<<endl;
-        } 
-        else {
-            cout<<"Global wrong!"<<endl;
-        }
-        status = clFinish(info.currentQueue);
-        status = clReleaseMemObject(d_source_global);
-        checkErr(status, ERR_RELEASE_MEM);
+        //throw away the first result
+        if (i != 0)     totalTime_global += tempTime_global;
     }
+    totalTime_global /= (exper_time - 1);
+
+    status = clEnqueueReadBuffer(info.currentQueue, d_global, CL_TRUE, 0, sizeof(int), &value_global, 0, 0, 0);
+    checkErr(status, ERR_READ_BUFFER);
+
+    //checking
+    value_cal = (long)local_size * (long)grid_size * exper_time * ATOMIC_REPEAT_TIME;
+    data_size = (long)local_size * (long)grid_size * ATOMIC_REPEAT_TIME * sizeof(int);
+    if (value_global == value_cal) {
+        cout<<"Global test passes!"<<endl;
+    }
+    else {
+        cout<<"Global test fails!"<<endl;
+        cout<<value_global<<' '<<value_cal<<endl;
+    }
+    status = clFinish(info.currentQueue);
+    status = clReleaseMemObject(d_global);
+    checkErr(status, ERR_RELEASE_MEM);
+
+    cout<<"Local size: "<<local_size<<'\t'
+        <<"Grid size: "<<grid_size<<'\t'
+        <<"Time: "<<totalTime_global<<" ms."
+        <<"Bandwidth: "<<data_size/totalTime_global /1e6 <<" GB/s."<<endl;
 }
 
 typedef unsigned long ptr_type;
@@ -658,16 +516,9 @@ void testLatency(PlatInfo& info) {
     double latencyTime[9][19] = {0.0};
 
     //kernel reading
-    char path[100] = PROJECT_ROOT;
-    strcat(path, "/Kernels/latencyKernel.cl");
-    std::string kerAddr = path;
-
-    char kerName[100] = "latency";
-    char add_address_kerName[100] = "add_address";
-
-    KernelProcessor reader(&kerAddr,1,info.context);
-    cl_kernel kernel = reader.getKernel(kerName);
-    cl_kernel address_kernel = reader.getKernel(add_address_kerName);
+    char *kerFileName = "latencyKernel.cl";
+    cl_kernel kernel = KernelProcessor::getKernel(kerFileName, "latency", info.context);
+    cl_kernel address_kernel = KernelProcessor::getKernel(kerFileName, "add_address", info.context);
 
     //test with different array size and strides
     for(int cs = 0; cs < numOfSizes; cs++) {

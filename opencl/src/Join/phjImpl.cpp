@@ -8,10 +8,10 @@
 
 #include "Foundation.h"
 
-double probe(cl_mem d_R, cl_mem d_S, int r_len, int s_len, cl_mem start_R, cl_mem start_S, int buckets, PlatInfo info, int &res_len);
+double probe(cl_mem d_R_keys, cl_mem d_R_values, cl_mem d_S_keys, cl_mem d_S_values, int r_len, int s_len, cl_mem start_R, cl_mem start_S, int buckets, PlatInfo info, int &res_len);
 
 //testing: only count the number of outputs
-double hashjoin(cl_mem d_R, int rLen, cl_mem d_S, int sLen, int &res_len, PlatInfo info)
+double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len, PlatInfo info)
 {
     struct timeval start, end;
     double totalTime = 0;
@@ -19,10 +19,14 @@ double hashjoin(cl_mem d_R, int rLen, cl_mem d_S, int sLen, int &res_len, PlatIn
     int bits = 13;          //grid size = 1024
     int buckets = (1<<bits);
 
-    cl_mem d_R_partitioned = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(Record)*rLen, NULL, &status);
+    cl_mem d_R_partitioned_keys = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*rLen, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    cl_mem d_R_partitioned_values = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*rLen, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
-    cl_mem d_S_partitioned = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(Record)*sLen, NULL, &status);
+    cl_mem d_S_partitioned_keys = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*sLen, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    cl_mem d_S_partitioned_values = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*sLen, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
     cl_mem r_start = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*buckets, NULL, &status);
@@ -31,20 +35,20 @@ double hashjoin(cl_mem d_R, int rLen, cl_mem d_S, int sLen, int &res_len, PlatIn
     cl_mem s_start = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*buckets, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
-    gettimeofday(&start, NULL);
-    split(d_R, d_R_partitioned, r_start, rLen, bits, info);
-    gettimeofday(&end, NULL);
-    double r_time = diffTime(end, start);
+//    gettimeofday(&start, NULL);
+    double r_time = split(d_R_keys,d_R_values, d_R_partitioned_keys, d_R_partitioned_values, r_start, rLen, bits, info);
+//    gettimeofday(&end, NULL);
+//    double r_time = diffTime(end, start);
 
-    gettimeofday(&start, NULL);
-    split(d_S, d_S_partitioned, s_start, sLen, bits, info);
-    gettimeofday(&end, NULL);
-    double s_time = diffTime(end, start);
+//    gettimeofday(&start, NULL);
+    double s_time = split(d_S_keys, d_S_values, d_S_partitioned_keys, d_S_partitioned_values, s_start, sLen, bits, info);
+//    gettimeofday(&end, NULL);
+//    double s_time = diffTime(end, start);
 
-    gettimeofday(&start, NULL);
-    probe(d_R_partitioned, d_S_partitioned, rLen, sLen, r_start, s_start, buckets, info, res_len);
-    gettimeofday(&end, NULL);
-    double probeTime = diffTime(end, start);
+//    gettimeofday(&start, NULL);
+    double probeTime = probe(d_R_partitioned_keys, d_R_partitioned_values, d_S_partitioned_keys, d_S_partitioned_values, rLen, sLen, r_start, s_start, buckets, info, res_len);
+//    gettimeofday(&end, NULL);
+//    double probeTime = diffTime(end, start);
 
     totalTime += r_time;
     totalTime += s_time;
@@ -57,7 +61,7 @@ double hashjoin(cl_mem d_R, int rLen, cl_mem d_S, int sLen, int &res_len, PlatIn
     return totalTime;
 }
 
-double probe(cl_mem d_R, cl_mem d_S, int r_len, int s_len, cl_mem start_R, cl_mem start_S, int buckets, PlatInfo info, int &res_len)
+double probe(cl_mem d_R_keys, cl_mem d_R_values, cl_mem d_S_keys, cl_mem d_S_values, int r_len, int s_len, cl_mem start_R, cl_mem start_S, int buckets, PlatInfo info, int &res_len)
 {
     cl_int status;
     int argsNum = 0;
@@ -67,13 +71,7 @@ double probe(cl_mem d_R, cl_mem d_S, int r_len, int s_len, cl_mem start_R, cl_me
     int globalSize = localSize * gridSize;
 
     //kernel reading
-    char hjPath[100] = PROJECT_ROOT;
-    strcat(hjPath, "/Kernels/hjKernel.cl");
-    std::string hjKerAddr = hjPath;
-
-    char probeSource[100] = "build_probe";
-    KernelProcessor hjReader(&hjKerAddr,1,info.context, "");
-    cl_kernel probeKernel = hjReader.getKernel(probeSource);
+    cl_kernel probeKernel = KernelProcessor::getKernel("hjPartitionedKernel.cl", "build_probe", info.context);
 
     //memory allocation
 //    cl_mem d_out = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*globalSize, NULL, &status);
@@ -93,16 +91,20 @@ double probe(cl_mem d_R, cl_mem d_S, int r_len, int s_len, cl_mem start_R, cl_me
     checkErr(status, ERR_WRITE_BUFFER);
 //
     argsNum = 0;
-    status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &d_R);
+    status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &d_R_keys);
+    status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &d_R_values);
     status |= clSetKernelArg(probeKernel, argsNum++, sizeof(int), &r_len);
-    status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &d_S);
+    status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &d_S_keys);
+    status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &d_S_values);
     status |= clSetKernelArg(probeKernel, argsNum++, sizeof(int), &s_len);
     status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &start_R);
     status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &start_S);
     status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &d_out_num);
-    status |= clSetKernelArg(probeKernel, argsNum++, 15.5*1024, NULL);    //15.5KB for R partition
+    status |= clSetKernelArg(probeKernel, argsNum++, 8*1024, NULL);    //15.5KB for R partition  (keys)
+     status |= clSetKernelArg(probeKernel, argsNum++, 8*1024, NULL);    //15.5KB for R partition (values)
     status |= clSetKernelArg(probeKernel, argsNum++, 15.5*1024, NULL);    //15.5KB for S partition hash table (keys)
     status |= clSetKernelArg(probeKernel, argsNum++, 15.5*1024, NULL);    //15.5KB for S partition hash table (values)
+
     checkErr(status, ERR_SET_ARGUMENTS);
 
 #ifdef PRINT_KERNEL

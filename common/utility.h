@@ -105,7 +105,7 @@ template<typename T>
 void valRandom(T *arr, int length, T max=MAX_NUM);
 
 template<typename T>
-void valRandom_Only(T *arr, int length,  int times, int max);
+void valRandom_Only(T *arr, int length, int max);
 
 double calCPUTime(clock_t start, clock_t end);
 double diffTime(struct timeval end, struct timeval start);	//calculate

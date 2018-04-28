@@ -1,14 +1,11 @@
 #ifndef SPLIT_KERNEL_CL
 #define SPLIT_KERNEL_CL
 
-#include "DataDef_CL.h"
-
-kernel void histogram(  global const Record* d_in,      //input data
+kernel void histogram(  global const int* d_in_keys,     //input data keys
                         int length,                     //input data length
                         global int *his,                //output to the histogram array
                         local int* local_his,           //size: buckets * sizeof(int)
                         short bucketBits)               //number of radix bits
-
 {
     int localId = get_local_id(0);
     int localSize = get_local_size(0);
@@ -31,7 +28,7 @@ kernel void histogram(  global const Record* d_in,      //input data
 
     i = globalId;
     while (i < length) {
-        int offset = d_in[i].x & mask;
+        int offset = d_in_keys[i] & mask;
         atomic_inc(local_his+offset);
         i += globalSize;
     }
@@ -44,8 +41,10 @@ kernel void histogram(  global const Record* d_in,      //input data
     }
 }
 
-kernel void scatterWithHistogram(   global const Record *d_in,
-                                    global Record *d_out,
+kernel void scatterWithHistogram(   global const int *d_in_keys,
+                                    global const int *d_in_values,
+                                    global int *d_out_keys,
+                                    global int *d_out_values,
                                     int length,
                                     global int *his, //output to the histogram array
                                     local int* local_his,  //size: buckets * sizeof(int)
@@ -55,13 +54,13 @@ kernel void scatterWithHistogram(   global const Record *d_in,
     int localSize = get_local_size(0);
     int globalId = get_global_id(0);
     int globalSize = get_global_size(0);
+    int i;
 
     int groupId = get_group_id(0);
     int groupNum = get_num_groups(0);
 
     int buckets = (1<<bucketBits);
     unsigned mask = buckets - 1;
-    int i;
 
     i = localId;
     while (i < buckets) {
@@ -72,10 +71,11 @@ kernel void scatterWithHistogram(   global const Record *d_in,
 
     i = globalId;
     while (i < length) {
-        int offset = d_in[i].x & mask;
+        int offset = d_in_keys[i] & mask;
         int pos = atomic_inc(local_his+offset);     //should atomic_inc and return the old value
-        d_out[pos].x = d_in[i].x;
-        d_out[pos].y = d_in[i].y;
+        d_out_keys[pos] = d_in_keys[i];
+        d_out_values[pos] = d_in_values[i];
+
         i += globalSize;
     }
 }

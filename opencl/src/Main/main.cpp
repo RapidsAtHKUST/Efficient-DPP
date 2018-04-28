@@ -52,7 +52,6 @@ void runBarrier(int experTime);
 void runAtomic();
 
 double runMap();
-double runScan(int experTime, int& blockSize);
 double runRadixSort(int experTime);
 
 /*parameters:
@@ -66,7 +65,7 @@ int main(int argc, const char * argv[]) {
     cl_command_queue queue = myPlatform->getQueue();
     cl_context context = myPlatform->getContext();
     cl_command_queue currentQueue = queue;
-    
+
     info.context = context;
     info.currentQueue = currentQueue;
 
@@ -76,7 +75,7 @@ int main(int argc, const char * argv[]) {
     }
 
     // dataSize = 1000000000;
-    dataSize = atoi(argv[1]);
+    dataSize = atoi(argv[1]);       //in MB
     assert(dataSize > 0);
 
     #ifdef RECORDS
@@ -94,23 +93,48 @@ int main(int argc, const char * argv[]) {
     int scatter_blockSize = -1, scatter_gridSize = -1;
     int scan_blockSize = -1;
 
-    int experTime = 10;
-    double mapTime = 0.0f, gatherTime = 0.0f, scatterTime = 0.0f, scanTime = 0.0f, radixSortTime = 0.0f;
-
-    double totalTime;
 //    dataSize = 160000000;
 
-//    testMem(info);
-//     testAccess(info);
+//      testMem(info);
+//      testAccess(info);
+//      testLatency(info);
+
+    //test gather & scatter single case
+    int num = 64/ sizeof(int) * 1024 * 1024;
+//    testGather(num, info);
+//    cout<<endl;
+//    testScatter(num, info);
+
+    //test the gather and scatter with uniformly distributed indexes
+//    for(int i = 128; i < 4096; i += 256) {
+//        int num = i / sizeof(int) * 1024 * 1024;
+//        testGather(num, info);
+//        cout<<endl;
+//    }
+//
+//    for(int i = 128; i < 4096; i += 256) {
+//        int num = i / sizeof(int) * 1024 * 1024;
+//        testScatter(num, info);
+//        cout<<endl;
+//    }
+
+    //test the gather and scatter with 3GB data with different index distributions
+
+
+//    testAtomic(info);
+//      testGather(dataSize, info);
+//        testScatter(num, info);
+        testScan(num, 1, info);
+//------- finished operations ---------------
+
 
     // runMem<double>();
     // runAtomic();
     // runBarrier(experTime);
-    // testLatency(info);
 
      // runMap();
      // testGather(fixedValues, 1000000000, info);
-    // testScatter(fixedValues, 1000000000, info);
+//     testScatter(fixedValues, 1000000000, info);
     // radixSortTime = runRadixSort(experTime);
 
 //    scanTime = runScan(experTime, scan_blockSize);
@@ -121,13 +145,13 @@ int main(int argc, const char * argv[]) {
 
 //    testBitonitSort(fixedRecords, dataSize, info, 1, totalTime);      //1:  ascendingls
 //    testBitonitSort(fixedRecords, dataSize, info, 0, totalTime);      //0:  descending
-    
+
 //test joins
 //    testNinlj(num1, num1, info, totalTime);
 //    testInlj(num, num, info, totalTime);
 //    testSmj(num, num, info, totalTime);
 //    int num = 1600000;
-    testHj(dataSize, dataSize, info);         //16: lower 16 bits to generate the buckets
+//    testHj(dataSize, dataSize, info);         //16: lower 16 bits to generate the buckets
 
     return 0;
 }
@@ -165,95 +189,10 @@ void runBarrier(int experTime) {
     delete[] input;
 }
 
-void runAtomic() {
-
-	std::cout<<"----- Local Atomic Test -----"<<std::endl;
-
-    int block_min = 128, block_max = 1024;
-    int grid_min = 256, grid_max = 32768;
-
-    // int blockIdx = 0, gridIdx = 0;
-    // for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {
-    // 	gridIdx = 0;
-    //     for(int gridSize = grid_min; gridSize <= grid_max; gridSize <<= 1) {
-    //         	double localTime;
-
-    //             //--------test local atomic------------
-    //             testAtomic(                
-    //           	info,localTime, blockSize, gridSize, true);
-
-    //         gridIdx++;
-    //     }
-    //     blockIdx++;
-    // }
-
-    for(int gz = 1; gz <= 1024; gz++) {
-        for(int r = 1; r <=3; r++) {
-            double localTime;
-            testAtomic(info,localTime, 512, gz, false);
-        }
-        
-    }
-
-    // std::cout<<"----- Global Atomic Test -----"<<std::endl;
-
-    // blockIdx = 0, gridIdx = 0;
-    // for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {
-    //     gridIdx = 0;
-    //     for(int gridSize = grid_min; gridSize <= grid_max; gridSize <<= 1) {
-    //         	double localTime;
-
-    //             //--------test global atomic------------
-    //             testAtomic(                
-    //           	info,localTime, blockSize, gridSize, false);
-
-    //         gridIdx++;
-    //     }
-    //     blockIdx++;
-    // }
-}
-
 double runMap() {
     int blockSize = 1024, gridSize = 8192;
     int repeat = 64, repeat_trans = 16;
     testMap(info, repeat, repeat_trans, blockSize, gridSize);
-}
-
-double runScan(int experTime, int& bestBlockSize) {
-    double bestTime = MAX_TIME;
-    bestBlockSize = -1;
-    bool res;
-
-    int block_min = 1024, block_max = 1024;
-    int grid_min = 1024, grid_max = 1024;
-    
-    //we only test exclusive
-    cout<<"--------- Exclusive --------"<<endl;
-    for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {   
-        double tempTime = MAX_TIME;
-        for(int i = 0 ; i < experTime; i++) {       
-            // --------test scan------------
-            res = testScan(fixedValues, dataSize, info, tempTime, 1, blockSize);             //0: inclusive
-        }
-        if (tempTime < bestTime && res == true) {
-            bestTime = tempTime;
-            bestBlockSize = blockSize;
-        }
-    }
-
-    // cout<<"--------- Inclusive --------"<<endl;
-    // for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {   
-    //     double tempTime = MAX_TIME;
-    //     for(int i = 0 ; i < experTime; i++) {       
-    //         // --------test scan------------
-    //         res = testScan(fixedValues, dataSize, info, tempTime, 0, blockSize);             //0: inclusive
-    //     }
-    //     if (tempTime < bestTime && res == true) {
-    //         bestTime = tempTime;
-    //         bestBlockSize = blockSize;
-    //     }
-    // }
-    return bestTime;
 }
 
 //no need to set blockSize and gridSize

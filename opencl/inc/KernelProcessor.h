@@ -16,14 +16,14 @@
 class KernelProcessor {
 private:
     cl_program program;
-    char **source;
-    int num;
+    char *source;
+    cl_kernel &createKernel(char *kerName);
 protected:
-    void kernelRead(std::string *addr, int num);
+    void kernelRead(char *addr);
     void compile(cl_context context, char* extra);
 public:
-    KernelProcessor(std::string *addr,int num, cl_context context, char* extra="");
-    cl_kernel &getKernel(char *kerName);
+    KernelProcessor(char *addr, cl_context context, char* extra="");
+    static cl_kernel &getKernel(char* fileName, char* funcName, cl_context context, char* flags = "");
     ~KernelProcessor();
 };
 

@@ -10,7 +10,8 @@
 
 #include "kernels.h"
 
-void testMem() ;
+void testMem();
+
 
 template<class T> bool testMap( 
 #ifdef RECORDS

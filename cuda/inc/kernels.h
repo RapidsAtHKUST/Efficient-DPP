@@ -11,10 +11,7 @@
 
 #include "utility.h"
 
-float testMemRead(int *d_source_values, int *d_dest_values, int blockSize, int gridSize) ;
-float testMemWrite(int *d_dest_values, int blockSize, int gridSize) ;
-float testMemMul(int2 *d_source_values, int2 *d_dest_values, int blockSize, int gridSize) ;
-float testMemAdd(int2 *d_source_values, int2 *d_source_values_2, int2 *d_dest_values, int blockSize, int gridSize) ;
+float mul(int *d_in, int *d_out, int blockSize, int gridSize);
 
 template<class T> float map(		
 #ifdef RECORDS

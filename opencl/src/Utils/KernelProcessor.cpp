@@ -11,17 +11,15 @@
 #include <iostream>
 using namespace std;
 
-KernelProcessor::KernelProcessor(string *addr,int num, cl_context context, char* extra) {
-    this->num = num;
-    source = new char*[this->num];
-    kernelRead(addr, num);
+KernelProcessor::KernelProcessor(char *addr, cl_context context, char* extra) {
+    kernelRead(addr);
     compile(context, extra);
 }
 
-void KernelProcessor::kernelRead(string *addr, int num) {
+void KernelProcessor::kernelRead(char *addr) {
 //    std::cout<<"Kernel Address: "<<*addr<<std::endl;
-    for(int i = 0; i < num; ++i ) {
-        ifstream in(addr[i].c_str(),std::fstream::in| std::fstream::binary);
+//    for(int i = 0; i < num; ++i ) {
+        ifstream in(addr,std::fstream::in| std::fstream::binary);
         
         if(!in.good()) {
             cerr<<"Kernel file not exist!"<<endl;
@@ -34,18 +32,18 @@ void KernelProcessor::kernelRead(string *addr, int num) {
         in.seekg(0, std::ios_base::beg);    //jump to the front
         
         //read program source
-        source[i] = new char[length+1];
+        source = new char[length+1];
         
-        in.read(source[i], length);            //read the kernel file
-        source[i][length] = '\0';              //set the last one char to '\0'
-    }
+        in.read(source, length);            //read the kernel file
+        source[length] = '\0';              //set the last one char to '\0'
+//    }
 }
 
 void KernelProcessor::compile(cl_context context, char* extra) {
 
     //establish the program the compile it
     cl_int err;
-    this->program = clCreateProgramWithSource(context, this->num, (const char**)this->source, 0, &err);
+    this->program = clCreateProgramWithSource(context, 1, (const char**)(&this->source), 0, &err);
     checkErr(err, "Failed to creat program.");
 
     size_t totalSize;
@@ -73,30 +71,30 @@ void KernelProcessor::compile(cl_context context, char* extra) {
     err = clBuildProgram(program, cl_int(num), devices,comArgs, 0, 0);
     checkErr(err, "Compilation error.");
 
-    // //extract the assembly programs
-    // size_t ass_size;
-    // err = clGetProgramInfo(this->program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &ass_size, NULL);
-    // checkErr(err,"Failed to get the size of the assembly program.");
+     //extract the assembly programs
+     size_t ass_size;
+     err = clGetProgramInfo(this->program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &ass_size, NULL);
+     checkErr(err,"Failed to get the size of the assembly program.");
 
-    // unsigned char *binary = new unsigned char[ass_size];
-    // err = clGetProgramInfo(this->program, CL_PROGRAM_BINARIES, ass_size, &binary, NULL);
-    // checkErr(err,"Failed to generate the assembly program.");
+     unsigned char *binary = new unsigned char[ass_size];
+     err = clGetProgramInfo(this->program, CL_PROGRAM_BINARIES, ass_size, &binary, NULL);
+     checkErr(err,"Failed to generate the assembly program.");
 
-    // FILE * fpbin = fopen( "assembly.ass", "wb" );
-    // if( fpbin == NULL )
-    // {
-    //     fprintf( stderr, "Cannot create '%s'\n", "assembly.ass" );
-    // }
-    // else
-    // {
-    //     fwrite( binary, 1, ass_size, fpbin );
-    //     fclose( fpbin );
-    // }
-    // delete [] binary;
+     FILE * fpbin = fopen( "assembly.ass", "wb" );
+     if( fpbin == NULL )
+     {
+         fprintf( stderr, "Cannot create '%s'\n", "assembly.ass" );
+     }
+     else
+     {
+         fwrite( binary, 1, ass_size, fpbin );
+         fclose( fpbin );
+     }
+     delete [] binary;
 
 }
 
-cl_kernel &KernelProcessor::getKernel(char* kerName) {
+cl_kernel &KernelProcessor::createKernel(char* kerName) {
     //extract kernel
     cl_int err;
     cl_kernel *kernel = new cl_kernel;
@@ -104,6 +102,19 @@ cl_kernel &KernelProcessor::getKernel(char* kerName) {
     checkErr(err, "Kernel function name not found.");
 
     return *kernel;
+}
+
+cl_kernel &KernelProcessor::getKernel(char* fileName, char* funcName, cl_context context, char* flags) {
+
+    //kernel reading
+    char path[200] = PROJECT_ROOT;
+    strcat(path, "/Kernels/");
+    strcat(path, fileName);
+
+    KernelProcessor reader(path,context, flags);
+    cl_kernel mykernel = reader.createKernel(funcName);
+
+    return mykernel;
 }
 
 KernelProcessor::~KernelProcessor() {

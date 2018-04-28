@@ -20,10 +20,6 @@ double avgTime[NUM_FUCTIONS]={0};
 
 int main(int argc, char* argv[]) {
 
-	double readTime = 9999.0;
-	double writeTime = 9999.0;
-	double mulTime = 9999.0;
-	double addTime = 9999.0;
 	double totalTime;
 
 	// int n = atoi(argv[1]);
@@ -71,40 +67,40 @@ cout<<"---------------- begin test ----------------"<<endl;
 	// _mm_free(input);
 	// _mm_free(output);
 //----------------------------------- scan testing -----------------------------------
-	int expr = 10;
-
-	//initialization for SSE & AVX instructions
-
-	//initialiization for normal instructions
-	int dataSize[11] = {1000000,2000000,4000000,8000000,16000000,32000000,64000000,128000000,256000000,512000000,1000000000}; 
-
-	for(int d = 0; d < 11; d++) {
-		double *allTime = new double[expr];			//for storing the times
-
-		int cur_size = dataSize[d];
-		int *source = new int[cur_size];
-		// int* source = (int*)_mm_malloc(sizeof(int)*cur_size, 64);			//for AVX2
-
-		for(int i = 0; i < cur_size; i++)	{
-			source[i] = 1;
-		}
-
-		for(int j = 0; j < expr; j++) {
-			int *dest = new int[cur_size];
-			// int* dest = (int*)_mm_malloc(sizeof(int)*cur_size, 64);
-
-			allTime[j] = testScan_omp(source,dest,cur_size,0);	
-
-			// _mm_free(dest);
-			delete[] dest;
-		}
-		delete[] source;
-		// _mm_free(source);
-		sort(allTime,allTime+expr);
-
-		cout<<"size: "<<cur_size<<'\t'<<"time: "<<(allTime[expr/2-1]+allTime[expr/2])/2<<" ms"<<endl;
-		delete[] allTime;
-	}
+//	int expr = 10;
+//
+//	//initialization for SSE & AVX instructions
+//
+//	//initialiization for normal instructions
+//	int dataSize[11] = {1000000,2000000,4000000,8000000,16000000,32000000,64000000,128000000,256000000,512000000,1000000000};
+//
+//	for(int d = 0; d < 11; d++) {
+//		double *allTime = new double[expr];			//for storing the times
+//
+//		int cur_size = dataSize[d];
+//		int *source = new int[cur_size];
+//		// int* source = (int*)_mm_malloc(sizeof(int)*cur_size, 64);			//for AVX2
+//
+//		for(int i = 0; i < cur_size; i++)	{
+//			source[i] = 1;
+//		}
+//
+//		for(int j = 0; j < expr; j++) {
+//			int *dest = new int[cur_size];
+//			// int* dest = (int*)_mm_malloc(sizeof(int)*cur_size, 64);
+//
+//			allTime[j] = testScan_omp(source,dest,cur_size,0);
+//
+//			// _mm_free(dest);
+//			delete[] dest;
+//		}
+//		delete[] source;
+//		// _mm_free(source);
+//		sort(allTime,allTime+expr);
+//
+//		cout<<"size: "<<cur_size<<'\t'<<"time: "<<(allTime[expr/2-1]+allTime[expr/2])/2<<" ms"<<endl;
+//		delete[] allTime;
+//	}
 	
 
 	

@@ -1,15 +1,15 @@
 #ifndef GATHER_KERNEL_CL
 #define GATHER_KERNEL_CL
 
-#include "dataDef.h"
+#include "DataDef.h"
 
-kernel void gatherKernel( 
-  global const int *d_source_values, 
-  global int* d_dest_values,
-  global const int* loc,
-  const int length, 
-  int ele_per_thread, 
-  const int numOfRun)
+kernel void gatherKernel(global const int *d_in,
+                         global int* d_out,
+                         global const int* loc,
+                         const int length,
+                         const int ele_per_thread,
+                         const int from,        //start position
+                         const int to)          //end position)
 {
     int globalId = get_global_id(0);
     int warpId = globalId >> WARP_BITS;
@@ -17,19 +17,11 @@ kernel void gatherKernel(
     int begin = warpId * WARP_SIZE * ele_per_thread + (globalId & (WARP_SIZE-1));
     int end = ((warpId + 1) * WARP_SIZE * ele_per_thread < length)? ((warpId + 1) * WARP_SIZE * ele_per_thread) : length;
 
-    int numPerRun = (length + numOfRun - 1) / numOfRun;
-
-    for(int i = 0; i < numOfRun; i++) {
-
-      int from = i * numPerRun;
-      int to = (i+1) * numPerRun;
-
-      for(int pos = begin; pos < end; pos += WARP_SIZE) {
-          int tempLoc = loc[pos];
-          if (tempLoc >= from && tempLoc < to) {
-            d_dest_values[pos] = d_source_values[tempLoc];
-          }
-      }
+    for(int i = begin; i < end; i += WARP_SIZE) {
+        int pos = loc[i];
+        if (pos >= from && pos < to) {
+            d_out[i] = d_in[pos];
+        }
     }
 }
 

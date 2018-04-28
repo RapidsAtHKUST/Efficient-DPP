@@ -1,0 +1,238 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 1600
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+------ End of hardware checking ------
+
+[Gather Running] len:33554432 size:128MB pass:1 gridSize:2048	time:46.012 ms.(1.37126 ns/tuple)
+[Gather Running] len:33554432 size:128MB pass:2 gridSize:2048	time:56.4264 ms.(1.68164 ns/tuple)
+[Gather Running] len:33554432 size:128MB pass:4 gridSize:2048	time:92.321 ms.(2.75138 ns/tuple)
+[Gather Running] len:33554432 size:128MB pass:8 gridSize:2048	time:157.432 ms.(4.69185 ns/tuple)
+[Gather Running] len:33554432 size:128MB pass:16 gridSize:2048	time:274.33 ms.(8.17566 ns/tuple)
+[Gather Running] len:33554432 size:128MB pass:32 gridSize:2048	time:498.487 ms.(14.8561 ns/tuple)
+
+[Gather Running] len:100663296 size:384MB pass:1 gridSize:6144	time:140.509 ms.(1.39583 ns/tuple)
+[Gather Running] len:100663296 size:384MB pass:2 gridSize:6144	time:177.478 ms.(1.76309 ns/tuple)
+[Gather Running] len:100663296 size:384MB pass:4 gridSize:6144	time:244.46 ms.(2.42849 ns/tuple)
+[Gather Running] len:100663296 size:384MB pass:8 gridSize:6144	time:333.881 ms.(3.31681 ns/tuple)
+[Gather Running] len:100663296 size:384MB pass:16 gridSize:6144	time:476.868 ms.(4.73726 ns/tuple)
+[Gather Running] len:100663296 size:384MB pass:32 gridSize:6144	time:753.174 ms.(7.48212 ns/tuple)
+
+[Gather Running] len:167772160 size:640MB pass:1 gridSize:10240	time:234.495 ms.(1.3977 ns/tuple)
+[Gather Running] len:167772160 size:640MB pass:2 gridSize:10240	time:282.009 ms.(1.6809 ns/tuple)
+[Gather Running] len:167772160 size:640MB pass:4 gridSize:10240	time:387.282 ms.(2.30838 ns/tuple)
+[Gather Running] len:167772160 size:640MB pass:8 gridSize:10240	time:558.756 ms.(3.33044 ns/tuple)
+[Gather Running] len:167772160 size:640MB pass:16 gridSize:10240	time:827.267 ms.(4.9309 ns/tuple)
+[Gather Running] len:167772160 size:640MB pass:32 gridSize:10240	time:1339.27 ms.(7.98265 ns/tuple)
+
+[Gather Running] len:234881024 size:896MB pass:1 gridSize:14336	time:326.098 ms.(1.38835 ns/tuple)
+[Gather Running] len:234881024 size:896MB pass:2 gridSize:14336	time:399.281 ms.(1.69993 ns/tuple)
+[Gather Running] len:234881024 size:896MB pass:4 gridSize:14336	time:546.578 ms.(2.32704 ns/tuple)
+[Gather Running] len:234881024 size:896MB pass:8 gridSize:14336	time:796.581 ms.(3.39142 ns/tuple)
+[Gather Running] len:234881024 size:896MB pass:16 gridSize:14336	time:1166.7 ms.(4.96722 ns/tuple)
+[Gather Running] len:234881024 size:896MB pass:32 gridSize:14336	time:1826.27 ms.(7.77528 ns/tuple)
+
+[Gather Running] len:301989888 size:1152MB pass:1 gridSize:18432	time:407.498 ms.(1.34938 ns/tuple)
+[Gather Running] len:301989888 size:1152MB pass:2 gridSize:18432	time:491.795 ms.(1.62851 ns/tuple)
+[Gather Running] len:301989888 size:1152MB pass:4 gridSize:18432	time:664.055 ms.(2.19893 ns/tuple)
+[Gather Running] len:301989888 size:1152MB pass:8 gridSize:18432	time:942.185 ms.(3.11992 ns/tuple)
+[Gather Running] len:301989888 size:1152MB pass:16 gridSize:18432	time:1382.4 ms.(4.57764 ns/tuple)
+[Gather Running] len:301989888 size:1152MB pass:32 gridSize:18432	time:2119.51 ms.(7.01849 ns/tuple)
+
+[Gather Running] len:369098752 size:1408MB pass:1 gridSize:22528	time:506.566 ms.(1.37244 ns/tuple)
+[Gather Running] len:369098752 size:1408MB pass:2 gridSize:22528	time:622.864 ms.(1.68753 ns/tuple)
+[Gather Running] len:369098752 size:1408MB pass:4 gridSize:22528	time:857.334 ms.(2.32278 ns/tuple)
+[Gather Running] len:369098752 size:1408MB pass:8 gridSize:22528	time:1240.82 ms.(3.36176 ns/tuple)
+[Gather Running] len:369098752 size:1408MB pass:16 gridSize:22528	time:1827.05 ms.(4.95002 ns/tuple)
+[Gather Running] len:369098752 size:1408MB pass:32 gridSize:22528	time:2795.82 ms.(7.57473 ns/tuple)
+
+[Gather Running] len:436207616 size:1664MB pass:1 gridSize:26624	time:600.294 ms.(1.37617 ns/tuple)
+[Gather Running] len:436207616 size:1664MB pass:2 gridSize:26624	time:741.589 ms.(1.70008 ns/tuple)
+[Gather Running] len:436207616 size:1664MB pass:4 gridSize:26624	time:1026.04 ms.(2.35217 ns/tuple)
+[Gather Running] len:436207616 size:1664MB pass:8 gridSize:26624	time:1477.14 ms.(3.38632 ns/tuple)
+[Gather Running] len:436207616 size:1664MB pass:16 gridSize:26624	time:2146.9 ms.(4.92173 ns/tuple)
+[Gather Running] len:436207616 size:1664MB pass:32 gridSize:26624	time:3359.24 ms.(7.70101 ns/tuple)
+
+[Gather Running] len:503316480 size:1920MB pass:1 gridSize:30720	time:702.369 ms.(1.39548 ns/tuple)
+[Gather Running] len:503316480 size:1920MB pass:2 gridSize:30720	time:875.911 ms.(1.74028 ns/tuple)
+[Gather Running] len:503316480 size:1920MB pass:4 gridSize:30720	time:1202.65 ms.(2.38945 ns/tuple)
+[Gather Running] len:503316480 size:1920MB pass:8 gridSize:30720	time:1731.93 ms.(3.44103 ns/tuple)
+[Gather Running] len:503316480 size:1920MB pass:16 gridSize:30720	time:2520.92 ms.(5.00862 ns/tuple)
+[Gather Running] len:503316480 size:1920MB pass:32 gridSize:30720	time:3863.9 ms.(7.67689 ns/tuple)
+
+[Gather Running] len:570425344 size:2176MB pass:1 gridSize:34816	time:785.023 ms.(1.37621 ns/tuple)
+[Gather Running] len:570425344 size:2176MB pass:2 gridSize:34816	time:968.684 ms.(1.69818 ns/tuple)
+[Gather Running] len:570425344 size:2176MB pass:4 gridSize:34816	time:1337.79 ms.(2.34526 ns/tuple)
+[Gather Running] len:570425344 size:2176MB pass:8 gridSize:34816	time:1926.94 ms.(3.37808 ns/tuple)
+[Gather Running] len:570425344 size:2176MB pass:16 gridSize:34816	time:2819.8 ms.(4.94334 ns/tuple)
+[Gather Running] len:570425344 size:2176MB pass:32 gridSize:34816	time:4353.2 ms.(7.63149 ns/tuple)
+
+[Gather Running] len:637534208 size:2432MB pass:1 gridSize:38912	time:894.257 ms.(1.40268 ns/tuple)
+[Gather Running] len:637534208 size:2432MB pass:2 gridSize:38912	time:1102.23 ms.(1.72889 ns/tuple)
+[Gather Running] len:637534208 size:2432MB pass:4 gridSize:38912	time:1522.21 ms.(2.38765 ns/tuple)
+[Gather Running] len:637534208 size:2432MB pass:8 gridSize:38912	time:2196.98 ms.(3.44606 ns/tuple)
+[Gather Running] len:637534208 size:2432MB pass:16 gridSize:38912	time:3200.12 ms.(5.01953 ns/tuple)
+[Gather Running] len:637534208 size:2432MB pass:32 gridSize:38912	time:4901.98 ms.(7.68897 ns/tuple)
+
+[Gather Running] len:704643072 size:2688MB pass:1 gridSize:43008	time:940.011 ms.(1.33402 ns/tuple)
+[Gather Running] len:704643072 size:2688MB pass:2 gridSize:43008	time:1182.24 ms.(1.67779 ns/tuple)
+[Gather Running] len:704643072 size:2688MB pass:4 gridSize:43008	time:1646.85 ms.(2.33714 ns/tuple)
+[Gather Running] len:704643072 size:2688MB pass:8 gridSize:43008	time:2384.91 ms.(3.38456 ns/tuple)
+[Gather Running] len:704643072 size:2688MB pass:16 gridSize:43008	time:3482.84 ms.(4.9427 ns/tuple)
+[Gather Running] len:704643072 size:2688MB pass:32 gridSize:43008	time:5332.91 ms.(7.56825 ns/tuple)
+
+[Gather Running] len:771751936 size:2944MB pass:1 gridSize:47104	time:1068.59 ms.(1.38463 ns/tuple)
+[Gather Running] len:771751936 size:2944MB pass:2 gridSize:47104	time:1317.42 ms.(1.70705 ns/tuple)
+[Gather Running] len:771751936 size:2944MB pass:4 gridSize:47104	time:1803.52 ms.(2.33691 ns/tuple)
+[Gather Running] len:771751936 size:2944MB pass:8 gridSize:47104	time:2614.07 ms.(3.38719 ns/tuple)
+[Gather Running] len:771751936 size:2944MB pass:16 gridSize:47104	time:3819.75 ms.(4.94945 ns/tuple)
+[Gather Running] len:771751936 size:2944MB pass:32 gridSize:47104	time:5850.22 ms.(7.58044 ns/tuple)
+
+[Gather Running] len:838860800 size:3200MB pass:1 gridSize:51200	time:1089.72 ms.(1.29905 ns/tuple)
+[Gather Running] len:838860800 size:3200MB pass:2 gridSize:51200	time:1392.5 ms.(1.65999 ns/tuple)
+[Gather Running] len:838860800 size:3200MB pass:4 gridSize:51200	time:1910.07 ms.(2.27698 ns/tuple)
+[Gather Running] len:838860800 size:3200MB pass:8 gridSize:51200	time:2806.95 ms.(3.34615 ns/tuple)
+[Gather Running] len:838860800 size:3200MB pass:16 gridSize:51200	time:4064.41 ms.(4.84516 ns/tuple)
+[Gather Running] len:838860800 size:3200MB pass:32 gridSize:51200	time:6261.28 ms.(7.46402 ns/tuple)
+
+[Gather Running] len:905969664 size:3456MB pass:1 gridSize:55296	time:1174.61 ms.(1.29652 ns/tuple)
+[Gather Running] len:905969664 size:3456MB pass:2 gridSize:55296	time:1519.56 ms.(1.67728 ns/tuple)
+[Gather Running] len:905969664 size:3456MB pass:4 gridSize:55296	time:2079.19 ms.(2.29499 ns/tuple)
+[Gather Running] len:905969664 size:3456MB pass:8 gridSize:55296	time:3026.76 ms.(3.3409 ns/tuple)
+[Gather Running] len:905969664 size:3456MB pass:16 gridSize:55296	time:4433.6 ms.(4.89376 ns/tuple)
+[Gather Running] len:905969664 size:3456MB pass:32 gridSize:55296	time:6785.57 ms.(7.48984 ns/tuple)
+
+[Gather Running] len:973078528 size:3712MB pass:1 gridSize:59392	time:1362.32 ms.(1.40001 ns/tuple)
+[Gather Running] len:973078528 size:3712MB pass:2 gridSize:59392	time:1678.36 ms.(1.72479 ns/tuple)
+[Gather Running] len:973078528 size:3712MB pass:4 gridSize:59392	time:2305.01 ms.(2.36878 ns/tuple)
+[Gather Running] len:973078528 size:3712MB pass:8 gridSize:59392	time:3337.68 ms.(3.43002 ns/tuple)
+[Gather Running] len:973078528 size:3712MB pass:16 gridSize:59392	time:4868.02 ms.(5.0027 ns/tuple)
+[Gather Running] len:973078528 size:3712MB pass:32 gridSize:59392	time:7455.64 ms.(7.66191 ns/tuple)
+
+[Gather Running] len:1040187392 size:3968MB pass:1 gridSize:63488	time:1368.09 ms.(1.31523 ns/tuple)
+[Gather Running] len:1040187392 size:3968MB pass:2 gridSize:63488	time:1747.33 ms.(1.67982 ns/tuple)
+[Gather Running] len:1040187392 size:3968MB pass:4 gridSize:63488	time:2427.8 ms.(2.334 ns/tuple)
+[Gather Running] len:1040187392 size:3968MB pass:8 gridSize:63488	time:3533.84 ms.(3.39731 ns/tuple)
+[Gather Running] len:1040187392 size:3968MB pass:16 gridSize:63488	time:5118.81 ms.(4.92104 ns/tuple)
+[Gather Running] len:1040187392 size:3968MB pass:32 gridSize:63488	time:7860.51 ms.(7.55682 ns/tuple)
+
+[Scatter Running] len:33554432 size:128MB pass:1 gridSize:2048	time:58.4561 ms.(1.74213 ns/tuple)
+[Scatter Running] len:33554432 size:128MB pass:2 gridSize:2048	time:50.9332 ms.(1.51793 ns/tuple)
+[Scatter Running] len:33554432 size:128MB pass:4 gridSize:2048	time:85.3211 ms.(2.54277 ns/tuple)
+[Scatter Running] len:33554432 size:128MB pass:8 gridSize:2048	time:152.342 ms.(4.54014 ns/tuple)
+[Scatter Running] len:33554432 size:128MB pass:16 gridSize:2048	time:292.578 ms.(8.71952 ns/tuple)
+[Scatter Running] len:33554432 size:128MB pass:32 gridSize:2048	time:518.299 ms.(15.4465 ns/tuple)
+
+[Scatter Running] len:100663296 size:384MB pass:1 gridSize:6144	time:195.17 ms.(1.93884 ns/tuple)
+[Scatter Running] len:100663296 size:384MB pass:2 gridSize:6144	time:193.467 ms.(1.92192 ns/tuple)
+[Scatter Running] len:100663296 size:384MB pass:4 gridSize:6144	time:208.024 ms.(2.06653 ns/tuple)
+[Scatter Running] len:100663296 size:384MB pass:8 gridSize:6144	time:268.241 ms.(2.66473 ns/tuple)
+[Scatter Running] len:100663296 size:384MB pass:16 gridSize:6144	time:435.383 ms.(4.32514 ns/tuple)
+[Scatter Running] len:100663296 size:384MB pass:32 gridSize:6144	time:747.211 ms.(7.42288 ns/tuple)
+
+[Scatter Running] len:167772160 size:640MB pass:1 gridSize:10240	time:329.015 ms.(1.96108 ns/tuple)
+[Scatter Running] len:167772160 size:640MB pass:2 gridSize:10240	time:334.097 ms.(1.99137 ns/tuple)
+[Scatter Running] len:167772160 size:640MB pass:4 gridSize:10240	time:369.291 ms.(2.20115 ns/tuple)
+[Scatter Running] len:167772160 size:640MB pass:8 gridSize:10240	time:488.614 ms.(2.91236 ns/tuple)
+[Scatter Running] len:167772160 size:640MB pass:16 gridSize:10240	time:739.664 ms.(4.40874 ns/tuple)
+[Scatter Running] len:167772160 size:640MB pass:32 gridSize:10240	time:1262.24 ms.(7.52353 ns/tuple)
+
+[Scatter Running] len:234881024 size:896MB pass:1 gridSize:14336	time:463.375 ms.(1.97281 ns/tuple)
+[Scatter Running] len:234881024 size:896MB pass:2 gridSize:14336	time:482.577 ms.(2.05456 ns/tuple)
+[Scatter Running] len:234881024 size:896MB pass:4 gridSize:14336	time:527.713 ms.(2.24672 ns/tuple)
+[Scatter Running] len:234881024 size:896MB pass:8 gridSize:14336	time:683.476 ms.(2.90988 ns/tuple)
+[Scatter Running] len:234881024 size:896MB pass:16 gridSize:14336	time:1021.03 ms.(4.34703 ns/tuple)
+[Scatter Running] len:234881024 size:896MB pass:32 gridSize:14336	time:1703.27 ms.(7.25161 ns/tuple)
+
+[Scatter Running] len:301989888 size:1152MB pass:1 gridSize:18432	time:598.098 ms.(1.98052 ns/tuple)
+[Scatter Running] len:301989888 size:1152MB pass:2 gridSize:18432	time:624.815 ms.(2.06899 ns/tuple)
+[Scatter Running] len:301989888 size:1152MB pass:4 gridSize:18432	time:688.76 ms.(2.28074 ns/tuple)
+[Scatter Running] len:301989888 size:1152MB pass:8 gridSize:18432	time:875.333 ms.(2.89855 ns/tuple)
+[Scatter Running] len:301989888 size:1152MB pass:16 gridSize:18432	time:1327.11 ms.(4.39454 ns/tuple)
+[Scatter Running] len:301989888 size:1152MB pass:32 gridSize:18432	time:2185.97 ms.(7.23855 ns/tuple)
+
+[Scatter Running] len:369098752 size:1408MB pass:1 gridSize:22528	time:734.211 ms.(1.9892 ns/tuple)
+[Scatter Running] len:369098752 size:1408MB pass:2 gridSize:22528	time:766.914 ms.(2.0778 ns/tuple)
+[Scatter Running] len:369098752 size:1408MB pass:4 gridSize:22528	time:851.166 ms.(2.30606 ns/tuple)
+[Scatter Running] len:369098752 size:1408MB pass:8 gridSize:22528	time:1068.25 ms.(2.89421 ns/tuple)
+[Scatter Running] len:369098752 size:1408MB pass:16 gridSize:22528	time:1622.81 ms.(4.39667 ns/tuple)
+[Scatter Running] len:369098752 size:1408MB pass:32 gridSize:22528	time:2666.93 ms.(7.22552 ns/tuple)
+
+[Scatter Running] len:436207616 size:1664MB pass:1 gridSize:26624	time:866.63 ms.(1.98674 ns/tuple)
+[Scatter Running] len:436207616 size:1664MB pass:2 gridSize:26624	time:910.197 ms.(2.08661 ns/tuple)
+[Scatter Running] len:436207616 size:1664MB pass:4 gridSize:26624	time:998.32 ms.(2.28864 ns/tuple)
+[Scatter Running] len:436207616 size:1664MB pass:8 gridSize:26624	time:1253.68 ms.(2.87404 ns/tuple)
+[Scatter Running] len:436207616 size:1664MB pass:16 gridSize:26624	time:1890.33 ms.(4.33355 ns/tuple)
+[Scatter Running] len:436207616 size:1664MB pass:32 gridSize:26624	time:3114.49 ms.(7.13993 ns/tuple)
+
+[Scatter Running] len:503316480 size:1920MB pass:1 gridSize:30720	time:1004.59 ms.(1.99595 ns/tuple)
+[Scatter Running] len:503316480 size:1920MB pass:2 gridSize:30720	time:1051.7 ms.(2.08954 ns/tuple)
+[Scatter Running] len:503316480 size:1920MB pass:4 gridSize:30720	time:1163.43 ms.(2.31153 ns/tuple)
+[Scatter Running] len:503316480 size:1920MB pass:8 gridSize:30720	time:1470.3 ms.(2.92122 ns/tuple)
+[Scatter Running] len:503316480 size:1920MB pass:16 gridSize:30720	time:2190.8 ms.(4.35274 ns/tuple)
+[Scatter Running] len:503316480 size:1920MB pass:32 gridSize:30720	time:3599.75 ms.(7.15206 ns/tuple)
+
+[Scatter Running] len:570425344 size:2176MB pass:1 gridSize:34816	time:1142.93 ms.(2.00364 ns/tuple)
+[Scatter Running] len:570425344 size:2176MB pass:2 gridSize:34816	time:1199.81 ms.(2.10336 ns/tuple)
+[Scatter Running] len:570425344 size:2176MB pass:4 gridSize:34816	time:1318.06 ms.(2.31067 ns/tuple)
+[Scatter Running] len:570425344 size:2176MB pass:8 gridSize:34816	time:1646.16 ms.(2.88585 ns/tuple)
+[Scatter Running] len:570425344 size:2176MB pass:16 gridSize:34816	time:2459.75 ms.(4.31214 ns/tuple)
+[Scatter Running] len:570425344 size:2176MB pass:32 gridSize:34816	time:4030.01 ms.(7.06491 ns/tuple)
+
+[Scatter Running] len:637534208 size:2432MB pass:1 gridSize:38912	time:1277.25 ms.(2.00342 ns/tuple)
+[Scatter Running] len:637534208 size:2432MB pass:2 gridSize:38912	time:1347.3 ms.(2.1133 ns/tuple)
+[Scatter Running] len:637534208 size:2432MB pass:4 gridSize:38912	time:1484.49 ms.(2.32849 ns/tuple)
+[Scatter Running] len:637534208 size:2432MB pass:8 gridSize:38912	time:1840.7 ms.(2.88722 ns/tuple)
+[Scatter Running] len:637534208 size:2432MB pass:16 gridSize:38912	time:2751.19 ms.(4.31536 ns/tuple)
+[Scatter Running] len:637534208 size:2432MB pass:32 gridSize:38912	time:4507.69 ms.(7.07051 ns/tuple)
+
+[Scatter Running] len:704643072 size:2688MB pass:1 gridSize:43008	time:1413.32 ms.(2.00572 ns/tuple)
+[Scatter Running] len:704643072 size:2688MB pass:2 gridSize:43008	time:1485.51 ms.(2.10818 ns/tuple)
+[Scatter Running] len:704643072 size:2688MB pass:4 gridSize:43008	time:1640.6 ms.(2.32828 ns/tuple)
+[Scatter Running] len:704643072 size:2688MB pass:8 gridSize:43008	time:2045.96 ms.(2.90355 ns/tuple)
+[Scatter Running] len:704643072 size:2688MB pass:16 gridSize:43008	time:3051.68 ms.(4.33082 ns/tuple)
+[Scatter Running] len:704643072 size:2688MB pass:32 gridSize:43008	time:4982.78 ms.(7.07135 ns/tuple)
+
+[Scatter Running] len:771751936 size:2944MB pass:1 gridSize:47104	time:1546.15 ms.(2.00343 ns/tuple)
+[Scatter Running] len:771751936 size:2944MB pass:2 gridSize:47104	time:1627.53 ms.(2.10888 ns/tuple)
+[Scatter Running] len:771751936 size:2944MB pass:4 gridSize:47104	time:1800.63 ms.(2.33318 ns/tuple)
+[Scatter Running] len:771751936 size:2944MB pass:8 gridSize:47104	time:2243.54 ms.(2.90708 ns/tuple)
+[Scatter Running] len:771751936 size:2944MB pass:16 gridSize:47104	time:3360.98 ms.(4.355 ns/tuple)
+[Scatter Running] len:771751936 size:2944MB pass:32 gridSize:47104	time:5480.12 ms.(7.10089 ns/tuple)
+
+[Scatter Running] len:838860800 size:3200MB pass:1 gridSize:51200	time:1684.24 ms.(2.00777 ns/tuple)
+[Scatter Running] len:838860800 size:3200MB pass:2 gridSize:51200	time:1769.83 ms.(2.1098 ns/tuple)
+[Scatter Running] len:838860800 size:3200MB pass:4 gridSize:51200	time:1961.91 ms.(2.33878 ns/tuple)
+[Scatter Running] len:838860800 size:3200MB pass:8 gridSize:51200	time:2457.79 ms.(2.92991 ns/tuple)
+[Scatter Running] len:838860800 size:3200MB pass:16 gridSize:51200	time:3684.87 ms.(4.3927 ns/tuple)
+[Scatter Running] len:838860800 size:3200MB pass:32 gridSize:51200	time:5991.22 ms.(7.14209 ns/tuple)
+
+[Scatter Running] len:905969664 size:3456MB pass:1 gridSize:55296	time:1819.23 ms.(2.00805 ns/tuple)
+[Scatter Running] len:905969664 size:3456MB pass:2 gridSize:55296	time:1911.9 ms.(2.11033 ns/tuple)
+[Scatter Running] len:905969664 size:3456MB pass:4 gridSize:55296	time:2115.57 ms.(2.33514 ns/tuple)
+[Scatter Running] len:905969664 size:3456MB pass:8 gridSize:55296	time:2645.29 ms.(2.91984 ns/tuple)
+[Scatter Running] len:905969664 size:3456MB pass:16 gridSize:55296	time:3993.21 ms.(4.40766 ns/tuple)
+[Scatter Running] len:905969664 size:3456MB pass:32 gridSize:55296	time:6425.85 ms.(7.09278 ns/tuple)
+
+[Scatter Running] len:973078528 size:3712MB pass:1 gridSize:59392	time:1942.16 ms.(1.99589 ns/tuple)
+[Scatter Running] len:973078528 size:3712MB pass:2 gridSize:59392	time:2038.61 ms.(2.09501 ns/tuple)
+[Scatter Running] len:973078528 size:3712MB pass:4 gridSize:59392	time:2241.35 ms.(2.30336 ns/tuple)
+[Scatter Running] len:973078528 size:3712MB pass:8 gridSize:59392	time:2765.36 ms.(2.84186 ns/tuple)
+[Scatter Running] len:973078528 size:3712MB pass:16 gridSize:59392	time:4085.85 ms.(4.19889 ns/tuple)
+[Scatter Running] len:973078528 size:3712MB pass:32 gridSize:59392	time:6606.5 ms.(6.78928 ns/tuple)
+
+[Scatter Running] len:1040187392 size:3968MB pass:1 gridSize:63488	time:2087.61 ms.(2.00695 ns/tuple)
+[Scatter Running] len:1040187392 size:3968MB pass:2 gridSize:63488	time:2196.25 ms.(2.1114 ns/tuple)
+[Scatter Running] len:1040187392 size:3968MB pass:4 gridSize:63488	time:2416.59 ms.(2.32323 ns/tuple)
+[Scatter Running] len:1040187392 size:3968MB pass:8 gridSize:63488	time:2968.04 ms.(2.85337 ns/tuple)
+[Scatter Running] len:1040187392 size:3968MB pass:16 gridSize:63488	time:4380.66 ms.(4.21141 ns/tuple)
+[Scatter Running] len:1040187392 size:3968MB pass:32 gridSize:63488	time:7064.88 ms.(6.79193 ns/tuple)
+

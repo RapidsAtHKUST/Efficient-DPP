@@ -22,18 +22,9 @@ double smj(cl_mem d_R, int rLen, cl_mem d_S, int sLen, cl_mem& d_Out, int & oLen
     uint tempCount = 0;
     
     //kernel reading
-    char smjPath[100] = PROJECT_ROOT;
-    strcat(smjPath, "/Kernels/smjKernel.cl");
-    std::string smjKerAddr = smjPath;
-    
-    char countMatchSource[100] = "countMatch";
-    char writeMatchSource[100] = "writeMatch";
-    
-    KernelProcessor smjReader(&smjKerAddr,1,info.context);
-    
-    cl_kernel countMatchKernel = smjReader.getKernel(countMatchSource);
-    cl_kernel writeMatchKernel = smjReader.getKernel(writeMatchSource);
-    
+    cl_kernel countMatchKernel = KernelProcessor::getKernel("smjKernel.cl", "countMatch", info.context);
+    cl_kernel writeMatchKernel = KernelProcessor::getKernel("smjKernel.cl", "writeMatch", info.context);
+
     //memory allocation
     cl_mem d_count = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(uint)*itemNum, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);

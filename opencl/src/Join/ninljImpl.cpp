@@ -36,18 +36,9 @@ double ninlj(cl_mem& d_R, int rLen, cl_mem& d_S, int sLen, cl_mem& d_Out, int & 
     int totalResNum = 0;
     
     //kernel reading
-    char ninljPath[100] = PROJECT_ROOT;
-    strcat(ninljPath, "/Kernels/ninljKernel.cl");
-    std::string ninljKerAddr = ninljPath;
-    
-    char countMatchSource[100] = "countMatch";
-    char writeMatchSource[100] = "writeMatch";
-    
-    KernelProcessor ninljReader(&ninljKerAddr,1,info.context);
-    
-    cl_kernel countMatchKernel = ninljReader.getKernel(countMatchSource);
-    cl_kernel writeMatchKernel = ninljReader.getKernel(writeMatchSource);
-    
+    cl_kernel countMatchKernel = KernelProcessor::getKernel("ninljKernel.cl", "countMatch", info.context);
+    cl_kernel writeMatchKernel = KernelProcessor::getKernel("ninljKernel.cl", "writeMatch", info.context);
+
     //memory allocation
     cl_mem d_count = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(uint)*countNum, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);

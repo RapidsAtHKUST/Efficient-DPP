@@ -11,13 +11,43 @@
 using namespace std;
 
 
-void recordRandom(Record *a, int length, int max) {
+void recordRandom(int *a_keys, int *a_values, int length, int max) {
     srand((unsigned)time(NULL));
     sleep(1);
     for(int i = 0; i < length ; i++) {
-        a[i].x = rand() % max;
-        a[i].y = i;
+        a_keys[i] = rand() % max;
+        a_values[i] = i;
     }
+}
+
+void valRandom_Partitioned(int *arr, int length, int partitions) {
+    srand((unsigned)time(NULL));
+    sleep(1);
+
+    //1. generate the partition array
+    int *pars = new int[length];
+    for(int i = 0; i < length; i++) pars[i] = rand()%partitions;
+
+    //2.histogram
+    int *his = new int[partitions];
+    for(int i = 0; i < partitions; i++) his[i] = 0;
+    for(int i = 0; i < length; i++) his[pars[i]]++;
+
+    //3.scan exclusively
+    int temp1 = 0;
+    for(int i = 0; i < partitions; i++) {
+        int temp2 = his[i];
+        his[i] = temp1;
+        temp1 += temp2;
+    }
+
+    //4. scatter
+    for(int i = 0; i < length; i++) {
+        arr[i] = his[pars[i]]++;
+    }
+
+    delete[] pars;
+    delete[] his;
 }
 
 /*
@@ -377,116 +407,61 @@ bool testMap(PlatInfo& info, int repeat, int repeatTrans, int localSize, int gri
 }
 
 /*
- *  fixedValues:    initialized input array with maximum size
  *  lengthMax:         maximum size
  */
-bool testGather(int *fixedValues, const int lengthMax, const PlatInfo info) {
-    
-    cout<<"---------- Gather test ---------"<<endl;
-
-//miscellaneous
+bool testGather(int len, const PlatInfo info) {
     bool res = true;
-    int experTime = 10, dummy;
-    cl_int status = 0;
-    const size_t localSize = 1024;
+    int exper_time = 10;
+    cl_int status;
 
-//data dimension
-    int passBegin = 0, passEnd = 7;
-    int dataBegin = 0, dataEnd = 6;
-    int gridBegin = 0, gridEnd = 17;
-    
-    int passSizeArr[7] = {1,2,4,8,16,32,64};
-    int dataSizeArr[17] = {1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
-    int gridSizeArr[17] = {16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536,131072,262144,524288,1048576};
+    //kernel configuration
+    const size_t local_size = 1024;             //local size
+    int elements_per_thread = 16;               //elements per thread
+    int grid_size = len / local_size / elements_per_thread;
 
-    //recording array
-    double gatherTime[17][7][17];  //recording each grid config
-    double gatherTimeBest[17][7];  //best among different grid config
+    //data initialization
+    int *h_in = new int[len];     //no need to copy data
+    int *h_loc = new int[len];
+    for(int i = 0; i < len; i++)    h_in[i] = i;
+    valRandom_Only(h_loc, len, len);
+//    valRandom_Partitioned(h_loc, len, 8192);
 
-    for(int i = 0; i < 17; i++)
-        for(int j = 0; j < 7; j++)
-            gatherTimeBest[i][j] = MAX_TIME;
-
-//data initialization
-    int *h_source_values = fixedValues;     //no need to copy data
-    int *h_dest_values = new int[lengthMax];
-
-    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*lengthMax, NULL, &status);
+    cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(int)*lengthMax, h_source_values, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER); 
+    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*len, h_in, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+    cl_mem d_out = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    cl_mem d_loc = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*len, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_loc, CL_TRUE, 0, sizeof(int)*len, h_loc, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
 
-    //data size loop
-    for(int dataIdx = dataBegin; dataIdx < dataEnd; dataIdx++) {
-        
-        cout<<"-----------------------"<<endl;
-        int length = dataSizeArr[dataIdx];
-        int *h_loc = new int[length];
+    //loop for multi-pass
+    for(int pass = 1; pass <= 32 ; pass<<=1) {
+        cout<<"[Gather Running] len:"<<len<<' '
+            <<"size:"<<len* sizeof(int)/1024/1024<<"MB "
+            <<"pass:"<<pass<<' '
+            <<"gridSize:"<<grid_size<<'\t';
+        double myTime = 0;
+        for(int i = 0; i < exper_time; i++)  {
+            double tempTime = gather(d_in, d_out, len, d_loc, local_size, grid_size, info, pass);
+            if (i != 0)   myTime += tempTime;
+        }
+        myTime /= (exper_time-1);
+        cout<<"time:"<<myTime<<" ms.";
+        cout<<"("<<myTime/len*1e6<<" ns/tuple, "<< len* sizeof(int)/myTime/1e6<<"GB/s)"<<endl;
+    }
 
-        //construct the location input file name
-        char filePath[500]={'\0'};
-        strcat(filePath, "data/loc_");
-        char tempNum[50];
-        my_itoa(length, tempNum, 10);
-        strcat(filePath, tempNum);
-        strcat(filePath, "_equal.data"); 
+    status = clReleaseMemObject(d_out);
+    checkErr(status, ERR_RELEASE_MEM);
+    status = clReleaseMemObject(d_in);
+    checkErr(status, ERR_RELEASE_MEM);
+    status = clReleaseMemObject(d_loc);
+    checkErr(status, ERR_RELEASE_MEM);
+    delete[] h_loc;
+    delete[] h_in;
 
-        //read the location array
-        cout<<"[Reading] "<<filePath<<"...";
-        // readFixedArray(h_loc, filePath, dummy); 
-        valRandom_Only(h_loc, length,  length*2, length);
-        cout<<"done"<<endl;
-        
-        //dest and loc device memory allocation
-        cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*length, NULL, &status);
-        checkErr(status, ERR_HOST_ALLOCATION);
-    
-        cl_mem d_loc = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*length, NULL, &status);
-        checkErr(status, ERR_HOST_ALLOCATION);
-
-        status = clEnqueueWriteBuffer(info.currentQueue, d_loc, CL_TRUE, 0, sizeof(int)*length, h_loc, 0, 0, 0);
-        checkErr(status, ERR_WRITE_BUFFER);
-
-        //loop for multi-pass 
-        for(int passIdx = passBegin; passIdx < passEnd; passIdx++) {
-            int currentPass = passSizeArr[passIdx];    //current # pass
-            
-            //loop for grid size
-            for(int gridIdx = gridBegin; gridIdx < gridEnd; gridIdx++) {
-                int gridSize = gridSizeArr[gridIdx];
-
-                cout<<"[Gather Running] dataSize="<<length<<' '
-                    <<"pass="<<currentPass<<' '
-                    <<"gridSize="<<gridSize<<"...";
-
-                //loop for repeated experiments
-                for(int i = 0; i < experTime; i++)  {
-                    double tempTime = gather(d_source_values, d_dest_values, length, d_loc, localSize, gridSize, info, currentPass);
-
-                    if (i==0)   gatherTime[dataIdx][passIdx][gridIdx] = 0.0;
-                    else        gatherTime[dataIdx][passIdx][gridIdx] += tempTime;
-                }   //end of loop for repeated experiments
-                gatherTime[dataIdx][passIdx][gridIdx] /= (experTime - 1);
-                //time per tuple and change from "ms" to "ns"
-                gatherTime[dataIdx][passIdx][gridIdx] /= length;
-                gatherTime[dataIdx][passIdx][gridIdx] *= 1e6;
-
-                double currentTime = gatherTime[dataIdx][passIdx][gridIdx];
-                if (currentTime < gatherTimeBest[dataIdx][passIdx]) {  
-                    gatherTimeBest[dataIdx][passIdx] = currentTime;
-                }
-
-                cout<<"done"<<endl;
-            } //end of loop for grid size
-        }   //end of loop for multi-pass
-        status = clReleaseMemObject(d_dest_values);
-        checkErr(status, ERR_RELEASE_MEM);
-        status = clReleaseMemObject(d_loc);
-        checkErr(status, ERR_RELEASE_MEM);
-        delete [] h_loc;
-
-    }   //end of data size loop
-    
     //check
     // for(int i = 0; i < length; i++) {
     //     if (h_dest_values[h_loc[i]] != h_source_values[i]) {
@@ -495,323 +470,87 @@ bool testGather(int *fixedValues, const int lengthMax, const PlatInfo info) {
     //     }
     // }
     // FUNC_CHECK(res);
-    
-    status = clReleaseMemObject(d_source_values);
-    checkErr(status, ERR_RELEASE_MEM);
-    
-    delete [] h_dest_values;
-    
-//show the statistics
-//1. show the overall output
-    cout<<"------------------------------"<<endl;
-    cout<<"------------------------------"<<endl;
-    cout<<"I: Gather overall:"<<endl;
-    for(int r = passBegin; r < passEnd; r++) {
-        cout<<"Number of passes:"<<passSizeArr[r]<<endl;
-        for(int i = dataBegin; i < dataEnd; i++) {
-            int dataSize = dataSizeArr[i];
-            cout<<"Data size: "<<dataSizeArr[i]<<endl;
-            for(int j = gridBegin; j < gridEnd; j++) {
-                int gridSize = gridSizeArr[j];
-                cout<<'\t'
-                    <<"gridSize: "<<gridSize<<' '
-                    <<"tuples/item: "<<dataSize * 1.0 / (gridSize * localSize)<<' '
-                    <<"time/tuple: "<<gatherTime[i][r][j]<<" ns."<<endl;
-            }
-        }
-    }
-    cout<<endl;
 
-    cout<<"--- For python recording ---"<<endl;
-    for(int i = dataBegin; i < dataEnd; i++) {
-        for(int r = passBegin; r < passEnd; r++) {
-            cout<<"gather_"<<dataSizeArr[i]<<"_"<<passSizeArr[r]<<" = ";
-            cout<<"["<<gatherTime[i][r][gridBegin];
-
-            for(int j = gridBegin+1; j < gridEnd; j++) {
-                cout<<","<<gatherTime[i][r][j];
-            }
-            cout<<"]"<<endl;
-        }
-        cout<<endl;
-    }
-    cout<<endl;
-
-    cout<<"--- For excel recording ---"<<endl;
-    for(int i = dataBegin; i < dataEnd; i++) {
-        cout<<"Data size: "<<dataSizeArr[i]<<endl;
-        for(int r = passBegin; r < passEnd; r++) {
-            cout<<"Number of passes:"<<passSizeArr[r]<<endl;
-
-            for(int j = gridBegin; j < gridEnd; j++) {
-                cout<<gatherTime[i][r][j]<<endl;
-            }
-        }
-    }
-    cout<<endl;
-
-//2. show the grid-optimized output
-    cout<<"------------------------------"<<endl;
-    cout<<"------------------------------"<<endl;
-    cout<<"II: Gather for grid-optimized:"<<endl;
-    for(int r = passBegin; r < passEnd; r++) {
-        cout<<"Number of passes:"<<passSizeArr[r]<<endl;
-        for(int i = dataBegin; i < dataEnd; i++) {
-            cout<<"Data size: "<<dataSizeArr[i]<<'\t'<<"time/tuple: "<<gatherTimeBest[i][r]<<" ns."<<endl;
-        }
-    }
-    cout<<endl;
-
-    cout<<"--- For python recording ---"<<endl;
-    for(int r = passBegin; r < passEnd; r++) {
-        cout<<"gather_"<<passSizeArr[r]<<" = ";
-        cout<<"["<<gatherTimeBest[dataBegin][r];
-        for(int i = dataBegin+1; i < dataEnd; i++) {
-            cout<<','<<gatherTimeBest[i][r];
-        }
-        cout<<"]"<<endl;
-    }
-    cout<<endl;
-    
-    cout<<"--- For excel recording ---"<<endl;
-    for(int r = passBegin; r < passEnd; r++) {
-        cout<<"Number of passes:"<<passSizeArr[r]<<endl;
-        for(int i = dataBegin; i < dataEnd; i++) {
-            cout<<gatherTimeBest[i][r]<<endl;
-        }
-        cout<<endl;
-    }
-    
     return res;
 }
 
 
 /*
- *  fixedValues:    initialized input array with maximum size
  *  lengthMax:         maximum size
  */
-bool testScatter(int *fixedValues, const int lengthMax, const PlatInfo info) {
-    
-    cout<<"---------- Scatter test ---------"<<endl;
-
-//miscellaneous
+bool testScatter(int len, const PlatInfo info) {
     bool res = true;
-    int experTime = 10, dummy;
-    int errTag = 0;
-    cl_int status = 0;
-    const size_t localSize = 1024;
-    
+    int exper_time = 10;
+    cl_int status;
 
-//data dimension
-    int passBegin = 0, passEnd = 7;
-    int dataBegin = 4, dataEnd = 5;
-    int gridBegin = 9, gridEnd = 10;
-    
-    int passSizeArr[7] = {1,2,4,8,16,32,64};
-    int dataSizeArr[17] = {1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
-    int gridSizeArr[17] = {16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536,131072,262144,524288,1048576};
+    //kernel configuration
+    const size_t local_size = 1024;             //local size
+    int elements_per_thread = 16;               //elements per thread
+    int grid_size = len / local_size / elements_per_thread;
 
-    //recording array
-    double scatterTime[17][7][17];  //recording each grid config
-    double scatterTimeBest[17][7];  //best among different grid config
+    //data initialization
+    int *h_in = new int[len];     //no need to copy data
+    int *h_loc = new int[len];
+    for(int i = 0; i < len; i++)    h_in[i] = i;
+    valRandom_Only(h_loc, len, len);
+//    valRandom_Partitioned(h_loc, len, 8192);
 
-    for(int i = 0; i < 17; i++)
-        for(int j = 0; j < 7; j++)
-            scatterTimeBest[i][j] = MAX_TIME;
+    cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*len, h_in, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+    cl_mem d_out = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    cl_mem d_loc = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*len, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_loc, CL_TRUE, 0, sizeof(int)*len, h_loc, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
 
-//data initialization
-    int *h_source_values = fixedValues;     //no need to copy data
-    int *h_dest_values = new int[lengthMax];
-
-    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*lengthMax, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION,errTag++); //tag = 0
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(int)*lengthMax, h_source_values, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER,errTag++); //tag = 1
-
-    //data size loop
-    for(int dataIdx = dataBegin; dataIdx < dataEnd; dataIdx++) {
-        
-        cout<<"-----------------------"<<endl;
-        int length = dataSizeArr[dataIdx];
-        int *h_loc = new int[length];
-
-        //construct the location input file name
-        char filePath[500]={'\0'};
-        strcat(filePath, "data/loc_");
-        char tempNum[50];
-        my_itoa(length, tempNum, 10);
-        strcat(filePath, tempNum);
-        strcat(filePath, "_equal.data"); 
-
-        //read the location array
-        cout<<"[Reading] "<<filePath<<"...";
-//        readFixedArray(h_loc, filePath, dummy);
-        cout<<"done"<<endl;
-        
-        //dest and loc device memory allocation
-        cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*length, NULL, &status);
-        checkErr(status, ERR_HOST_ALLOCATION,errTag++);//tag = 2
-    
-        cl_mem d_loc = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*length, NULL, &status);
-        checkErr(status, ERR_HOST_ALLOCATION,errTag++);//tag = 3
-
-        status = clEnqueueWriteBuffer(info.currentQueue, d_loc, CL_TRUE, 0, sizeof(int)*length, h_loc, 0, 0, 0);
-        checkErr(status, ERR_WRITE_BUFFER,errTag++);//tag = 4
-
-        //loop for multi-pass 
-        for(int passIdx = passBegin; passIdx < passEnd; passIdx++) {
-            int currentPass = passSizeArr[passIdx];    //current # pass
-            
-            //loop for grid size
-            for(int gridIdx = gridBegin; gridIdx < gridEnd; gridIdx++) {
-                int gridSize = gridSizeArr[gridIdx];
-
-                cout<<"[Scatter Running] dataSize="<<length<<' '
-                    <<"pass="<<currentPass<<' '
-                    <<"gridSize="<<gridSize<<"...";
-
-                //loop for repeated experiments
-                for(int i = 0; i < experTime; i++)  {
-                    double tempTime = scatter(d_source_values, d_dest_values, length, d_loc, localSize, gridSize, info, currentPass);
-
-                    if (i==0)   scatterTime[dataIdx][passIdx][gridIdx] = 0.0;
-                    else        scatterTime[dataIdx][passIdx][gridIdx] += tempTime;
-                }   //end of loop for repeated experiments
-                scatterTime[dataIdx][passIdx][gridIdx] /= (experTime - 1);
-                //time per tuple and change from "ms" to "ns"
-                scatterTime[dataIdx][passIdx][gridIdx] /= length;
-                scatterTime[dataIdx][passIdx][gridIdx] *= 1e6;
-
-                double currentTime = scatterTime[dataIdx][passIdx][gridIdx];
-                if (currentTime < scatterTimeBest[dataIdx][passIdx]) {  
-                    scatterTimeBest[dataIdx][passIdx] = currentTime;
-                }
-
-                cout<<"done"<<endl;
-            } //end of loop for grid size
-        }   //end of loop for multi-pass
-
-        status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
-        checkErr(status, ERR_READ_BUFFER);
-        status = clFinish(info.currentQueue);
-
-        status = clReleaseMemObject(d_dest_values);
-        checkErr(status, ERR_RELEASE_MEM,errTag++);//tag = 5
-        status = clReleaseMemObject(d_loc);
-        checkErr(status, ERR_RELEASE_MEM,errTag++);//tag = 6
-        // delete [] h_loc;
-        
-        // check
-        for(int i = 0; i < length; i++) {
-            if (h_dest_values[h_loc[i]] != h_source_values[i]) {
-                res = false;
-                break;
-            }
+    //loop for multi-pass
+    for(int pass = 1; pass <= 32 ; pass<<=1) {
+        cout<<"[Scatter Running] len:"<<len<<' '
+            <<"size:"<<len* sizeof(int)/1024/1024<<"MB "
+            <<"pass:"<<pass<<' '
+            <<"gridSize:"<<grid_size<<'\t';
+        double myTime = 0;
+        for(int i = 0; i < exper_time; i++)  {
+            double tempTime = scatter(d_in, d_out, len, d_loc, local_size, grid_size, info, pass);
+            if (i != 0)   myTime += tempTime;
         }
-        FUNC_CHECK(res);
+        myTime /= (exper_time-1);
+        cout<<"time:"<<myTime<<" ms.";
+        cout<<"("<<myTime/len*1e6<<" ns/tuple, "<< len* sizeof(int)/myTime/1e6<<"GB/s)"<<endl;
+    }
 
-
-    }   //end of data size loop
-
-
-    
-    status = clReleaseMemObject(d_source_values);
+    status = clReleaseMemObject(d_out);
     checkErr(status, ERR_RELEASE_MEM);
-    
-    delete [] h_dest_values;
-    
-//show the statistics
-//1. show the overall output
-    cout<<"------------------------------"<<endl;
-    cout<<"------------------------------"<<endl;
-    cout<<"I: Scatter overall:"<<endl;
-    for(int r = passBegin; r < passEnd; r++) {
-        cout<<"Number of passes:"<<passSizeArr[r]<<endl;
-        for(int i = dataBegin; i < dataEnd; i++) {
-            int dataSize = dataSizeArr[i];
-            cout<<"Data size: "<<dataSizeArr[i]<<endl;
-            for(int j = gridBegin; j < gridEnd; j++) {
-                int gridSize = gridSizeArr[j];
-                cout<<'\t'
-                    <<"gridSize: "<<gridSize<<' '
-                    <<"tuples/item: "<<dataSize * 1.0 / (gridSize * localSize)<<' '
-                    <<"total time: "<<scatterTime[i][r][j] / 1e6 * dataSize<<' '
-                    <<"time/tuple: "<<scatterTime[i][r][j]<<" ns."<<endl;
-            }
-        }
-    }
-    cout<<endl;
+    status = clReleaseMemObject(d_in);
+    checkErr(status, ERR_RELEASE_MEM);
+    status = clReleaseMemObject(d_loc);
+    checkErr(status, ERR_RELEASE_MEM);
+    delete[] h_loc;
+    delete[] h_in;
 
-    cout<<"--- For python recording ---"<<endl;
-    for(int i = dataBegin; i < dataEnd; i++) {
-        for(int r = passBegin; r < passEnd; r++) {
-            cout<<"scatter_"<<dataSizeArr[i]<<"_"<<passSizeArr[r]<<" = ";
-            cout<<"["<<scatterTime[i][r][gridBegin];
+    //check
+    // for(int i = 0; i < length; i++) {
+    //     if (h_dest_values[i] != h_source_values[h_loc[i]]) {
+    //         res = false;
+    //         break;
+    //     }
+    // }
+    // FUNC_CHECK(res);
 
-            for(int j = gridBegin+1; j < gridEnd; j++) {
-                cout<<","<<scatterTime[i][r][j];
-            }
-            cout<<"]"<<endl;
-        }
-        cout<<endl;
-    }
-    cout<<endl;
-
-    cout<<"--- For excel recording ---"<<endl;
-    for(int i = dataBegin; i < dataEnd; i++) {
-        cout<<"Data size: "<<dataSizeArr[i]<<endl;
-        for(int r = passBegin; r < passEnd; r++) {
-            cout<<"Number of passes:"<<passSizeArr[r]<<endl;
-
-            for(int j = gridBegin; j < gridEnd; j++) {
-                cout<<scatterTime[i][r][j]<<endl;
-            }
-        }
-    }
-    cout<<endl;
-
-//2. show the grid-optimized output
-    cout<<"------------------------------"<<endl;
-    cout<<"------------------------------"<<endl;
-    cout<<"II: Scatter for grid-optimized:"<<endl;
-    for(int r = passBegin; r < passEnd; r++) {
-        cout<<"Number of passes:"<<passSizeArr[r]<<endl;
-        for(int i = dataBegin; i < dataEnd; i++) {
-            cout<<"Data size: "<<dataSizeArr[i]<<'\t'<<"total time: "<<scatterTimeBest[i][r] / 1e6 * dataSizeArr[i]<<' '<<"time/tuple: "<<scatterTimeBest[i][r]<<" ns."<<endl;
-        }
-    }
-    cout<<endl;
-
-    cout<<"--- For python recording ---"<<endl;
-    for(int r = passBegin; r < passEnd; r++) {
-        cout<<"scatter_"<<passSizeArr[r]<<" = ";
-        cout<<"["<<scatterTimeBest[dataBegin][r];
-        for(int i = dataBegin+1; i < dataEnd; i++) {
-            cout<<','<<scatterTimeBest[i][r];
-        }
-        cout<<"]"<<endl;
-    }
-    cout<<endl;
-    
-    cout<<"--- For excel recording ---"<<endl;
-    for(int r = passBegin; r < passEnd; r++) {
-        cout<<"Number of passes:"<<passSizeArr[r]<<endl;
-        for(int i = dataBegin; i < dataEnd; i++) {
-            cout<<scatterTimeBest[i][r]<<endl;
-        }
-        cout<<endl;
-    }
-    
     return res;
 }
 
-bool testScan(int *fixedSource, int length, PlatInfo& info, double& totalTime, int isExclusive, int localSize) {
+bool testScan(int length, int isExclusive, PlatInfo& info) {
     
     bool res = true;
-    // FUNC_BEGIN;
-    // SHOW_PARALLEL(localSize, "not fixed");
-    // SHOW_DATA_NUM(length);
-    
+    double totalTime = 0;
+    cl_int status = 0;
+
+    int sizeMB = length*sizeof(int)/1024/1024;
+    cout<<"Data size: "<<sizeMB<<" MB."<<endl;
     if (isExclusive == 0)   cout<<"Type: Inclusive."<<endl;
     else                    cout<<"Type: Exclusive."<<endl;
     
@@ -820,36 +559,28 @@ bool testScan(int *fixedSource, int length, PlatInfo& info, double& totalTime, i
     int *cpu_output = new int[length];
     
     // valRandom<int>(gpu_io, length, 1500);
-    for(int i = 0; i < length; i++) gpu_io[i] = 1;
-    
     for(int i = 0; i < length; i++) {
-        cpu_input[i] = gpu_io[i];
+        gpu_io[i] = 1;
+        cpu_input[i] = 1;
     }
     
     struct timeval start, end;
     gettimeofday(&start,NULL);
-    
-    cl_int status = 0;
-    cl_mem cl_arr = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)* length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    
-    //write buffer to the cl_mem
-    status = clEnqueueWriteBuffer(info.currentQueue, cl_arr, CL_TRUE, 0, sizeof(int)*length, gpu_io, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-    
-    // totalTime = scan(cl_arr, length, isExclusive,info, localSize);
-    // totalTime = scan_blelloch(cl_arr, length, isExclusive,info, localSize);
-    
-    totalTime = scan_fast(cl_arr, length, isExclusive, info, 1024, 15, 11, 0); // R = 10, L = 10;
 
-    status = clEnqueueReadBuffer(info.currentQueue, cl_arr, CL_TRUE, 0, sizeof(int)*length, gpu_io, 0, NULL, NULL);
+    cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)* length, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*length, gpu_io, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+
+    totalTime = scan_fast(d_in, length, isExclusive, info, 1024, 15, 0, 11); // R = 10, L = 10;
+
+    status = clEnqueueReadBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*length, gpu_io, 0, NULL, NULL);
     checkErr(status, ERR_READ_BUFFER);
     status = clFinish(info.currentQueue);
     
     gettimeofday(&end, NULL);
     
     //check
-    // SHOW_CHECKING;
     if (isExclusive == 0) {         //inclusive
         cpu_output[0] = cpu_input[0];
         for(int i = 1 ; i < length; i++) {
@@ -874,17 +605,14 @@ bool testScan(int *fixedSource, int length, PlatInfo& info, double& totalTime, i
     FUNC_CHECK(res);
     
     //release
-    status = clReleaseMemObject(cl_arr);
+    status = clReleaseMemObject(d_in);
     checkErr(status, ERR_RELEASE_MEM);
-    
     delete [] gpu_io;
     delete [] cpu_input;
     delete [] cpu_output;
     
-    SHOW_TIME(totalTime);
-    // SHOW_TOTAL_TIME(diffTime(end, start));
-    // FUNC_END;
-    
+    cout<<"Kernel time: "<<totalTime<<" ms."<<endl;
+    cout<<"Throughput: "<<sizeMB/totalTime<<"GB/s"<<endl;
     return res;
 }
 
@@ -896,32 +624,50 @@ bool testSplit(int len, PlatInfo& info, int bits, double& totalTime) {
     FUNC_BEGIN;
     cout<<"Bits used: "<<bits<<endl;
     
-    Record *h_in = new Record[len];
-    Record *h_out = new Record[len];
-    int buckets = (2<<bits);
+    int *h_in_keys = new int[len];
+    int *h_in_values = new int[len];
+
+    int *h_out_keys = new int[len];
+    int *h_out_values = new int[len];
+
+    int buckets = (1<<bits);
     int mask = buckets - 1;
 
-    recordRandom(h_in, len, len);
+    recordRandom(h_in_keys, h_in_values, len, len);
     
     struct timeval start, end;
     gettimeofday(&start,NULL);
 
     //memory allocation
-    cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*len, NULL, &status);
+    //input data
+    cl_mem d_in_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_out = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(Record)*len, NULL, &status);
+    cl_mem d_in_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(Record)*len, h_in, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
 
+    //output data
+    cl_mem d_out_keys = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    cl_mem d_out_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+
+    //start position data
     cl_mem d_start = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*buckets, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);;
 
+    //data copy
+    status = clEnqueueWriteBuffer(info.currentQueue, d_in_keys, CL_TRUE, 0, sizeof(int)*len, h_in_keys, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_in_values, CL_TRUE, 0, sizeof(int)*len, h_in_values, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+
+
+
     //call gather
-    totalTime = split(d_in, d_out, d_start, len, bits, info);
+    totalTime = split(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, bits, info);
     
     //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_out, CL_TRUE, 0, sizeof(Record)*len, h_out, 0, 0, 0);
+    status = clEnqueueReadBuffer(info.currentQueue, d_out_keys, CL_TRUE, 0, sizeof(int)*len, h_out_keys, 0, 0, 0);
     checkErr(status, ERR_READ_BUFFER);
     status = clFinish(info.currentQueue);
     
@@ -929,9 +675,9 @@ bool testSplit(int len, PlatInfo& info, int bits, double& totalTime) {
 
     //check
     SHOW_CHECKING;
-    int bits_prev = h_out[0].x & mask;
+    int bits_prev = h_out_keys[0] & mask;
     for(int i = 1; i < len; i++) {
-        int bits_now = h_out[i].x & mask;
+        int bits_now = h_out_keys[i] & mask;
         if (bits_now < bits_prev)  {
             res = false;
             break;
@@ -962,15 +708,16 @@ bool testSplit(int len, PlatInfo& info, int bits, double& totalTime) {
 //        }
 //    }
 
-    status = clReleaseMemObject(d_in);
+    status = clReleaseMemObject(d_in_keys);
     checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_out);
+    status = clReleaseMemObject(d_out_keys);
     checkErr(status, ERR_RELEASE_MEM);
     
-    delete [] h_in;
-    delete [] h_out;
+    delete [] h_in_keys;
+    delete [] h_out_keys;
     
-    SHOW_TIME(totalTime);
+//    SHOW_TIME(totalTime);
+    std::cout<<"Split kernel time: "<<totalTime<<" ms."<<"("<<len* sizeof(int)*2/totalTime*1000/1e9<<"GB/s)"<<std::endl;
     SHOW_TOTAL_TIME(diffTime(end, start));
     FUNC_END;
     

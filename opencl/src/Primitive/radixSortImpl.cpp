@@ -27,21 +27,8 @@ double radixSort(
     uint isExclusive = 1;
     
     //kernel reading
-    char sortPath[100] = PROJECT_ROOT;
-    strcat(sortPath, "/Kernels/radixSortKernel.cl");
-    std::string sortKerAddr = sortPath;
-    
-    // char countHisSource[100] = "countHis";
-    // char writeHisSource[100] = "writeHis";
-    char radixReduceSource[100] = "radix_reduce";
-    char radixScatterSource[100] = "radix_scatter";
-
-    KernelProcessor sortReader(&sortKerAddr,1,info.context);
-    
-    // cl_kernel countHisKernel = sortReader.getKernel(countHisSource);
-    // cl_kernel writeHisKernel = sortReader.getKernel(writeHisSource);
-    cl_kernel radixReduceKernel = sortReader.getKernel(radixReduceSource);
-    cl_kernel radixScatterKernel = sortReader.getKernel(radixScatterSource);
+    cl_kernel radixReduceKernel = KernelProcessor::getKernel("radixSortKernel.cl", "radix_reduce", info.context);
+    cl_kernel radixScatterKernel = KernelProcessor::getKernel("radixSortKernel.cl", "radix_scatter", info.context);
 
     size_t reduce_localSize[1] = {(size_t)REDUCE_BLOCK_SIZE};
     size_t reduce_globalSize[1] = {(size_t)(REDUCE_BLOCK_SIZE * gridSize)};

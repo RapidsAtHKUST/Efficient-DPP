@@ -12,14 +12,16 @@ using namespace std;
 //shadowing function
 void recordRandom_Only(Record* a, int len, int time) {}
 void recordRandom(Record* a, int len) {}
-void recordRandom1(Record* a, int len, int max) {
+
+void recordRandom1(int *a_keys, int *a_values, int length, int max) {
     srand((unsigned)time(NULL));
     sleep(1);
-    for(int i = 0; i < len ; i++) {
-        a[i].x = rand()% max;
-        a[i].y = i;
+    for(int i = 0; i < length ; i++) {
+        a_keys[i] = rand() % max;
+        a_values[i] = i;
     }
 }
+
 void recordSorted_Only(Record* a, int len) {}
 void recordSorted(Record* a, int len) {}
 
@@ -561,31 +563,47 @@ bool testHj(int rLen, int sLen, PlatInfo info) {
     //------------------------ Test 1: No duplicate key values ------------------------
 
 //    cout<<"--- Test 1 : no duplicate---"<<endl;
-    Record *h_R = new Record[rLen];
-    Record *h_S = new Record[sLen];
-    Record *h_Out = NULL;
+    int *h_R_keys = new int[rLen];
+    int *h_R_values= new int[rLen];
 
-    recordRandom1(h_R, rLen, rLen);
-    recordRandom1(h_S, sLen, rLen);
+    int *h_S_keys = new int[sLen];
+    int *h_S_values = new int[sLen];
+
+    int *h_Out = NULL;
+
+    recordRandom1(h_R_keys, h_R_values, rLen, rLen);
+    recordRandom1(h_S_keys, h_S_values, sLen, rLen);
 
     struct timeval start, end;
 
     gettimeofday(&start,NULL);
 
     //memory allocation
-    cl_mem d_R = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*rLen, NULL, &status);
+    cl_mem d_R_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*rLen, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_S = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*sLen, NULL, &status);
+    cl_mem d_R_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*rLen, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
-    status = clEnqueueWriteBuffer(info.currentQueue, d_R, CL_TRUE, 0, sizeof(Record)*rLen, h_R, 0, 0, 0);
+    cl_mem d_S_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*sLen, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+    cl_mem d_S_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*sLen, NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+
+
+    status = clEnqueueWriteBuffer(info.currentQueue, d_R_keys, CL_TRUE, 0, sizeof(int)*rLen, h_R_keys, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
-    status = clEnqueueWriteBuffer(info.currentQueue, d_S, CL_TRUE, 0, sizeof(Record)*sLen, h_S, 0, 0, 0);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_R_values, CL_TRUE, 0, sizeof(int)*rLen, h_R_values, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
+
+    status = clEnqueueWriteBuffer(info.currentQueue, d_S_keys, CL_TRUE, 0, sizeof(int)*sLen, h_S_keys, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+    status = clEnqueueWriteBuffer(info.currentQueue, d_S_values, CL_TRUE, 0, sizeof(int)*sLen, h_S_values, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+
 
     //call gather
     int d_res_len;
-    joinTime = hashjoin(d_R, rLen, d_S, sLen, d_res_len, info);
+    joinTime = hashjoin_np(d_R_keys, d_R_values, rLen, d_S_keys, d_S_values, sLen, d_res_len, info);
     gettimeofday(&end, NULL);
 
     totalTime = diffTime(end, start);
@@ -594,7 +612,7 @@ bool testHj(int rLen, int sLen, PlatInfo info) {
 //    int h_res_len= 0;
 //    for(int r = 0; r < rLen; r++) {
 //        for(int s = 0; s < sLen; s++) {
-//            if (h_R[r].x == h_S[s].x)   h_res_len++;
+//            if (h_R_keys[r] == h_S_keys[s])   h_res_len++;
 //        }
 //    }
 //
@@ -639,12 +657,19 @@ bool testHj(int rLen, int sLen, PlatInfo info) {
 //    if (smallRes > sLen)    smallRes = sLen;
 //    if (oLen != smallRes)   res = false;
 
-    status = clReleaseMemObject(d_R);
+    status = clReleaseMemObject(d_R_keys);
+    status = clReleaseMemObject(d_R_values);
+
     checkErr(status,ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_S);
+    status = clReleaseMemObject(d_S_keys);
+    status = clReleaseMemObject(d_S_values);
+
     checkErr(status,ERR_RELEASE_MEM);
-    delete [] h_R;
-    delete [] h_S;
+    delete [] h_R_keys;
+    delete [] h_R_values;
+
+    delete [] h_S_values;
+    delete [] h_S_keys;
 
 //    FUNC_CHECK(res);
 //    SHOW_TIME(totalTime);

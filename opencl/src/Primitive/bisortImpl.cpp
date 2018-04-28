@@ -32,14 +32,8 @@ double bisort(cl_mem &d_source, int length, int dir, PlatInfo& info, int localSi
     }
     
     //kernel reading
-    char path[100] = PROJECT_ROOT;
-    strcat(path, "/Kernels/bitonicSortKernel.cl");
-    std::string kerAddr = path;
+    cl_kernel bisortKernel = KernelProcessor::getKernel("bitonicSortKernel.cl", "bitonicSort", info.context);
 
-    char kerName[100] = "bitonicSort";
-    KernelProcessor reader(&kerAddr,1,info.context);
-    cl_kernel bisortKernel = reader.getKernel(kerName);
-    
     //memory allocation
     cl_mem d_temp = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(Record)*ceil, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
