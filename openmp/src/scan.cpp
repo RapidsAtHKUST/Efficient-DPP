@@ -1,112 +1,112 @@
 //// #pragma offload_attribute(push, target(mic))
-//#include <iostream>
-//#include "tbb/task_scheduler_init.h"
-//#include "tbb/blocked_range.h"
-//#include "tbb/parallel_scan.h"
-//#include "tbb/parallel_for.h"
-//#include <immintrin.h>
-//// #pragma offload_attribute(pop)
-//
-//#include "functions.h"
-//
-//using namespace std;
-//using namespace tbb;
-//
-//#define MAX_THREAD_NUM	(256)
-//
-////tbb scan (inclusive) reach 80% utilization
-//template<typename T> class ScanBody_in {
-// 	T sum;
-// 	T* const y;
-// 	const T* const x;
-//public:
-// 	ScanBody_in( T y_[], const T x_[] ) : sum(0), x(x_), y(y_) {}
-// 	T get_sum() const {return sum;}
-//
-// 	template<typename Tag>
-// 	void operator()( const blocked_range<int>& r, Tag ) {
-// 		T temp = sum;
-// 		int end = r.end();
-// 		for( int i=r.begin(); i<end; ++i ) {
-// 			temp = temp + x[i];
-// 			if( Tag::is_final_scan() )
-// 				y[i] = temp;
-// 		}
-// 		sum = temp;
-// 	}
-// 	ScanBody_in( ScanBody_in& b, split ) : x(b.x), y(b.y), sum(0) {}
-// 	void reverse_join( ScanBody_in& a ) { sum = a.sum + sum;}
-// 	void assign( ScanBody_in& b ) {sum = b.sum;}
-//};
-//
-//template<typename T> class ScanBody_ex {
-// 	T sum;
-// 	T* const y;
-// 	const T* const x;
-//public:
-// 	ScanBody_ex( T y_[], const T x_[] ) : sum(0), x(x_), y(y_) {}
-// 	T get_sum() const {return sum;}
-//
-// 	template<typename Tag>
-// 	void operator()( const blocked_range<int>& r, Tag ) {
-// 		T temp = sum;
-// 		int end = r.end();
-// 		for( int i=r.begin(); i<end; ++i ) {
-// 			if( Tag::is_final_scan() )
-// 				y[i] = temp;
-// 			temp = temp + x[i];
-//
-// 		}
-// 		sum = temp;
-// 	}
-// 	ScanBody_ex( ScanBody_ex& b, split ) : x(b.x), y(b.y), sum(0) {}
-// 	void reverse_join( ScanBody_ex& a ) { sum = a.sum + sum;}
-// 	void assign( ScanBody_ex& b ) {sum = b.sum;}
-//};
-//
-//double scan_tbb_MIC(int *a, int *b, int n, int pattern) {
-//	// task_scheduler_init init;
-//	// struct timeval start, end;
-//
-//	// if (pattern == 1) {
-//	// 	#pragma offload target(mic) in(a:length(n) alloc_if(1) free_if(0)) out(b:length(n) alloc_if(1) free_if(0))
-//	// 	{
-//	// 		gettimeofday(&start, NULL);
-//	// 		ScanBody_ex<int> body(b,a);
-//	//  		parallel_scan( blocked_range<int>(0,n), body );
-//	// 		gettimeofday(&end, NULL);
-//	// 	}
-//	// }
-//	// else {
-//	// 	#pragma offload target(mic) in(a:length(n) alloc_if(1) free_if(0)) out(b:length(n) alloc_if(1) free_if(0))
-//	// 	{
-//	// 		gettimeofday(&start, NULL);
-//	// 		ScanBody_in<int> body(b,a);
-//	//  		parallel_scan( blocked_range<int>(0,n), body );
-//	// 		gettimeofday(&end, NULL);
-//	// 	}
-//	// }
-//	// return diffTime(end, start);
-//}
-//
-//double scan_tbb_CPU(int *a, int *b, int n, int pattern) {
-//	task_scheduler_init init;
-//	struct timeval start, end;
-//
-//	if (pattern == 1) {
-//		gettimeofday(&start, NULL);
-//		ScanBody_ex<int> body(b,a);
-// 		parallel_scan( blocked_range<int>(0,n), body );
-//		gettimeofday(&end, NULL);
-//	}
-//	else {
-//		gettimeofday(&start, NULL);
-//		ScanBody_in<int> body(b,a);
-// 		parallel_scan( blocked_range<int>(0,n), body );
-//		gettimeofday(&end, NULL);
-//	}
-//	return diffTime(end, start);
-//}
+#include <iostream>
+#include "tbb/task_scheduler_init.h"
+#include "tbb/blocked_range.h"
+#include "tbb/parallel_scan.h"
+#include "tbb/parallel_for.h"
+#include <immintrin.h>
+// #pragma offload_attribute(pop)
+
+#include "functions.h"
+
+using namespace std;
+using namespace tbb;
+
+#define MAX_THREAD_NUM	(256)
+
+//tbb scan (inclusive) reach 80% utilization
+template<typename T> class ScanBody_in {
+ 	T sum;
+ 	T* const y;
+ 	const T* const x;
+public:
+ 	ScanBody_in( T y_[], const T x_[] ) : sum(0), x(x_), y(y_) {}
+ 	T get_sum() const {return sum;}
+
+ 	template<typename Tag>
+ 	void operator()( const blocked_range<int>& r, Tag ) {
+ 		T temp = sum;
+ 		int end = r.end();
+ 		for( int i=r.begin(); i<end; ++i ) {
+ 			temp = temp + x[i];
+ 			if( Tag::is_final_scan() )
+ 				y[i] = temp;
+ 		}
+ 		sum = temp;
+ 	}
+ 	ScanBody_in( ScanBody_in& b, split ) : x(b.x), y(b.y), sum(0) {}
+ 	void reverse_join( ScanBody_in& a ) { sum = a.sum + sum;}
+ 	void assign( ScanBody_in& b ) {sum = b.sum;}
+};
+
+template<typename T> class ScanBody_ex {
+ 	T sum;
+ 	T* const y;
+ 	const T* const x;
+public:
+ 	ScanBody_ex( T y_[], const T x_[] ) : sum(0), x(x_), y(y_) {}
+ 	T get_sum() const {return sum;}
+
+ 	template<typename Tag>
+ 	void operator()( const blocked_range<int>& r, Tag ) {
+ 		T temp = sum;
+ 		int end = r.end();
+ 		for( int i=r.begin(); i<end; ++i ) {
+ 			if( Tag::is_final_scan() )
+ 				y[i] = temp;
+ 			temp = temp + x[i];
+
+ 		}
+ 		sum = temp;
+ 	}
+ 	ScanBody_ex( ScanBody_ex& b, split ) : x(b.x), y(b.y), sum(0) {}
+ 	void reverse_join( ScanBody_ex& a ) { sum = a.sum + sum;}
+ 	void assign( ScanBody_ex& b ) {sum = b.sum;}
+};
+
+double scan_tbb_MIC(int *a, int *b, int n, int pattern) {
+	// task_scheduler_init init;
+	// struct timeval start, end;
+
+	// if (pattern == 1) {
+	// 	#pragma offload target(mic) in(a:length(n) alloc_if(1) free_if(0)) out(b:length(n) alloc_if(1) free_if(0))
+	// 	{
+	// 		gettimeofday(&start, NULL);
+	// 		ScanBody_ex<int> body(b,a);
+	//  		parallel_scan( blocked_range<int>(0,n), body );
+	// 		gettimeofday(&end, NULL);
+	// 	}
+	// }
+	// else {
+	// 	#pragma offload target(mic) in(a:length(n) alloc_if(1) free_if(0)) out(b:length(n) alloc_if(1) free_if(0))
+	// 	{
+	// 		gettimeofday(&start, NULL);
+	// 		ScanBody_in<int> body(b,a);
+	//  		parallel_scan( blocked_range<int>(0,n), body );
+	// 		gettimeofday(&end, NULL);
+	// 	}
+	// }
+	// return diffTime(end, start);
+}
+
+double scan_tbb_CPU(int *a, int *b, int n, int pattern) {
+	task_scheduler_init init;
+	struct timeval start, end;
+
+	if (pattern == 1) {
+		gettimeofday(&start, NULL);
+		ScanBody_ex<int> body(b,a);
+ 		parallel_scan( blocked_range<int>(0,n), body );
+		gettimeofday(&end, NULL);
+	}
+	else {
+		gettimeofday(&start, NULL);
+		ScanBody_in<int> body(b,a);
+ 		parallel_scan( blocked_range<int>(0,n), body );
+		gettimeofday(&end, NULL);
+	}
+	return diffTime(end, start);
+}
 //
 ////scan function using OpenMP on CPU
 ////pattern : 0 for inclusive, 1 for exclusive
@@ -415,49 +415,49 @@
 // * pattern : 0 for inclusive, 1 for exclusive
 //*/
 //
-////1. TBB test
-//double testScan_tbb(int *a, int *b, int n, int pattern) {
-//	bool res = true;
-//	int *temp = new int[n];
-//
-//	double myTime = scan_tbb_CPU(a,b,n, pattern);
-//
-//	if (pattern == 0) {
-//		//checking inclusive
-//		temp[0] = a[0];
-//		for(int i = 1; i < n; i++)	{
-//			temp[i] = temp[i-1] + a[i];
-//			if (b[i] != temp[i])	{
-//				res = false;
-//				break;
-//			}
-//		}
-//		// printRes("tbb_scan_inclusive", res, myTime);
-//		if (!res) {
-//			cout<<"wrong!"<<endl;
-//			exit(1);
-//		}
-//	}
-//	else {
-//		//checking exclusive
-//		temp[0] = 0;
-//		if (temp[0] != b[0])	res = false;
-//		for(int i = 1; i < n; i++) {
-//			temp[i] = temp[i-1] + a[i-1];
-//			if (b[i] != temp[i])	{
-//				res = false;
-//				break;
-//			}
-//		}
-//		// printRes("tbb_scan_exclusive", res, myTime);
-//		if (!res) {
-//			cout<<"wrong!"<<endl;
-//			exit(1);
-//		}
-//	}
-//	delete[] temp;
-//	return myTime;
-//}
+//1. TBB test
+double testScan_tbb(int *a, int *b, int n, int pattern) {
+	bool res = true;
+	int *temp = new int[n];
+
+	double myTime = scan_tbb_CPU(a,b,n, pattern);
+
+	if (pattern == 0) {
+		//checking inclusive
+		temp[0] = a[0];
+		for(int i = 1; i < n; i++)	{
+			temp[i] = temp[i-1] + a[i];
+			if (b[i] != temp[i])	{
+				res = false;
+				break;
+			}
+		}
+		// printRes("tbb_scan_inclusive", res, myTime);
+		if (!res) {
+			cout<<"wrong!"<<endl;
+			exit(1);
+		}
+	}
+	else {
+		//checking exclusive
+		temp[0] = 0;
+		if (temp[0] != b[0])	res = false;
+		for(int i = 1; i < n; i++) {
+			temp[i] = temp[i-1] + a[i-1];
+			if (b[i] != temp[i])	{
+				res = false;
+				break;
+			}
+		}
+		// printRes("tbb_scan_exclusive", res, myTime);
+		if (!res) {
+			cout<<"wrong!"<<endl;
+			exit(1);
+		}
+	}
+	delete[] temp;
+	return myTime;
+}
 //
 ////2. OpenMP test
 //double testScan_omp(int *a, int *b, int n, int pattern) {

@@ -28,6 +28,12 @@ int main(int argc, char* argv[]) {
 
 cout<<"---------------- begin test ----------------"<<endl;
 
+	int num = 64/sizeof(int)*1024*1024;
+	int *a = new int[num];
+	int *b = new int[num];
+	for(int i = 0; i < num; i++) a[i] = 1;
+
+	testScan_tbb(a, b, num, 1);
 	// for(int i = 0; i < expr; i++) {
 	// 	totalTime = mem_read_test(input, n);
 	// 	if (totalTime < readTime) readTime = totalTime;

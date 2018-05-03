@@ -19,7 +19,7 @@ double mem_mul(int *d_in, int *d_out, int n, int scalar);
 //void testScatter(int *source, int *dest, int* loc, int n);
 //void testScatter_intr(int *source, int *dest, int* loc, int n);
 //
-//double testScan_tbb(int* a, int* b, int n, int pattern);
+double testScan_tbb(int* a, int* b, int n, int pattern);
 //double testScan_omp(int *a, int *b, int n, int pattern);
 //double testScan_ass(int* a, int* b, int n, int pattern);
 //

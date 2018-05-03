@@ -100,7 +100,7 @@ int main(int argc, const char * argv[]) {
 //      testLatency(info);
 
     //test gather & scatter single case
-    int num = 64/ sizeof(int) * 1024 * 1024;
+    int num = 1024/ sizeof(int) * 1024 * 1024;
 //    testGather(num, info);
 //    cout<<endl;
 //    testScatter(num, info);

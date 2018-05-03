@@ -11,7 +11,7 @@
 #include "kernels.h"
 
 void testMem();
-
+bool testScan_thrust(int len, float& totalTime, int isExclusive);
 
 template<class T> bool testMap( 
 #ifdef RECORDS
@@ -69,5 +69,10 @@ bool testRadixSort(
 	T *source_values, int len, float& totalTime);
 
 bool testBisort(Record *source, int r_len, double& totalTime,int dir, int blockSize=BLOCKSIZE, int gridSize=GRIDSIZE);
+
+
+
+//new version
+bool testScan_thrust(int len, float& totalTime, int isExclusive);
 
 #endif

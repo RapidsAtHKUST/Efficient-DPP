@@ -65,7 +65,8 @@ double scan_fast(cl_mem &d_in, int length, int isExclusive, PlatInfo& info, int 
     checkErr(status, ERR_WRITE_BUFFER);
 
     //help, for debug
-//    cl_mem d_help = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*gridSize, NULL, &status);
+//    cout<<gridSize<<endl;
+    cl_mem d_help = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*gridSize, NULL, &status);
 
     argsNum = 0;
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_in);
@@ -76,18 +77,19 @@ double scan_fast(cl_mem &d_in, int length, int isExclusive, PlatInfo& info, int 
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &R);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &L);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_inter);
+
+//    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_help);
+
     checkErr(status, ERR_SET_ARGUMENTS);
     
 #ifdef PRINT_KERNEL
     printExecutingKernel(scanBlockKernel);
 #endif
     status = clFinish(info.currentQueue);
-
     status = clEnqueueNDRangeKernel(info.currentQueue, scanBlockKernel, 1, 0, global, local, 0, NULL, &event);
     status = clFinish(info.currentQueue);
-    checkErr(status, ERR_EXEC_KERNEL);        
-    totalTime += clEventTime(event);
-
+    checkErr(status, ERR_EXEC_KERNEL);
+    totalTime = clEventTime(event);
 
 //    int *h_help = new int[gridSize];
 //    status = clEnqueueReadBuffer(info.currentQueue, d_help, CL_TRUE, 0, sizeof(int)*gridSize, h_help, 0, 0, 0);
@@ -95,6 +97,8 @@ double scan_fast(cl_mem &d_in, int length, int isExclusive, PlatInfo& info, int 
 //    cout<<endl;
 
     clReleaseMemObject(d_inter);
+    clReleaseMemObject(d_help);
+
     delete[] h_inter;
 
 //    delete[] h_help;

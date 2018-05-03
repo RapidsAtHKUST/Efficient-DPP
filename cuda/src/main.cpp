@@ -6,7 +6,7 @@
 //  Copyright (c) 2015-2016 Bryan. All rights reserved.
 //
 #include "test.h"
-
+#include "kernels.h"
 using namespace std;
 
 bool is_input;
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 
 	//basic test
     cudaSetDevice(0);
-	testMem();
+//	testMem();
 
 	// throughput_read = computeMem(blockSize*gridSize/4, sizeof(int), bestTime_read);
  //    throughput_write = computeMem(blockSize*gridSize, sizeof(int), bestTime_write);
@@ -129,8 +129,13 @@ int main(int argc, char *argv[]) {
 // 		if (idnElapsedTime < splitTime)		splitTime = idnElapsedTime;
 
 //--------------testing scan: 0 for inclusive, 1 for exclusive--------------
-
-		// res = testScan_warp<int>(fixedArray, dataSize, idnElapsedTime, 1);
+         float idnElapsedTime;
+         dataSize = 16000000;
+		 bool res = testScan_thrust(dataSize, idnElapsedTime, 1);
+            if (res)    cout<<"right"<<endl;
+            else
+                cout<<"wrong"<<endl;
+         cout<<"total time:"<<idnElapsedTime<<" ms"<<endl;
 		// printRes("scan_warp", res,idnElapsedTime);
 		// if (idnElapsedTime < scanTime)		scanTime = idnElapsedTime;
 

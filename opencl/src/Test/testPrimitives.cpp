@@ -564,49 +564,61 @@ bool testScan(int length, int isExclusive, PlatInfo& info) {
         cpu_input[i] = 1;
     }
     
-    struct timeval start, end;
-    gettimeofday(&start,NULL);
+    int experTime = 10;
+    for(int e = 0; e < experTime; e++) {
+        cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+        status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int) * length, gpu_io, 0, 0, 0);
+        checkErr(status, ERR_WRITE_BUFFER);
 
-    cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)* length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*length, gpu_io, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
 
-    totalTime = scan_fast(d_in, length, isExclusive, info, 1024, 15, 0, 11); // R = 10, L = 10;
+        //for the Xeon GPU, 39 work-groups, 512 work-grou size, 15 R
+        //for the GPU, 15 work-groups, 1024 work-group size, 11 L
+//        double tempTime = scan_fast(d_in, length, isExclusive, info, 512, 39, 15, 0); //CPU
+        double tempTime = scan_fast(d_in, length, isExclusive, info, 1024, 15, 0, 11); //GPU
 
-    status = clEnqueueReadBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*length, gpu_io, 0, NULL, NULL);
-    checkErr(status, ERR_READ_BUFFER);
-    status = clFinish(info.currentQueue);
-    
-    gettimeofday(&end, NULL);
-    
-    //check
-    if (isExclusive == 0) {         //inclusive
-        cpu_output[0] = cpu_input[0];
-        for(int i = 1 ; i < length; i++) {
-            cpu_output[i] = cpu_input[i] + cpu_output[i-1];
+        status = clEnqueueReadBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int) * length, gpu_io, 0, NULL, NULL);
+        checkErr(status, ERR_READ_BUFFER);
+        status = clFinish(info.currentQueue);
+
+        status = clReleaseMemObject(d_in);
+        checkErr(status, ERR_RELEASE_MEM);
+
+        //check
+        if (e == 0) {
+            if (isExclusive == 0) {         //inclusive
+                cpu_output[0] = cpu_input[0];
+                for (int i = 1; i < length; i++) {
+                    cpu_output[i] = cpu_input[i] + cpu_output[i - 1];
+                }
+            } else {                          //exclusive
+                cpu_output[0] = 0;
+                for (int i = 1; i < length; i++) {
+                    cpu_output[i] = cpu_output[i - 1] + cpu_input[i - 1];
+                }
+            }
+
+            for (int i = 0; i < length; i++) {
+                if (cpu_output[i] != gpu_io[i]) {
+                    res = false;
+                    std::cout << cpu_output[i] << ' ' << gpu_io[i] << std::endl;
+                    break;
+                }
+            }
+            FUNC_CHECK(res);
         }
-    }
-    else {                          //exclusive
-        cpu_output[0] = 0;
-        for(int i = 1 ; i < length; i++) {
-            cpu_output[i] = cpu_output[i-1] + cpu_input[i-1];
+        else if (res == true) {
+            totalTime += tempTime;
+            cout<<"Expr "<<e<<": "<<tempTime<<" ms\t"<<sizeMB/tempTime<<" GB/s"<<endl;
         }
-    }
-    
-    for(int i = 0; i < length; i++) {
-        // std::cout<<cpu_output[i]<<' '<<gpu_io[i]<<std::endl;
-        if (cpu_output[i] != gpu_io[i])  {
-            res = false;
-            std::cout<<cpu_output[i]<<' '<<gpu_io[i]<<std::endl;
+        else {
             break;
         }
     }
-    FUNC_CHECK(res);
-    
+    totalTime /= (experTime-1);
+
     //release
-    status = clReleaseMemObject(d_in);
-    checkErr(status, ERR_RELEASE_MEM);
+
     delete [] gpu_io;
     delete [] cpu_input;
     delete [] cpu_output;
