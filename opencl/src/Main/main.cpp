@@ -100,7 +100,6 @@ int main(int argc, const char * argv[]) {
 //      testLatency(info);
 
     //test gather & scatter single case
-    int num = 1024/ sizeof(int) * 1024 * 1024;
 //    testGather(num, info);
 //    cout<<endl;
 //    testScatter(num, info);
@@ -124,7 +123,25 @@ int main(int argc, const char * argv[]) {
 //    testAtomic(info);
 //      testGather(dataSize, info);
 //        testScatter(num, info);
-        testScan(num, 1, info);
+
+     for(int scale = 10; scale <= 30; scale++) {
+         int num = 1<<scale;
+         double totalTime;
+         cout<<scale<<'\t';
+         testScan(num, 1, totalTime, 64, 39, 121, 0, info);
+         cout<<"Time:"<<totalTime<<" ms.\t";
+         cout<<"Throughput:"<<num*1.0* sizeof(int)/1024/1024/1024/totalTime*1000<<" GB/s"<<endl;
+
+     }
+//    int length = 1<<24;
+//    testScanParameters(length, 1, info);
+
+//    double totalTime;
+//    bool res = testScan(length, 1, totalTime, 1024, 240, 7, 10, info);
+//    if (res)    cout<<"right\t";
+//    else        cout<<"wrong\t";
+//     cout<<"Time:"<<totalTime<<" ms.\t";
+//     cout<<"Throughput:"<<length*1.0* sizeof(int)/1024/1024/1024/totalTime*1000<<" GB/s"<<endl;
 //------- finished operations ---------------
 
 

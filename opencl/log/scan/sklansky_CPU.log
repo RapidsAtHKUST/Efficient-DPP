@@ -1,0 +1,495 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 1000
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+------ End of hardware checking ------
+
+length:16777216 localSize=512 R=0 L=1 Thr=1.35616GB/s best!
+length:16777216 localSize=512 R=1 L=0 Thr=1.15359GB/s
+length:16777216 localSize=512 R=1 L=1 Thr=1.7749GB/s best!
+length:16777216 localSize=512 R=2 L=0 Thr=2.39514GB/s best!
+length:16777216 localSize=512 R=2 L=1 Thr=2.36774GB/s
+length:16777216 localSize=512 R=3 L=0 Thr=3.34787GB/s best!
+length:16777216 localSize=512 R=3 L=1 Thr=3.11467GB/s
+length:16777216 localSize=512 R=4 L=0 Thr=4.1372GB/s best!
+length:16777216 localSize=512 R=4 L=1 Thr=3.67553GB/s
+length:16777216 localSize=512 R=5 L=0 Thr=4.78079GB/s best!
+length:16777216 localSize=512 R=5 L=1 Thr=4.0873GB/s
+length:16777216 localSize=512 R=6 L=0 Thr=4.60382GB/s
+length:16777216 localSize=512 R=6 L=1 Thr=4.63026GB/s
+length:16777216 localSize=512 R=7 L=0 Thr=5.76094GB/s best!
+length:16777216 localSize=512 R=7 L=1 Thr=5.00775GB/s
+length:16777216 localSize=512 R=8 L=0 Thr=5.29792GB/s
+length:16777216 localSize=512 R=8 L=1 Thr=5.34512GB/s
+length:16777216 localSize=512 R=9 L=0 Thr=6.60984GB/s best!
+length:16777216 localSize=512 R=9 L=1 Thr=5.38815GB/s
+length:16777216 localSize=512 R=10 L=0 Thr=6.998GB/s best!
+length:16777216 localSize=512 R=10 L=1 Thr=5.94258GB/s
+length:16777216 localSize=512 R=11 L=0 Thr=6.7448GB/s
+length:16777216 localSize=512 R=11 L=1 Thr=5.59598GB/s
+length:16777216 localSize=512 R=12 L=0 Thr=7.12556GB/s best!
+length:16777216 localSize=512 R=12 L=1 Thr=6.13924GB/s
+length:16777216 localSize=512 R=13 L=0 Thr=7.83242GB/s best!
+length:16777216 localSize=512 R=13 L=1 Thr=6.67335GB/s
+length:16777216 localSize=512 R=14 L=0 Thr=8.16228GB/s best!
+length:16777216 localSize=512 R=14 L=1 Thr=6.85489GB/s
+length:16777216 localSize=512 R=15 L=0 Thr=8.10036GB/s
+length:16777216 localSize=512 R=15 L=1 Thr=7.1245GB/s
+length:16777216 localSize=256 R=0 L=1 Thr=1.38946GB/s
+length:16777216 localSize=256 R=1 L=0 Thr=1.23952GB/s
+length:16777216 localSize=256 R=1 L=1 Thr=1.85813GB/s
+length:16777216 localSize=256 R=2 L=0 Thr=2.44961GB/s
+length:16777216 localSize=256 R=2 L=1 Thr=2.7097GB/s
+length:16777216 localSize=256 R=3 L=0 Thr=3.59613GB/s
+length:16777216 localSize=256 R=3 L=1 Thr=3.38283GB/s
+length:16777216 localSize=256 R=4 L=0 Thr=4.31731GB/s
+length:16777216 localSize=256 R=4 L=1 Thr=3.9591GB/s
+length:16777216 localSize=256 R=5 L=0 Thr=4.98504GB/s
+length:16777216 localSize=256 R=5 L=1 Thr=4.3304GB/s
+length:16777216 localSize=256 R=6 L=0 Thr=5.75284GB/s
+length:16777216 localSize=256 R=6 L=1 Thr=4.39672GB/s
+length:16777216 localSize=256 R=7 L=0 Thr=5.7075GB/s
+length:16777216 localSize=256 R=7 L=1 Thr=4.71833GB/s
+length:16777216 localSize=256 R=8 L=0 Thr=6.72545GB/s
+length:16777216 localSize=256 R=8 L=1 Thr=5.75861GB/s
+length:16777216 localSize=256 R=9 L=0 Thr=7.12755GB/s
+length:16777216 localSize=256 R=9 L=1 Thr=6.04769GB/s
+length:16777216 localSize=256 R=10 L=0 Thr=7.2452GB/s
+length:16777216 localSize=256 R=10 L=1 Thr=6.32938GB/s
+length:16777216 localSize=256 R=11 L=0 Thr=7.78725GB/s
+length:16777216 localSize=256 R=11 L=1 Thr=6.51299GB/s
+length:16777216 localSize=256 R=12 L=0 Thr=8.02677GB/s
+length:16777216 localSize=256 R=12 L=1 Thr=6.60644GB/s
+length:16777216 localSize=256 R=13 L=0 Thr=8.36119GB/s best!
+length:16777216 localSize=256 R=13 L=1 Thr=6.89336GB/s
+length:16777216 localSize=256 R=14 L=0 Thr=8.39526GB/s best!
+length:16777216 localSize=256 R=14 L=1 Thr=7.47067GB/s
+length:16777216 localSize=256 R=15 L=0 Thr=8.28453GB/s
+length:16777216 localSize=256 R=15 L=1 Thr=7.77283GB/s
+length:16777216 localSize=256 R=16 L=0 Thr=8.38556GB/s
+length:16777216 localSize=256 R=16 L=1 Thr=7.82354GB/s
+length:16777216 localSize=256 R=17 L=0 Thr=8.56019GB/s best!
+length:16777216 localSize=256 R=17 L=1 Thr=8.06986GB/s
+length:16777216 localSize=256 R=18 L=0 Thr=9.41197GB/s best!
+length:16777216 localSize=256 R=18 L=1 Thr=7.77351GB/s
+length:16777216 localSize=256 R=19 L=0 Thr=9.50729GB/s best!
+length:16777216 localSize=256 R=19 L=1 Thr=8.09825GB/s
+length:16777216 localSize=256 R=20 L=0 Thr=9.74227GB/s best!
+length:16777216 localSize=256 R=20 L=1 Thr=8.63713GB/s
+length:16777216 localSize=256 R=21 L=0 Thr=9.79653GB/s best!
+length:16777216 localSize=256 R=21 L=1 Thr=8.73463GB/s
+length:16777216 localSize=256 R=22 L=0 Thr=10.0144GB/s best!
+length:16777216 localSize=256 R=22 L=1 Thr=8.7835GB/s
+length:16777216 localSize=256 R=23 L=0 Thr=9.90051GB/s
+length:16777216 localSize=256 R=23 L=1 Thr=8.98254GB/s
+length:16777216 localSize=256 R=24 L=0 Thr=10.1833GB/s best!
+length:16777216 localSize=256 R=24 L=1 Thr=9.06812GB/s
+length:16777216 localSize=256 R=25 L=0 Thr=10.2243GB/s best!
+length:16777216 localSize=256 R=25 L=1 Thr=9.1137GB/s
+length:16777216 localSize=256 R=26 L=0 Thr=9.39292GB/s
+length:16777216 localSize=256 R=26 L=1 Thr=7.73886GB/s
+length:16777216 localSize=256 R=27 L=0 Thr=10.3229GB/s best!
+length:16777216 localSize=256 R=27 L=1 Thr=9.35636GB/s
+length:16777216 localSize=256 R=28 L=0 Thr=10.5204GB/s best!
+length:16777216 localSize=256 R=28 L=1 Thr=8.75909GB/s
+length:16777216 localSize=256 R=29 L=0 Thr=9.73225GB/s
+length:16777216 localSize=256 R=29 L=1 Thr=9.15187GB/s
+length:16777216 localSize=256 R=30 L=0 Thr=10.6975GB/s best!
+length:16777216 localSize=256 R=30 L=1 Thr=9.65543GB/s
+length:16777216 localSize=256 R=31 L=0 Thr=10.5509GB/s
+length:16777216 localSize=256 R=31 L=1 Thr=9.80146GB/s
+length:16777216 localSize=128 R=0 L=1 Thr=1.20911GB/s
+length:16777216 localSize=128 R=1 L=0 Thr=1.19989GB/s
+length:16777216 localSize=128 R=1 L=1 Thr=1.73374GB/s
+length:16777216 localSize=128 R=2 L=0 Thr=2.5363GB/s
+length:16777216 localSize=128 R=2 L=1 Thr=2.49352GB/s
+length:16777216 localSize=128 R=3 L=0 Thr=3.74839GB/s
+length:16777216 localSize=128 R=3 L=1 Thr=3.19862GB/s
+length:16777216 localSize=128 R=4 L=0 Thr=3.92608GB/s
+length:16777216 localSize=128 R=4 L=1 Thr=4.04642GB/s
+length:16777216 localSize=128 R=5 L=0 Thr=4.9846GB/s
+length:16777216 localSize=128 R=5 L=1 Thr=4.18633GB/s
+length:16777216 localSize=128 R=6 L=0 Thr=5.99601GB/s
+length:16777216 localSize=128 R=6 L=1 Thr=5.01342GB/s
+length:16777216 localSize=128 R=7 L=0 Thr=6.39901GB/s
+length:16777216 localSize=128 R=7 L=1 Thr=4.71481GB/s
+length:16777216 localSize=128 R=8 L=0 Thr=6.95215GB/s
+length:16777216 localSize=128 R=8 L=1 Thr=5.77671GB/s
+length:16777216 localSize=128 R=9 L=0 Thr=7.42454GB/s
+length:16777216 localSize=128 R=9 L=1 Thr=6.17322GB/s
+length:16777216 localSize=128 R=10 L=0 Thr=7.08947GB/s
+length:16777216 localSize=128 R=10 L=1 Thr=6.42743GB/s
+length:16777216 localSize=128 R=11 L=0 Thr=7.22939GB/s
+length:16777216 localSize=128 R=11 L=1 Thr=6.59401GB/s
+length:16777216 localSize=128 R=12 L=0 Thr=8.39051GB/s
+length:16777216 localSize=128 R=12 L=1 Thr=6.84583GB/s
+length:16777216 localSize=128 R=13 L=0 Thr=8.6823GB/s
+length:16777216 localSize=128 R=13 L=1 Thr=7.40273GB/s
+length:16777216 localSize=128 R=14 L=0 Thr=8.85629GB/s
+length:16777216 localSize=128 R=14 L=1 Thr=7.62347GB/s
+length:16777216 localSize=128 R=15 L=0 Thr=8.77717GB/s
+length:16777216 localSize=128 R=15 L=1 Thr=7.99426GB/s
+length:16777216 localSize=128 R=16 L=0 Thr=9.38415GB/s
+length:16777216 localSize=128 R=16 L=1 Thr=8.00899GB/s
+length:16777216 localSize=128 R=17 L=0 Thr=9.53078GB/s
+length:16777216 localSize=128 R=17 L=1 Thr=8.3097GB/s
+length:16777216 localSize=128 R=18 L=0 Thr=9.40122GB/s
+length:16777216 localSize=128 R=18 L=1 Thr=8.50681GB/s
+length:16777216 localSize=128 R=19 L=0 Thr=9.83477GB/s
+length:16777216 localSize=128 R=19 L=1 Thr=8.61053GB/s
+length:16777216 localSize=128 R=20 L=0 Thr=9.87437GB/s
+length:16777216 localSize=128 R=20 L=1 Thr=8.85883GB/s
+length:16777216 localSize=128 R=21 L=0 Thr=10.1243GB/s
+length:16777216 localSize=128 R=21 L=1 Thr=8.93509GB/s
+length:16777216 localSize=128 R=22 L=0 Thr=10.3082GB/s
+length:16777216 localSize=128 R=22 L=1 Thr=9.07263GB/s
+length:16777216 localSize=128 R=23 L=0 Thr=10.2368GB/s
+length:16777216 localSize=128 R=23 L=1 Thr=9.07769GB/s
+length:16777216 localSize=128 R=24 L=0 Thr=10.5785GB/s
+length:16777216 localSize=128 R=24 L=1 Thr=9.28883GB/s
+length:16777216 localSize=128 R=25 L=0 Thr=10.5619GB/s
+length:16777216 localSize=128 R=25 L=1 Thr=9.48356GB/s
+length:16777216 localSize=128 R=26 L=0 Thr=10.6517GB/s
+length:16777216 localSize=128 R=26 L=1 Thr=9.30588GB/s
+length:16777216 localSize=128 R=27 L=0 Thr=8.98747GB/s
+length:16777216 localSize=128 R=27 L=1 Thr=9.27812GB/s
+length:16777216 localSize=128 R=28 L=0 Thr=10.7524GB/s best!
+length:16777216 localSize=128 R=28 L=1 Thr=9.77442GB/s
+length:16777216 localSize=128 R=29 L=0 Thr=10.954GB/s best!
+length:16777216 localSize=128 R=29 L=1 Thr=9.86537GB/s
+length:16777216 localSize=128 R=30 L=0 Thr=10.9857GB/s best!
+length:16777216 localSize=128 R=30 L=1 Thr=9.9153GB/s
+length:16777216 localSize=128 R=31 L=0 Thr=10.9967GB/s best!
+length:16777216 localSize=128 R=31 L=1 Thr=10.0706GB/s
+length:16777216 localSize=128 R=32 L=0 Thr=10.1087GB/s
+length:16777216 localSize=128 R=32 L=1 Thr=9.96586GB/s
+length:16777216 localSize=128 R=33 L=0 Thr=11.0327GB/s best!
+length:16777216 localSize=128 R=33 L=1 Thr=10.1215GB/s
+length:16777216 localSize=128 R=34 L=0 Thr=11.0172GB/s
+length:16777216 localSize=128 R=34 L=1 Thr=10.1554GB/s
+length:16777216 localSize=128 R=35 L=0 Thr=11.0916GB/s best!
+length:16777216 localSize=128 R=35 L=1 Thr=10.2126GB/s
+length:16777216 localSize=128 R=36 L=0 Thr=11.0841GB/s
+length:16777216 localSize=128 R=36 L=1 Thr=10.393GB/s
+length:16777216 localSize=128 R=37 L=0 Thr=11.2355GB/s best!
+length:16777216 localSize=128 R=37 L=1 Thr=10.4005GB/s
+length:16777216 localSize=128 R=38 L=0 Thr=11.1506GB/s
+length:16777216 localSize=128 R=38 L=1 Thr=10.4039GB/s
+length:16777216 localSize=128 R=39 L=0 Thr=11.3702GB/s best!
+length:16777216 localSize=128 R=39 L=1 Thr=10.4845GB/s
+length:16777216 localSize=128 R=40 L=0 Thr=11.4739GB/s best!
+length:16777216 localSize=128 R=40 L=1 Thr=10.3155GB/s
+length:16777216 localSize=128 R=41 L=0 Thr=11.6009GB/s best!
+length:16777216 localSize=128 R=41 L=1 Thr=10.6165GB/s
+length:16777216 localSize=128 R=42 L=0 Thr=11.4696GB/s
+length:16777216 localSize=128 R=42 L=1 Thr=10.4521GB/s
+length:16777216 localSize=128 R=43 L=0 Thr=11.4864GB/s
+length:16777216 localSize=128 R=43 L=1 Thr=9.27614GB/s
+length:16777216 localSize=128 R=44 L=0 Thr=11.4819GB/s
+length:16777216 localSize=128 R=44 L=1 Thr=8.72366GB/s
+length:16777216 localSize=128 R=45 L=0 Thr=11.618GB/s best!
+length:16777216 localSize=128 R=45 L=1 Thr=8.96436GB/s
+length:16777216 localSize=128 R=46 L=0 Thr=11.4545GB/s
+length:16777216 localSize=128 R=46 L=1 Thr=10.7334GB/s
+length:16777216 localSize=128 R=47 L=0 Thr=10.0842GB/s
+length:16777216 localSize=128 R=47 L=1 Thr=10.9063GB/s
+length:16777216 localSize=128 R=48 L=0 Thr=11.2607GB/s
+length:16777216 localSize=128 R=48 L=1 Thr=10.9096GB/s
+length:16777216 localSize=128 R=49 L=0 Thr=10.4062GB/s
+length:16777216 localSize=128 R=49 L=1 Thr=10.8623GB/s
+length:16777216 localSize=128 R=50 L=0 Thr=9.61951GB/s
+length:16777216 localSize=128 R=50 L=1 Thr=9.90894GB/s
+length:16777216 localSize=128 R=51 L=0 Thr=11.3124GB/s
+length:16777216 localSize=128 R=51 L=1 Thr=10.9747GB/s
+length:16777216 localSize=128 R=52 L=0 Thr=11.8113GB/s best!
+length:16777216 localSize=128 R=52 L=1 Thr=10.9904GB/s
+length:16777216 localSize=128 R=53 L=0 Thr=10.7568GB/s
+length:16777216 localSize=128 R=53 L=1 Thr=11.0834GB/s
+length:16777216 localSize=128 R=54 L=0 Thr=11.7194GB/s
+length:16777216 localSize=128 R=54 L=1 Thr=11.0414GB/s
+length:16777216 localSize=128 R=55 L=0 Thr=11.765GB/s
+length:16777216 localSize=128 R=55 L=1 Thr=11.0605GB/s
+length:16777216 localSize=128 R=56 L=0 Thr=11.8815GB/s best!
+length:16777216 localSize=128 R=56 L=1 Thr=11.1807GB/s
+length:16777216 localSize=128 R=57 L=0 Thr=11.2675GB/s
+length:16777216 localSize=128 R=57 L=1 Thr=11.1078GB/s
+length:16777216 localSize=128 R=58 L=0 Thr=11.8499GB/s
+length:16777216 localSize=128 R=58 L=1 Thr=11.2033GB/s
+length:16777216 localSize=128 R=59 L=0 Thr=11.9236GB/s best!
+length:16777216 localSize=128 R=59 L=1 Thr=9.35501GB/s
+length:16777216 localSize=128 R=60 L=0 Thr=11.9715GB/s best!
+length:16777216 localSize=128 R=60 L=1 Thr=11.3143GB/s
+length:16777216 localSize=128 R=61 L=0 Thr=11.2884GB/s
+length:16777216 localSize=128 R=61 L=1 Thr=9.95674GB/s
+length:16777216 localSize=128 R=62 L=0 Thr=11.8961GB/s
+length:16777216 localSize=128 R=62 L=1 Thr=11.2036GB/s
+length:16777216 localSize=128 R=63 L=0 Thr=12.033GB/s best!
+length:16777216 localSize=128 R=63 L=1 Thr=9.29922GB/s
+length:16777216 localSize=64 R=0 L=1 Thr=0.717911GB/s
+length:16777216 localSize=64 R=1 L=0 Thr=0.743799GB/s
+length:16777216 localSize=64 R=1 L=1 Thr=1.34053GB/s
+length:16777216 localSize=64 R=2 L=0 Thr=1.241GB/s
+length:16777216 localSize=64 R=2 L=1 Thr=2.07663GB/s
+length:16777216 localSize=64 R=3 L=0 Thr=2.04428GB/s
+length:16777216 localSize=64 R=3 L=1 Thr=2.72246GB/s
+length:16777216 localSize=64 R=4 L=0 Thr=2.83045GB/s
+length:16777216 localSize=64 R=4 L=1 Thr=3.60741GB/s
+length:16777216 localSize=64 R=5 L=0 Thr=3.58146GB/s
+length:16777216 localSize=64 R=5 L=1 Thr=4.38942GB/s
+length:16777216 localSize=64 R=6 L=0 Thr=4.25037GB/s
+length:16777216 localSize=64 R=6 L=1 Thr=4.9005GB/s
+length:16777216 localSize=64 R=7 L=0 Thr=4.63528GB/s
+length:16777216 localSize=64 R=7 L=1 Thr=4.65817GB/s
+length:16777216 localSize=64 R=8 L=0 Thr=5.33673GB/s
+length:16777216 localSize=64 R=8 L=1 Thr=5.85313GB/s
+length:16777216 localSize=64 R=9 L=0 Thr=6.12118GB/s
+length:16777216 localSize=64 R=9 L=1 Thr=6.08167GB/s
+length:16777216 localSize=64 R=10 L=0 Thr=6.97455GB/s
+length:16777216 localSize=64 R=10 L=1 Thr=6.42397GB/s
+length:16777216 localSize=64 R=11 L=0 Thr=7.56458GB/s
+length:16777216 localSize=64 R=11 L=1 Thr=6.88713GB/s
+length:16777216 localSize=64 R=12 L=0 Thr=8.06018GB/s
+length:16777216 localSize=64 R=12 L=1 Thr=7.09927GB/s
+length:16777216 localSize=64 R=13 L=0 Thr=8.61179GB/s
+length:16777216 localSize=64 R=13 L=1 Thr=7.41453GB/s
+length:16777216 localSize=64 R=14 L=0 Thr=7.62557GB/s
+length:16777216 localSize=64 R=14 L=1 Thr=7.31314GB/s
+length:16777216 localSize=64 R=15 L=0 Thr=8.99382GB/s
+length:16777216 localSize=64 R=15 L=1 Thr=7.94286GB/s
+length:16777216 localSize=64 R=16 L=0 Thr=8.41505GB/s
+length:16777216 localSize=64 R=16 L=1 Thr=7.82628GB/s
+length:16777216 localSize=64 R=17 L=0 Thr=8.15057GB/s
+length:16777216 localSize=64 R=17 L=1 Thr=8.13288GB/s
+length:16777216 localSize=64 R=18 L=0 Thr=9.61382GB/s
+length:16777216 localSize=64 R=18 L=1 Thr=8.36695GB/s
+length:16777216 localSize=64 R=19 L=0 Thr=9.83651GB/s
+length:16777216 localSize=64 R=19 L=1 Thr=7.42585GB/s
+length:16777216 localSize=64 R=20 L=0 Thr=9.94968GB/s
+length:16777216 localSize=64 R=20 L=1 Thr=8.76227GB/s
+length:16777216 localSize=64 R=21 L=0 Thr=8.70975GB/s
+length:16777216 localSize=64 R=21 L=1 Thr=8.10092GB/s
+length:16777216 localSize=64 R=22 L=0 Thr=9.46987GB/s
+length:16777216 localSize=64 R=22 L=1 Thr=9.02883GB/s
+length:16777216 localSize=64 R=23 L=0 Thr=10.1651GB/s
+length:16777216 localSize=64 R=23 L=1 Thr=9.15121GB/s
+length:16777216 localSize=64 R=24 L=0 Thr=10.4257GB/s
+length:16777216 localSize=64 R=24 L=1 Thr=8.78126GB/s
+length:16777216 localSize=64 R=25 L=0 Thr=10.5132GB/s
+length:16777216 localSize=64 R=25 L=1 Thr=8.50808GB/s
+length:16777216 localSize=64 R=26 L=0 Thr=10.566GB/s
+length:16777216 localSize=64 R=26 L=1 Thr=9.35714GB/s
+length:16777216 localSize=64 R=27 L=0 Thr=10.7299GB/s
+length:16777216 localSize=64 R=27 L=1 Thr=9.03545GB/s
+length:16777216 localSize=64 R=28 L=0 Thr=10.7647GB/s
+length:16777216 localSize=64 R=28 L=1 Thr=9.73167GB/s
+length:16777216 localSize=64 R=29 L=0 Thr=10.7868GB/s
+length:16777216 localSize=64 R=29 L=1 Thr=8.03499GB/s
+length:16777216 localSize=64 R=30 L=0 Thr=10.9862GB/s
+length:16777216 localSize=64 R=30 L=1 Thr=9.86606GB/s
+length:16777216 localSize=64 R=31 L=0 Thr=9.82461GB/s
+length:16777216 localSize=64 R=31 L=1 Thr=9.16404GB/s
+length:16777216 localSize=64 R=32 L=0 Thr=9.1023GB/s
+length:16777216 localSize=64 R=32 L=1 Thr=10.0895GB/s
+length:16777216 localSize=64 R=33 L=0 Thr=11.0748GB/s
+length:16777216 localSize=64 R=33 L=1 Thr=10.1237GB/s
+length:16777216 localSize=64 R=34 L=0 Thr=8.71568GB/s
+length:16777216 localSize=64 R=34 L=1 Thr=9.80512GB/s
+length:16777216 localSize=64 R=35 L=0 Thr=9.35383GB/s
+length:16777216 localSize=64 R=35 L=1 Thr=9.32096GB/s
+length:16777216 localSize=64 R=36 L=0 Thr=10.4684GB/s
+length:16777216 localSize=64 R=36 L=1 Thr=10.3289GB/s
+length:16777216 localSize=64 R=37 L=0 Thr=11.2683GB/s
+length:16777216 localSize=64 R=37 L=1 Thr=9.58667GB/s
+length:16777216 localSize=64 R=38 L=0 Thr=11.2347GB/s
+length:16777216 localSize=64 R=38 L=1 Thr=10.3755GB/s
+length:16777216 localSize=64 R=39 L=0 Thr=11.3294GB/s
+length:16777216 localSize=64 R=39 L=1 Thr=10.4645GB/s
+length:16777216 localSize=64 R=40 L=0 Thr=9.72093GB/s
+length:16777216 localSize=64 R=40 L=1 Thr=10.4601GB/s
+length:16777216 localSize=64 R=41 L=0 Thr=11.0869GB/s
+length:16777216 localSize=64 R=41 L=1 Thr=9.91476GB/s
+length:16777216 localSize=64 R=42 L=0 Thr=11.2374GB/s
+length:16777216 localSize=64 R=42 L=1 Thr=9.9447GB/s
+length:16777216 localSize=64 R=43 L=0 Thr=11.5961GB/s
+length:16777216 localSize=64 R=43 L=1 Thr=10.5639GB/s
+length:16777216 localSize=64 R=44 L=0 Thr=9.27505GB/s
+length:16777216 localSize=64 R=44 L=1 Thr=10.4144GB/s
+length:16777216 localSize=64 R=45 L=0 Thr=11.0347GB/s
+length:16777216 localSize=64 R=45 L=1 Thr=10.731GB/s
+length:16777216 localSize=64 R=46 L=0 Thr=11.5398GB/s
+length:16777216 localSize=64 R=46 L=1 Thr=8.90207GB/s
+length:16777216 localSize=64 R=47 L=0 Thr=11.6537GB/s
+length:16777216 localSize=64 R=47 L=1 Thr=9.44219GB/s
+length:16777216 localSize=64 R=48 L=0 Thr=11.7148GB/s
+length:16777216 localSize=64 R=48 L=1 Thr=10.8814GB/s
+length:16777216 localSize=64 R=49 L=0 Thr=11.3795GB/s
+length:16777216 localSize=64 R=49 L=1 Thr=10.9219GB/s
+length:16777216 localSize=64 R=50 L=0 Thr=11.6981GB/s
+length:16777216 localSize=64 R=50 L=1 Thr=11.0008GB/s
+length:16777216 localSize=64 R=51 L=0 Thr=11.7859GB/s
+length:16777216 localSize=64 R=51 L=1 Thr=11.0183GB/s
+length:16777216 localSize=64 R=52 L=0 Thr=11.668GB/s
+length:16777216 localSize=64 R=52 L=1 Thr=10.9629GB/s
+length:16777216 localSize=64 R=53 L=0 Thr=11.4843GB/s
+length:16777216 localSize=64 R=53 L=1 Thr=10.4222GB/s
+length:16777216 localSize=64 R=54 L=0 Thr=10.9901GB/s
+length:16777216 localSize=64 R=54 L=1 Thr=10.4583GB/s
+length:16777216 localSize=64 R=55 L=0 Thr=11.7687GB/s
+length:16777216 localSize=64 R=55 L=1 Thr=11.1912GB/s
+length:16777216 localSize=64 R=56 L=0 Thr=11.3586GB/s
+length:16777216 localSize=64 R=56 L=1 Thr=11.1731GB/s
+length:16777216 localSize=64 R=57 L=0 Thr=11.5166GB/s
+length:16777216 localSize=64 R=57 L=1 Thr=11.1513GB/s
+length:16777216 localSize=64 R=58 L=0 Thr=11.8683GB/s
+length:16777216 localSize=64 R=58 L=1 Thr=10.5554GB/s
+length:16777216 localSize=64 R=59 L=0 Thr=11.8678GB/s
+length:16777216 localSize=64 R=59 L=1 Thr=11.1819GB/s
+length:16777216 localSize=64 R=60 L=0 Thr=11.7693GB/s
+length:16777216 localSize=64 R=60 L=1 Thr=10.0818GB/s
+length:16777216 localSize=64 R=61 L=0 Thr=11.8441GB/s
+length:16777216 localSize=64 R=61 L=1 Thr=11.2906GB/s
+length:16777216 localSize=64 R=62 L=0 Thr=11.9479GB/s
+length:16777216 localSize=64 R=62 L=1 Thr=11.3158GB/s
+length:16777216 localSize=64 R=63 L=0 Thr=10.6645GB/s
+length:16777216 localSize=64 R=63 L=1 Thr=11.4025GB/s
+length:16777216 localSize=64 R=64 L=0 Thr=9.94377GB/s
+length:16777216 localSize=64 R=64 L=1 Thr=11.2406GB/s
+length:16777216 localSize=64 R=65 L=0 Thr=11.9497GB/s
+length:16777216 localSize=64 R=65 L=1 Thr=10.0556GB/s
+length:16777216 localSize=64 R=66 L=0 Thr=11.3227GB/s
+length:16777216 localSize=64 R=66 L=1 Thr=11.3216GB/s
+length:16777216 localSize=64 R=67 L=0 Thr=10.3526GB/s
+length:16777216 localSize=64 R=67 L=1 Thr=10.4761GB/s
+length:16777216 localSize=64 R=68 L=0 Thr=12.0731GB/s best!
+length:16777216 localSize=64 R=68 L=1 Thr=10.3272GB/s
+length:16777216 localSize=64 R=69 L=0 Thr=12.0345GB/s
+length:16777216 localSize=64 R=69 L=1 Thr=11.4669GB/s
+length:16777216 localSize=64 R=70 L=0 Thr=11.8686GB/s
+length:16777216 localSize=64 R=70 L=1 Thr=11.5371GB/s
+length:16777216 localSize=64 R=71 L=0 Thr=12.0595GB/s
+length:16777216 localSize=64 R=71 L=1 Thr=11.5727GB/s
+length:16777216 localSize=64 R=72 L=0 Thr=10.8619GB/s
+length:16777216 localSize=64 R=72 L=1 Thr=11.4182GB/s
+length:16777216 localSize=64 R=73 L=0 Thr=12.0512GB/s
+length:16777216 localSize=64 R=73 L=1 Thr=11.3815GB/s
+length:16777216 localSize=64 R=74 L=0 Thr=12.0565GB/s
+length:16777216 localSize=64 R=74 L=1 Thr=10.1886GB/s
+length:16777216 localSize=64 R=75 L=0 Thr=11.6952GB/s
+length:16777216 localSize=64 R=75 L=1 Thr=11.4343GB/s
+length:16777216 localSize=64 R=76 L=0 Thr=11.9748GB/s
+length:16777216 localSize=64 R=76 L=1 Thr=10.3352GB/s
+length:16777216 localSize=64 R=77 L=0 Thr=12.0393GB/s
+length:16777216 localSize=64 R=77 L=1 Thr=11.6007GB/s
+length:16777216 localSize=64 R=78 L=0 Thr=11.9878GB/s
+length:16777216 localSize=64 R=78 L=1 Thr=11.6293GB/s
+length:16777216 localSize=64 R=79 L=0 Thr=12.2687GB/s best!
+length:16777216 localSize=64 R=79 L=1 Thr=11.3941GB/s
+length:16777216 localSize=64 R=80 L=0 Thr=12.322GB/s best!
+length:16777216 localSize=64 R=80 L=1 Thr=11.6896GB/s
+length:16777216 localSize=64 R=81 L=0 Thr=9.75182GB/s
+length:16777216 localSize=64 R=81 L=1 Thr=10.9319GB/s
+length:16777216 localSize=64 R=82 L=0 Thr=12.1049GB/s
+length:16777216 localSize=64 R=82 L=1 Thr=11.4774GB/s
+length:16777216 localSize=64 R=83 L=0 Thr=11.9496GB/s
+length:16777216 localSize=64 R=83 L=1 Thr=11.6824GB/s
+length:16777216 localSize=64 R=84 L=0 Thr=11.9682GB/s
+length:16777216 localSize=64 R=84 L=1 Thr=11.6846GB/s
+length:16777216 localSize=64 R=85 L=0 Thr=12.1887GB/s
+length:16777216 localSize=64 R=85 L=1 Thr=11.8204GB/s
+length:16777216 localSize=64 R=86 L=0 Thr=12.2264GB/s
+length:16777216 localSize=64 R=86 L=1 Thr=11.7375GB/s
+length:16777216 localSize=64 R=87 L=0 Thr=11.4472GB/s
+length:16777216 localSize=64 R=87 L=1 Thr=9.51289GB/s
+length:16777216 localSize=64 R=88 L=0 Thr=12.3575GB/s best!
+length:16777216 localSize=64 R=88 L=1 Thr=11.7896GB/s
+length:16777216 localSize=64 R=89 L=0 Thr=12.2724GB/s
+length:16777216 localSize=64 R=89 L=1 Thr=11.7326GB/s
+length:16777216 localSize=64 R=90 L=0 Thr=12.3465GB/s
+length:16777216 localSize=64 R=90 L=1 Thr=11.8533GB/s
+length:16777216 localSize=64 R=91 L=0 Thr=12.3662GB/s best!
+length:16777216 localSize=64 R=91 L=1 Thr=11.948GB/s
+length:16777216 localSize=64 R=92 L=0 Thr=12.4047GB/s best!
+length:16777216 localSize=64 R=92 L=1 Thr=11.9949GB/s
+length:16777216 localSize=64 R=93 L=0 Thr=10.7581GB/s
+length:16777216 localSize=64 R=93 L=1 Thr=11.8478GB/s
+length:16777216 localSize=64 R=94 L=0 Thr=12.2369GB/s
+length:16777216 localSize=64 R=94 L=1 Thr=11.9677GB/s
+length:16777216 localSize=64 R=95 L=0 Thr=12.3223GB/s
+length:16777216 localSize=64 R=95 L=1 Thr=11.8664GB/s
+length:16777216 localSize=64 R=96 L=0 Thr=12.5227GB/s best!
+length:16777216 localSize=64 R=96 L=1 Thr=11.9616GB/s
+length:16777216 localSize=64 R=97 L=0 Thr=12.3569GB/s
+length:16777216 localSize=64 R=97 L=1 Thr=11.8361GB/s
+length:16777216 localSize=64 R=98 L=0 Thr=12.3009GB/s
+length:16777216 localSize=64 R=98 L=1 Thr=11.8932GB/s
+length:16777216 localSize=64 R=99 L=0 Thr=12.3698GB/s
+length:16777216 localSize=64 R=99 L=1 Thr=11.9454GB/s
+length:16777216 localSize=64 R=100 L=0 Thr=12.3966GB/s
+length:16777216 localSize=64 R=100 L=1 Thr=11.9809GB/s
+length:16777216 localSize=64 R=101 L=0 Thr=10.6813GB/s
+length:16777216 localSize=64 R=101 L=1 Thr=12.045GB/s
+length:16777216 localSize=64 R=102 L=0 Thr=11.0754GB/s
+length:16777216 localSize=64 R=102 L=1 Thr=10.2454GB/s
+length:16777216 localSize=64 R=103 L=0 Thr=12.5452GB/s best!
+length:16777216 localSize=64 R=103 L=1 Thr=12.0211GB/s
+length:16777216 localSize=64 R=104 L=0 Thr=12.3107GB/s
+length:16777216 localSize=64 R=104 L=1 Thr=11.9119GB/s
+length:16777216 localSize=64 R=105 L=0 Thr=12.3132GB/s
+length:16777216 localSize=64 R=105 L=1 Thr=11.8181GB/s
+length:16777216 localSize=64 R=106 L=0 Thr=11.9443GB/s
+length:16777216 localSize=64 R=106 L=1 Thr=10.0908GB/s
+length:16777216 localSize=64 R=107 L=0 Thr=12.4867GB/s
+length:16777216 localSize=64 R=107 L=1 Thr=12.0345GB/s
+length:16777216 localSize=64 R=108 L=0 Thr=12.1829GB/s
+length:16777216 localSize=64 R=108 L=1 Thr=12.1222GB/s
+length:16777216 localSize=64 R=109 L=0 Thr=12.4168GB/s
+length:16777216 localSize=64 R=109 L=1 Thr=12.0853GB/s
+length:16777216 localSize=64 R=110 L=0 Thr=12.4654GB/s
+length:16777216 localSize=64 R=110 L=1 Thr=11.9649GB/s
+length:16777216 localSize=64 R=111 L=0 Thr=12.5596GB/s best!
+length:16777216 localSize=64 R=111 L=1 Thr=11.603GB/s
+length:16777216 localSize=64 R=112 L=0 Thr=12.6327GB/s best!
+length:16777216 localSize=64 R=112 L=1 Thr=11.9402GB/s
+length:16777216 localSize=64 R=113 L=0 Thr=12.5469GB/s
+length:16777216 localSize=64 R=113 L=1 Thr=12.1905GB/s
+length:16777216 localSize=64 R=114 L=0 Thr=12.5256GB/s
+length:16777216 localSize=64 R=114 L=1 Thr=12.0931GB/s
+length:16777216 localSize=64 R=115 L=0 Thr=12.5705GB/s
+length:16777216 localSize=64 R=115 L=1 Thr=12.0844GB/s
+length:16777216 localSize=64 R=116 L=0 Thr=12.5609GB/s
+length:16777216 localSize=64 R=116 L=1 Thr=12.1232GB/s
+length:16777216 localSize=64 R=117 L=0 Thr=12.341GB/s
+length:16777216 localSize=64 R=117 L=1 Thr=12.1258GB/s
+length:16777216 localSize=64 R=118 L=0 Thr=12.4015GB/s
+length:16777216 localSize=64 R=118 L=1 Thr=12.0596GB/s
+length:16777216 localSize=64 R=119 L=0 Thr=12.4065GB/s
+length:16777216 localSize=64 R=119 L=1 Thr=10.688GB/s
+length:16777216 localSize=64 R=120 L=0 Thr=12.6305GB/s
+length:16777216 localSize=64 R=120 L=1 Thr=12.1771GB/s
+length:16777216 localSize=64 R=121 L=0 Thr=12.4054GB/s
+length:16777216 localSize=64 R=121 L=1 Thr=12.1845GB/s
+length:16777216 localSize=64 R=122 L=0 Thr=11.7538GB/s
+length:16777216 localSize=64 R=122 L=1 Thr=11.6165GB/s
+length:16777216 localSize=64 R=123 L=0 Thr=12.464GB/s
+length:16777216 localSize=64 R=123 L=1 Thr=12.2635GB/s
+length:16777216 localSize=64 R=124 L=0 Thr=12.2929GB/s
+length:16777216 localSize=64 R=124 L=1 Thr=12.256GB/s
+length:16777216 localSize=64 R=125 L=0 Thr=12.5421GB/s
+length:16777216 localSize=64 R=125 L=1 Thr=11.0919GB/s
+length:16777216 localSize=64 R=126 L=0 Thr=12.5728GB/s
+length:16777216 localSize=64 R=126 L=1 Thr=12.2223GB/s
+length:16777216 localSize=64 R=127 L=0 Thr=12.4194GB/s
+length:16777216 localSize=64 R=127 L=1 Thr=12.2359GB/s
+Final res:
+	Best localSize=64
+	Best R=112
+	Best L=0
+	Throughput=12.6327GB/s

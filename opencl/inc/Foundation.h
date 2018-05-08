@@ -63,7 +63,8 @@ void testAccess(PlatInfo& info);
 bool testGather(int len, const PlatInfo info);
 bool testScatter(int len, const PlatInfo info);
 void testAtomic(PlatInfo& info);
-bool testScan(int length, int isExclusive, PlatInfo& info);
+bool testScan(int length, int isExclusive, double &totalTime, int localSize, int gridSize, int R, int L, PlatInfo& info);
+void testScanParameters(int length, int selection, PlatInfo& info);
 
 void testBarrier(
     float *fixedValues, PlatInfo& info , double& totalTime, double& percentage, int localSize, int gridSize);

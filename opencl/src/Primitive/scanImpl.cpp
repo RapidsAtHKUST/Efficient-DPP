@@ -22,6 +22,7 @@ double scan_fast(cl_mem &d_in, int length, int isExclusive, PlatInfo& info, int 
     cl_int status = 0;
     int argsNum = 0;
 
+    int local_size_log = log2(local_size);      //for sklansky parameter search
     int tile_size = local_size * (R + L);
     int num_of_blocks = (length + tile_size - 1) / tile_size;
 
@@ -77,6 +78,7 @@ double scan_fast(cl_mem &d_in, int length, int isExclusive, PlatInfo& info, int 
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &R);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &L);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_inter);
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &local_size_log);
 
 //    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_help);
 

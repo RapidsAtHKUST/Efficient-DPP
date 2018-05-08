@@ -543,16 +543,13 @@ bool testScatter(int len, const PlatInfo info) {
     return res;
 }
 
-bool testScan(int length, int isExclusive, PlatInfo& info) {
-    
+bool testScan(int length, int isExclusive, double &totalTime, int localSize, int gridSize, int R, int L, PlatInfo& info) {
     bool res = true;
-    double totalTime = 0;
     cl_int status = 0;
+    totalTime = 0;
 
-    int sizeMB = length*sizeof(int)/1024/1024;
-    cout<<"Data size: "<<sizeMB<<" MB."<<endl;
-    if (isExclusive == 0)   cout<<"Type: Inclusive."<<endl;
-    else                    cout<<"Type: Exclusive."<<endl;
+    float sizeMB = 1.0*length*sizeof(int)/1024/1024;
+    cout<<"length:"<<length<<' ';
     
     int *gpu_io = new int[length];
     int *cpu_input = new int[length];
@@ -563,19 +560,20 @@ bool testScan(int length, int isExclusive, PlatInfo& info) {
         gpu_io[i] = 1;
         cpu_input[i] = 1;
     }
-    
+
     int experTime = 10;
+    double normalTempTime;
+    int normalCount = 0;
     for(int e = 0; e < experTime; e++) {
         cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
         status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int) * length, gpu_io, 0, 0, 0);
         checkErr(status, ERR_WRITE_BUFFER);
 
-
-        //for the Xeon GPU, 39 work-groups, 512 work-grou size, 15 R
+        //for the Xeon GPU, 39 work-groups, 256 work-grou size, 31 R
         //for the GPU, 15 work-groups, 1024 work-group size, 11 L
-//        double tempTime = scan_fast(d_in, length, isExclusive, info, 512, 39, 15, 0); //CPU
-        double tempTime = scan_fast(d_in, length, isExclusive, info, 1024, 15, 0, 11); //GPU
+        double tempTime = scan_fast(d_in, length, isExclusive, info, localSize, gridSize, R, L); //CPU
+//        double tempTime = scan_fast(d_in, length, isExclusive, info, 1024, 15, 0, 11); //GPU
 
         status = clEnqueueReadBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int) * length, gpu_io, 0, NULL, NULL);
         checkErr(status, ERR_READ_BUFFER);
@@ -584,6 +582,7 @@ bool testScan(int length, int isExclusive, PlatInfo& info) {
         status = clReleaseMemObject(d_in);
         checkErr(status, ERR_RELEASE_MEM);
 
+//         cout<<e<<' '<<tempTime<<endl;
         //check
         if (e == 0) {
             if (isExclusive == 0) {         //inclusive
@@ -601,31 +600,118 @@ bool testScan(int length, int isExclusive, PlatInfo& info) {
             for (int i = 0; i < length; i++) {
                 if (cpu_output[i] != gpu_io[i]) {
                     res = false;
-                    std::cout << cpu_output[i] << ' ' << gpu_io[i] << std::endl;
+                    // std::cout << cpu_output[i] << ' ' << gpu_io[i] << std::endl;
                     break;
                 }
             }
-            FUNC_CHECK(res);
+            normalTempTime = tempTime;
         }
         else if (res == true) {
-            totalTime += tempTime;
-            cout<<"Expr "<<e<<": "<<tempTime<<" ms\t"<<sizeMB/tempTime<<" GB/s"<<endl;
+            //exclude the outliers
+            if (tempTime < normalTempTime*1.05) {      //with 5% error
+                if (tempTime*1.05 < normalTempTime) { //means the normalTempTime is an outlier
+                    normalCount = 1;
+                    normalTempTime = tempTime;
+                    totalTime = tempTime;
+                }   
+                else {  //temp time is correct
+                    totalTime += tempTime;
+                    normalCount++;
+                }
+            }   
         }
         else {
             break;
         }
     }
-    totalTime /= (experTime-1);
+    totalTime /= normalCount;
 
     //release
 
     delete [] gpu_io;
     delete [] cpu_input;
     delete [] cpu_output;
-    
-    cout<<"Kernel time: "<<totalTime<<" ms."<<endl;
-    cout<<"Throughput: "<<sizeMB/totalTime<<"GB/s"<<endl;
+
+//     cout<<"Time:"<<totalTime<<" ms.\t";
+//     cout<<"Throughput:"<<sizeMB*1.0/1024/totalTime*1000<<" GB/s"<<endl;
     return res;
+}
+
+//search the most suitable (localSize, R, L) parameters for a scan scheme
+/*
+ * selection:
+ *  0:GPU, 1:CPU, 2:MIC
+ * restriction:
+ * 1. GPU: local memory size: 48KB, register size: 64KB
+ * 2. CPU: register size: 32KB
+ */
+void testScanParameters(int length, int selection, PlatInfo& info) {
+    int grid_size, size_begin, size_end, R_end, L_end, R_begin = 120, L_begin = 0;
+    size_t cpu_reg = 32*1024, gpu_reg = 64*1024, gpu_local = 48*1024, mic_reg = 32*1024;
+
+    if (selection == 0) {       //gpu
+        size_begin = 1024;
+        size_end = 128;
+        grid_size = 15;
+    }
+    else if (selection == 1) {  //cpu
+        size_begin = 64;
+        size_end = 64;
+        grid_size = 39;
+    }
+    else if (selection == 2) { //MIC
+        size_begin = 2048;
+        size_end = 64;
+        grid_size = 240;
+    }
+
+    int best_size, best_R, best_L;
+    double bestThr = 0;
+    for(size_t cur_size = size_begin; cur_size >= size_end; cur_size>>=1) {
+        if (selection == 0) {
+            R_end = gpu_reg / cur_size / sizeof(int) - 1;
+            L_end = gpu_reg / cur_size / sizeof(int) - 1;
+        }
+        else if (selection == 1) {
+            R_end = cpu_reg / cur_size / sizeof(int) - 1;
+            L_end = 1;       //cpu does not prefer L, just test 1
+        }
+        else if (selection == 2) {
+            R_end = mic_reg / cur_size / sizeof(int) - 1;
+            L_end = 1;
+        }
+        for(int R = R_begin; R <= R_end; R++) {
+            for(int L = L_begin; L <= L_end; L++) {
+                if (R == 0 && L == 0) continue;
+                double tempTime;
+                bool res = testScan(length, 1, tempTime, cur_size, grid_size, R, L, info);
+
+                //compuation
+                double throughput = 1.0*length*sizeof(int)/1024/1024/1024/tempTime*1000;
+                cout<<"localSize="<<cur_size<<' '<<"R="<<R<<" L="<<L<<" Thr="<<throughput<<"GB/s";
+
+                if (!res)   {
+                    cout<<" wrong"<<endl;
+                    break;
+                }
+                if (throughput>bestThr) {
+                    bestThr = throughput;
+                    best_size = cur_size;
+                    best_R = R;
+                    best_L = L;
+                    cout<<" best!"<<endl;
+                }
+                else {
+                    cout<<endl;
+                }
+            }
+        }
+    }
+    cout<<"Final res:"<<endl;
+    cout<<"\tBest localSize="<<best_size<<endl;
+    cout<<"\tBest R="<<best_R<<endl;
+    cout<<"\tBest L="<<best_L<<endl;
+    cout<<"\tThroughput="<<bestThr<<"GB/s"<<endl;
 }
 
 //fanout: number of partitions needed

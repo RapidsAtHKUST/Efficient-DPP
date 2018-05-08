@@ -1,0 +1,10 @@
+-r
+/d2/zlai/workspace/opencl_study/openmp/r000ah
+--itt-config=frame
+--data-limit-mb=500
+--stack-stitching
+--event-config=CPU_CLK_UNHALTED:sa=2300000,INSTRUCTIONS_EXECUTED:sa=2300000
+--sample-after-multiplier=1.0
+--event-mux
+--
+/ghome/zlai/workspace/opencl_study/openmp/scanTBB_mic
