@@ -15,7 +15,7 @@ using namespace std;
  *  R: number of elements in registers in each work-item
  *  L: number of elememts in local memory
  */
-double scan_fast(cl_mem &d_in, int length, int isExclusive, PlatInfo& info, int local_size, int gridSize, int R, int L)
+double scan_fast(cl_mem &d_in, cl_mem &d_out, int length, int isExclusive, PlatInfo& info, int local_size, int gridSize, int R, int L)
 {
     double totalTime = 0.0f;
     cl_event event;
@@ -55,7 +55,7 @@ double scan_fast(cl_mem &d_in, int length, int isExclusive, PlatInfo& info, int 
     my_itoa(DR, R_li, 10);       //transfer R to string
     strcat(extra, R_li);
 
-    cl_kernel scanBlockKernel = KernelProcessor::getKernel("scanKernel.cl", "scan_fast", info.context, extra);
+    cl_kernel scanBlockKernel = KernelProcessor::getKernel("scanKernel.cl", "scan_fast_coalesced", info.context, extra);
 
     //initialize the intermediate array
     int *h_inter = new int[num_of_blocks];
@@ -66,11 +66,11 @@ double scan_fast(cl_mem &d_in, int length, int isExclusive, PlatInfo& info, int 
     checkErr(status, ERR_WRITE_BUFFER);
 
     //help, for debug
-//    cout<<gridSize<<endl;
-    cl_mem d_help = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*gridSize, NULL, &status);
+//    cl_mem d_help = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*local_size, NULL, &status);
 
     argsNum = 0;
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_out);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int)*local_mem_size, NULL);    //local memory lo
     status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &lo_size);           //local mem size
@@ -93,17 +93,19 @@ double scan_fast(cl_mem &d_in, int length, int isExclusive, PlatInfo& info, int 
     checkErr(status, ERR_EXEC_KERNEL);
     totalTime = clEventTime(event);
 
-//    int *h_help = new int[gridSize];
-//    status = clEnqueueReadBuffer(info.currentQueue, d_help, CL_TRUE, 0, sizeof(int)*gridSize, h_help, 0, 0, 0);
-//    for(int i = 0; i < gridSize; i++) cout<<h_help[i]<<' ';
+//    int *h_help = new int[local_size];
+//    status = clEnqueueReadBuffer(info.currentQueue, d_help, CL_TRUE, 0, sizeof(int)*local_size, h_help, 0, 0, 0);
 //    cout<<endl;
+//    for(int i = 0; i < local_size; i++) cout<<i<<' '<<h_help[i]<<endl;
+//    cout<<endl;
+//    delete[] h_help;
+//    clReleaseMemObject(d_help);
+
 
     clReleaseMemObject(d_inter);
-    clReleaseMemObject(d_help);
 
     delete[] h_inter;
 
-//    delete[] h_help;
     return totalTime;
 }
 

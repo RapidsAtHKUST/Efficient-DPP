@@ -93,16 +93,12 @@ int main(int argc, const char * argv[]) {
     int scatter_blockSize = -1, scatter_gridSize = -1;
     int scan_blockSize = -1;
 
-//    dataSize = 160000000;
+    int length = 1<<25;
+    double totalTime;
 
 //      testMem(info);
 //      testAccess(info);
 //      testLatency(info);
-
-    //test gather & scatter single case
-//    testGather(num, info);
-//    cout<<endl;
-//    testScatter(num, info);
 
     //test the gather and scatter with uniformly distributed indexes
 //    for(int i = 128; i < 4096; i += 256) {
@@ -117,31 +113,37 @@ int main(int argc, const char * argv[]) {
 //        cout<<endl;
 //    }
 
-    //test the gather and scatter with 3GB data with different index distributions
-
 
 //    testAtomic(info);
 //      testGather(dataSize, info);
 //        testScatter(num, info);
 
-     for(int scale = 10; scale <= 30; scale++) {
-         int num = 1<<scale;
-         double totalTime;
-         cout<<scale<<'\t';
-         testScan(num, 1, totalTime, 64, 39, 121, 0, info);
-         cout<<"Time:"<<totalTime<<" ms.\t";
-         cout<<"Throughput:"<<num*1.0* sizeof(int)/1024/1024/1024/totalTime*1000<<" GB/s"<<endl;
+//    for(int scale = 10; scale <= 30; scale++) {
+//        int num = 1<<scale;
+//        double totalTime;
+//        cout<<scale<<'\t';
+//        testScan(num, 1, totalTime, 64, 240, 33, 1, info);
+//        cout<<"Time:"<<totalTime<<" ms.\t";
+//        cout<<"Throughput:"<<num*1.0* sizeof(int)/1024/1024/1024/totalTime*1000<<" GB/s"<<endl;
+//    }
 
-     }
-//    int length = 1<<24;
-//    testScanParameters(length, 1, info);
 
-//    double totalTime;
-//    bool res = testScan(length, 1, totalTime, 1024, 240, 7, 10, info);
+    // testScanParameters(length, 2, info);
+
+//    bool res = testScan(length, 1, totalTime, 1024, 15, 0, 11, info);    //gpu
+//    bool res = testScan(length, 1, totalTime, 64, 39, 121, 0, info);    //cpu
+//    bool res = testScan(length, 1, totalTime, 64, 240, 33, 1, info);    //mic
 //    if (res)    cout<<"right\t";
 //    else        cout<<"wrong\t";
 //     cout<<"Time:"<<totalTime<<" ms.\t";
 //     cout<<"Throughput:"<<length*1.0* sizeof(int)/1024/1024/1024/totalTime*1000<<" GB/s"<<endl;
+
+    testSplit(length, info, 32, totalTime);
+
+//    for(int buckets = 2; buckets <= 4096; buckets <<= 1) {
+//        testSplitParameters(length, buckets, 0, 5, info);
+//    }
+
 //------- finished operations ---------------
 
 
@@ -158,7 +160,6 @@ int main(int argc, const char * argv[]) {
 //    cout<<"Time for scan: "<<scanTime<<" ms."<<'\t'<<"BlockSize: "<<scan_blockSize<<endl;
     // cout<<"Time for radix sort: "<<radixSortTime<<" ms."<<endl;
 
-//    testSplit(dataSize, info, 12, totalTime);
 
 //    testBitonitSort(fixedRecords, dataSize, info, 1, totalTime);      //1:  ascendingls
 //    testBitonitSort(fixedRecords, dataSize, info, 0, totalTime);      //0:  descending

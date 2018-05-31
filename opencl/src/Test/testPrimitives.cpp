@@ -561,9 +561,10 @@ bool testScan(int length, int isExclusive, double &totalTime, int localSize, int
         cpu_input[i] = 1;
     }
 
-    int experTime = 10;
+    int experTime = 100;
     double normalTempTime;
     int normalCount = 0;
+    bool next_valid = true;
     for(int e = 0; e < experTime; e++) {
         cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
@@ -572,7 +573,7 @@ bool testScan(int length, int isExclusive, double &totalTime, int localSize, int
 
         //for the Xeon GPU, 39 work-groups, 256 work-grou size, 31 R
         //for the GPU, 15 work-groups, 1024 work-group size, 11 L
-        double tempTime = scan_fast(d_in, length, isExclusive, info, localSize, gridSize, R, L); //CPU
+        double tempTime = scan_fast(d_in, d_in, length, isExclusive, info, localSize, gridSize, R, L); //CPU
 //        double tempTime = scan_fast(d_in, length, isExclusive, info, 1024, 15, 0, 11); //GPU
 
         status = clEnqueueReadBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int) * length, gpu_io, 0, NULL, NULL);
@@ -582,7 +583,7 @@ bool testScan(int length, int isExclusive, double &totalTime, int localSize, int
         status = clReleaseMemObject(d_in);
         checkErr(status, ERR_RELEASE_MEM);
 
-//         cout<<e<<' '<<tempTime<<endl;
+        // cout<<e<<' '<<tempTime<<endl;
         //check
         if (e == 0) {
             if (isExclusive == 0) {         //inclusive
@@ -604,21 +605,14 @@ bool testScan(int length, int isExclusive, double &totalTime, int localSize, int
                     break;
                 }
             }
-            normalTempTime = tempTime;
+            // normalTempTime = tempTime;
         }
         else if (res == true) {
-            //exclude the outliers
-            if (tempTime < normalTempTime*1.05) {      //with 5% error
-                if (tempTime*1.05 < normalTempTime) { //means the normalTempTime is an outlier
-                    normalCount = 1;
-                    normalTempTime = tempTime;
-                    totalTime = tempTime;
-                }   
-                else {  //temp time is correct
-                    totalTime += tempTime;
-                    normalCount++;
-                }
-            }   
+            //only count the experTime/2 of the experiments
+            if (e >= experTime/2) {
+                totalTime += tempTime;
+                normalCount++;
+            }
         }
         else {
             break;
@@ -627,7 +621,6 @@ bool testScan(int length, int isExclusive, double &totalTime, int localSize, int
     totalTime /= normalCount;
 
     //release
-
     delete [] gpu_io;
     delete [] cpu_input;
     delete [] cpu_output;
@@ -646,7 +639,7 @@ bool testScan(int length, int isExclusive, double &totalTime, int localSize, int
  * 2. CPU: register size: 32KB
  */
 void testScanParameters(int length, int selection, PlatInfo& info) {
-    int grid_size, size_begin, size_end, R_end, L_end, R_begin = 120, L_begin = 0;
+    int grid_size, size_begin, size_end, R_end, L_end, R_begin = 0, L_begin = 0;
     size_t cpu_reg = 32*1024, gpu_reg = 64*1024, gpu_local = 48*1024, mic_reg = 32*1024;
 
     if (selection == 0) {       //gpu
@@ -655,7 +648,7 @@ void testScanParameters(int length, int selection, PlatInfo& info) {
         grid_size = 15;
     }
     else if (selection == 1) {  //cpu
-        size_begin = 64;
+        size_begin = 512;
         size_end = 64;
         grid_size = 39;
     }
@@ -674,11 +667,11 @@ void testScanParameters(int length, int selection, PlatInfo& info) {
         }
         else if (selection == 1) {
             R_end = cpu_reg / cur_size / sizeof(int) - 1;
-            L_end = 1;       //cpu does not prefer L, just test 1
+            L_end = 2;       //cpu does not prefer L, just test 2
         }
         else if (selection == 2) {
             R_end = mic_reg / cur_size / sizeof(int) - 1;
-            L_end = 1;
+            L_end = 2;
         }
         for(int R = R_begin; R <= R_end; R++) {
             for(int L = L_begin; L <= L_end; L++) {
@@ -715,12 +708,12 @@ void testScanParameters(int length, int selection, PlatInfo& info) {
 }
 
 //fanout: number of partitions needed
-bool testSplit(int len, PlatInfo& info, int bits, double& totalTime) {
+bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime) {
 
     cl_int status = 0;
     bool res = true;
-    FUNC_BEGIN;
-    cout<<"Bits used: "<<bits<<endl;
+    cout<<"Length: "<<len<<'\t';
+    cout<<"Buckets: "<<buckets<<"\t";
     
     int *h_in_keys = new int[len];
     int *h_in_values = new int[len];
@@ -728,13 +721,12 @@ bool testSplit(int len, PlatInfo& info, int bits, double& totalTime) {
     int *h_out_keys = new int[len];
     int *h_out_values = new int[len];
 
-    int buckets = (1<<bits);
     int mask = buckets - 1;
 
     recordRandom(h_in_keys, h_in_values, len, len);
-    
-    struct timeval start, end;
-    gettimeofday(&start,NULL);
+
+    for(int i = 0; i < len; i++) h_in_values[i] = h_in_keys[i];
+    for(int i = 0; i < len; i++) h_out_keys[i] = -1;
 
     //memory allocation
     //input data
@@ -759,30 +751,48 @@ bool testSplit(int len, PlatInfo& info, int bits, double& totalTime) {
     status = clEnqueueWriteBuffer(info.currentQueue, d_in_values, CL_TRUE, 0, sizeof(int)*len, h_in_values, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
 
+    int experTime = 10;
+    totalTime = 0;
+
+    cout<<"Func: thread_k"<<'\t';
+    for(int e = 0; e < experTime; e++) {
+        double tempTime;
+        tempTime = block_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, true, info);
+//    tempTime = thread_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, info);
+//        tempTime = block_split_k(d_in_keys, d_out_keys, d_start, len, buckets, true, info);
 
 
-    //call gather
-    totalTime = split(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, bits, info);
-    
-    //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_out_keys, CL_TRUE, 0, sizeof(int)*len, h_out_keys, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-    status = clFinish(info.currentQueue);
-    
-    gettimeofday(&end, NULL);
+//    tempTime = thread_split_k(d_in_keys, d_out_keys, d_start, len, buckets, info);
+        if (e == 0) {
+            //memory written back
+            status = clEnqueueReadBuffer(info.currentQueue, d_out_keys, CL_TRUE, 0, sizeof(int)*len, h_out_keys, 0, 0, 0);
+            checkErr(status, ERR_READ_BUFFER);
+            status = clFinish(info.currentQueue);
 
-    //check
-    SHOW_CHECKING;
-    int bits_prev = h_out_keys[0] & mask;
-    for(int i = 1; i < len; i++) {
-        int bits_now = h_out_keys[i] & mask;
-        if (bits_now < bits_prev)  {
-            res = false;
-            break;
+//            for(int i = 0; i < len; i++) {
+//                cout<<h_out_keys[i]<<' '<< (h_out_keys[i] & mask) << endl;
+//            }
+//            cout<<endl;
+
+            //check
+            int bits_prev = h_out_keys[0] & mask;
+            for(int i = 1; i < len; i++) {
+                int bits_now = h_out_keys[i] & mask;
+                if (bits_now < bits_prev)  {
+                    res = false;
+                    std::cerr<<"wrong result"<<std::endl;
+                    return res;
+                }
+                bits_prev = bits_now;
+            }
         }
-        bits_prev = bits_now;
+        else {
+            totalTime += tempTime;
+        }
     }
-    FUNC_CHECK(res);
+    totalTime /= (experTime-1);
+
+
 
 //    cout<<"input:"<<endl;
 //    for(int i = 0 ; i < len; i++) {
@@ -814,12 +824,190 @@ bool testSplit(int len, PlatInfo& info, int bits, double& totalTime) {
     delete [] h_in_keys;
     delete [] h_out_keys;
     
-//    SHOW_TIME(totalTime);
-    std::cout<<"Split kernel time: "<<totalTime<<" ms."<<"("<<len* sizeof(int)*2/totalTime*1000/1e9<<"GB/s)"<<std::endl;
-    SHOW_TOTAL_TIME(diffTime(end, start));
-    FUNC_END;
-    
+    std::cout<<"Time: "<<totalTime<<" ms."<<"("<<len* sizeof(int)*2/totalTime*1000/1e9<<"GB/s)"<<std::endl;
+
     return res;
+}
+
+//search the most suitable (localSize, gridSize, sharedMem size) parameters for a split scheme
+/*
+ * device:
+ *  0:GPU, 1:CPU, 2:MIC
+ * algo:
+ *  0:thread_split_k
+ *  1:thread_split_kv
+ *  2:block_split_k (no reordering)
+ *  3:block_split_k (reordering)
+ *  4:block_split_kv (no reordering)
+ *  5:block_split_kv (reordering)
+ * restriction:
+ * 1. GPU: local memory size: 48KB
+ */
+void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& info) {
+    cl_int status;
+    int experTime = 10;
+    int localSizeBegin, localSizeEnd, gridSizeBegin, gridSizeEnd, limitSharedSize;
+
+    //on gpu
+    if (device==0) {
+        localSizeBegin = 128;
+        localSizeEnd = 1024;
+        gridSizeBegin = 1024;
+        gridSizeEnd = 131072;
+        limitSharedSize = 47*1024;      //47KB
+    }
+    else if (device==1) {       //on CPU
+        localSizeBegin = 64;
+        localSizeEnd = 512;
+        gridSizeBegin = 128;
+        gridSizeEnd = 32768;
+        limitSharedSize = 999999999;    //no shared size limit
+    }
+
+    //best results
+    double bestTime = 99999;
+    int bestLocalSize=-1, bestGridSize=-1, bestSharedSize=-1;
+
+    std::cout<<"Length="<<len<<" Algo="<<algo<<" Buckets="<<buckets<<' ';
+    for(int localSize = localSizeBegin; localSize <= localSizeEnd; localSize<<=1) {
+        for(int gridSize = gridSizeBegin; gridSize <= gridSizeEnd; gridSize <<=1) {
+            int sharedSize = len / gridSize;
+
+            //check the shared memory size
+            if (sharedSize < localSize) continue;
+
+            int scale = 0;
+            if (algo == 3) scale = 1;
+            if (algo == 5) scale = 2;
+            if (scale * sharedSize * sizeof(int) > limitSharedSize) continue;
+
+            if (algo == 3 || algo == 5) {
+                if (localSize < buckets) continue;
+            }
+
+            if (algo == 0 || algo == 1) {
+                //check the local memory size for the thread-level split
+                if (localSize * buckets * sizeof(int) >= 48 * 1024) continue;
+
+                //check the global memory size for the thread-level split
+                unsigned his_len = localSize * gridSize;
+                unsigned limit = 268435456 / buckets;
+                if (his_len > limit) continue;
+            }
+
+            bool res = true;
+//            std::cout<<"local="<<localSize<<"\tgrid="<<gridSize<<"\tshared="<<sharedSize;
+
+//------------------ data initialization -------------------
+            int *h_in_keys = new int[len];
+            int *h_out_keys = new int[len];
+
+            int *h_in_values = new int[len];
+            int *h_out_values = new int[len];
+
+            recordRandom(h_in_keys, h_in_values, len, len);
+            for(int i = 0; i < len; i++) h_in_values[i] = h_in_keys[i];
+
+            //memory allocation
+            cl_mem d_in_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+            checkErr(status, ERR_HOST_ALLOCATION);
+            //output data
+            cl_mem d_out_keys = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+            checkErr(status, ERR_HOST_ALLOCATION);
+
+            cl_mem d_start = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*buckets, NULL, &status);
+            checkErr(status, ERR_HOST_ALLOCATION);
+
+            cl_mem d_in_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+            checkErr(status, ERR_HOST_ALLOCATION);
+            cl_mem d_out_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+            checkErr(status, ERR_HOST_ALLOCATION);
+
+            //data copy
+            status = clEnqueueWriteBuffer(info.currentQueue, d_in_keys, CL_TRUE, 0, sizeof(int)*len, h_in_keys, 0, 0, 0);
+            checkErr(status, ERR_WRITE_BUFFER);
+            status = clEnqueueWriteBuffer(info.currentQueue, d_in_values, CL_TRUE, 0, sizeof(int)*len, h_in_values, 0, 0, 0);
+            checkErr(status, ERR_WRITE_BUFFER);
+//------------------ data initialization end-------------------
+
+            double totalTime = 0.0;
+            for(int e = 0; e < experTime; e++) {
+                double tempTime;
+                switch (algo) {
+                    case 0:
+                        tempTime = thread_split_k(d_in_keys, d_out_keys, d_start, len, buckets, info, localSize, gridSize);
+                        break;
+                    case 1:
+                        tempTime = thread_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, info, localSize, gridSize);
+                        break;
+                    case 2:
+                        tempTime = block_split_k(d_in_keys, d_out_keys, d_start, len, buckets, false, info, localSize, gridSize, sharedSize);
+                        break;
+                    case 3:
+                        tempTime = block_split_k(d_in_keys, d_out_keys, d_start, len, buckets, true, info, localSize, gridSize, sharedSize);
+                        break;
+                    case 4:
+                        tempTime = block_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, false, info, localSize, gridSize, sharedSize);
+                        break;
+                    case 5:
+                        tempTime = block_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, true, info, localSize, gridSize, sharedSize);
+                        break;
+                }
+                if (e == 0) {
+                    //check
+                    //memory written back
+                    status = clEnqueueReadBuffer(info.currentQueue, d_out_keys, CL_TRUE, 0, sizeof(int)*len, h_out_keys, 0, 0, 0);
+                    checkErr(status, ERR_READ_BUFFER);
+                    status = clFinish(info.currentQueue);
+
+                    int mask = buckets - 1;
+                    int bits_prev = h_out_keys[0] & mask;
+//                    for(int a = 0; a < 8; a++)
+//                        std::cout<<"local_num:"<<h_out_keys[a]<<std::endl;
+                    for(int i = 1; i < len; i++) {
+                        int bits_now = h_out_keys[i] & mask;
+                        if (bits_now < bits_prev)  {
+                            res = false;
+                            cerr<<"\twrong results"<<endl;
+                            return ;
+                        }
+                        bits_prev = bits_now;
+                    }
+                }
+                else {
+                    totalTime += tempTime;
+                }
+            }
+            totalTime /= (experTime-1);
+//            std::cout<<"\ttime="<<totalTime<<"ms";
+
+            if (totalTime < bestTime) {
+                bestTime = totalTime;
+                bestLocalSize = localSize;
+                bestGridSize = gridSize;
+                bestSharedSize = sharedSize;
+//                std::cout<<"\tbest"<<std::endl;
+            }
+//            else std::cout<<std::endl;
+
+            status = clReleaseMemObject(d_in_keys);
+            checkErr(status, ERR_RELEASE_MEM);
+            status = clReleaseMemObject(d_out_keys);
+            checkErr(status, ERR_RELEASE_MEM);
+            status = clReleaseMemObject(d_in_values);
+            checkErr(status, ERR_RELEASE_MEM);
+            status = clReleaseMemObject(d_out_values);
+            checkErr(status, ERR_RELEASE_MEM);
+            status = clReleaseMemObject(d_start);
+            checkErr(status, ERR_RELEASE_MEM);
+
+            delete [] h_in_keys;
+            delete [] h_out_keys;
+            delete [] h_in_values;
+            delete [] h_out_values;
+        }
+    }
+    cout<<"bLocal="<<bestLocalSize<<" bGrid="<<bestGridSize<<" Time="<<bestTime<<"ms"<<endl;
 }
 
 bool testRadixSort(

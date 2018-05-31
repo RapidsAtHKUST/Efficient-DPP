@@ -36,12 +36,12 @@ double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, c
     checkErr(status, ERR_HOST_ALLOCATION);
 
 //    gettimeofday(&start, NULL);
-    double r_time = split(d_R_keys,d_R_values, d_R_partitioned_keys, d_R_partitioned_values, r_start, rLen, bits, info);
+    double r_time = block_split_kv(d_R_keys,d_R_values, d_R_partitioned_keys, d_R_partitioned_values, r_start, rLen, bits, false, info);
 //    gettimeofday(&end, NULL);
 //    double r_time = diffTime(end, start);
 
 //    gettimeofday(&start, NULL);
-    double s_time = split(d_S_keys, d_S_values, d_S_partitioned_keys, d_S_partitioned_values, s_start, sLen, bits, info);
+    double s_time = block_split_kv(d_S_keys, d_S_values, d_S_partitioned_keys, d_S_partitioned_values, s_start, sLen, bits, false, info);
 //    gettimeofday(&end, NULL);
 //    double s_time = diffTime(end, start);
 

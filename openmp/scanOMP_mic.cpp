@@ -94,20 +94,24 @@ bool scanOMP_mic(int len, double &totalTime) {
                     break;
                 }
             }
-            normalTempTime = tempTime;
-            totalTime = tempTime;
+            //normalTempTime = tempTime;
+            //totalTime = tempTime;
         }
         else if (res == true) {
-            if (tempTime < normalTempTime*1.05) {      //with 5% error
-                if (tempTime*1.05 < normalTempTime) { //means the normalTempTime is an outlier
-                    normalCount = 1;
-                    normalTempTime = tempTime;
-                    totalTime = tempTime;
-                }
-                else {  //temp time is correct
-                    totalTime += tempTime;
-                    normalCount++;
-                }
+            // if (tempTime < normalTempTime*1.05) {      //with 5% error
+            //     if (tempTime*1.05 < normalTempTime) { //means the normalTempTime is an outlier
+            //         normalCount = 1;
+            //         normalTempTime = tempTime;
+            //         totalTime = tempTime;
+            //     }
+            //     else {  //temp time is correct
+            //         totalTime += tempTime;
+            //         normalCount++;
+            //     }
+            // }
+            if (e >= experTime/2) {
+                totalTime += tempTime;
+                normalCount++;
             }
         }
         else {

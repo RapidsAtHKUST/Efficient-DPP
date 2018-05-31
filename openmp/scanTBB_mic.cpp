@@ -80,7 +80,7 @@ bool scanTBB_mic(int len, double &totalTime) {
     int *output = (int*)_mm_malloc(sizeof(int)*len, 64);
     for(int i = 0; i < len; i++) input[i] = 1;
 
-    int experTime = 10;
+    int experTime = 100;
     int normalCount = 0;
     double normalTempTime;
     for(int e = 0; e < experTime; e++) {
@@ -110,20 +110,24 @@ bool scanTBB_mic(int len, double &totalTime) {
                     break;
                 }
             }
-            normalTempTime = tempTime;
-            totalTime = tempTime;
+            // normalTempTime = tempTime;
+            // totalTime = tempTime;
         }
         else if (res == true) {
-            if (tempTime < normalTempTime*1.05) {      //with 5% error
-                if (tempTime*1.05 < normalTempTime) { //means the normalTempTime is an outlier
-                    normalCount = 1;
-                    normalTempTime = tempTime;
-                    totalTime = tempTime;
-                }
-                else {  //temp time is correct
-                    totalTime += tempTime;
-                    normalCount++;
-                }
+            // if (tempTime < normalTempTime*1.05) {      //with 5% error
+            //     if (tempTime*1.05 < normalTempTime) { //means the normalTempTime is an outlier
+            //         normalCount = 1;
+            //         normalTempTime = tempTime;
+            //         totalTime = tempTime;
+            //     }
+            //     else {  //temp time is correct
+            //         totalTime += tempTime;
+            //         normalCount++;
+            //     }
+            // }
+            if (e >= experTime/2) {
+                totalTime += tempTime;
+                normalCount++;
             }
         }
         else {
