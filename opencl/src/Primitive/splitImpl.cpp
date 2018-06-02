@@ -20,7 +20,7 @@
 double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, bool reorder, PlatInfo& info, int localSize, int gridSize, int sharedSize) {
 //    std::cout<<"Function: block_split_k"<<std::endl;
 
-//    localSize = 128, gridSize = 32768, sharedSize=1024;
+   // localSize = 256, gridSize = 4096, sharedSize=8192;
     int globalSize = localSize * gridSize;
     cl_int status = 0;
     int argsNum = 0;
@@ -63,7 +63,7 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
     status = clFinish(info.currentQueue);
     gettimeofday(&end, NULL);
     double histogramTime = diffTime(end, start);
-    std::cout<<"Histogram time: "<<histogramTime<<" ms."<<std::endl;
+    // std::cout<<"Histogram time: "<<histogramTime<<" ms."<<std::endl;
 
     totalTime += histogramTime;
     checkErr(status, ERR_EXEC_KERNEL);
@@ -73,7 +73,7 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
     double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
 
     totalTime += scanTime;
-    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
+   // std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
 
 
     //gather the start position (optional)
@@ -93,7 +93,22 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
 //    totalTime += gatherTime;
 
     cl_kernel scatterWithHisKernel;
-    if (reorder) scatterWithHisKernel = KernelProcessor::getKernel("splitKernel.cl", "block_reorder_scatter_k",info.context);
+    if (reorder) {
+        char extra[500] = {'\0'};
+        if (buckets <= 32) strcpy(extra, "-DSMALLER_WARP_SIZE");    //one-level local scan
+        else {  //two-level local scan
+            int loop = (buckets+localSize-1)/localSize;             //number of elements each work-item processes
+            if (loop == 1)  strcpy(extra, "-DLARGER_WARP_SIZE_SINGLE_LOOP");
+            else {
+                strcpy(extra, "-DLARGER_WARP_SIZE_MULTIPLE_LOOPS");
+                char loop_str[20];
+                my_itoa(loop, loop_str, 10);
+                strcat(extra, " -DLOOPS=");
+                strcat(extra, loop_str);
+            }
+        }
+        scatterWithHisKernel = KernelProcessor::getKernel("splitKernel.cl", "block_reorder_scatter_k",info.context,extra);
+    }
     else scatterWithHisKernel = KernelProcessor::getKernel("splitKernel.cl", "block_scatter_k", info.context);
 
     argsNum = 0;
@@ -101,13 +116,22 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_out_keys);
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_his_out);
-    status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int) * buckets, NULL);
+    status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int) * (buckets+1), NULL);
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int), &buckets);
+
+    // int *h_help = new int[localSize];
+    // int *h_help2 = new int[localSize];
+
+    // cl_mem d_help = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)* localSize, NULL, &status);
+    // checkErr(status, ERR_HOST_ALLOCATION);
+    // cl_mem d_help2 = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)* localSize, NULL, &status);
+    // checkErr(status, ERR_HOST_ALLOCATION);
 
     if (reorder) {
         status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_his_in);
-        status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int) * buckets, NULL);
         status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int) * sharedSize, NULL);
+        // status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_help);
+        // status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_help2);
     }
     checkErr(status, ERR_SET_ARGUMENTS);
 
@@ -121,9 +145,37 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
     double scatterTime = diffTime(end, start);
 
     //*2 for keys and values, another *2 for read and write data
-    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
+   // std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
 
     totalTime += scatterTime;
+
+    // status = clEnqueueReadBuffer(info.currentQueue, d_help, CL_TRUE, 0, sizeof(int)*localSize, h_help, 0, 0, 0);
+    // checkErr(status, ERR_WRITE_BUFFER);
+
+    // status = clEnqueueReadBuffer(info.currentQueue, d_help2, CL_TRUE, 0, sizeof(int)*localSize, h_help2, 0, 0, 0);
+    // checkErr(status, ERR_WRITE_BUFFER);
+
+    // int total = 0;
+    // std::cout<<"help:"<<std::endl;
+    // for(int i = 0; i < localSize; i++) {
+    //     std::cout<<h_help[i]<<' ';
+    //     // if (i < 32)
+    //     total += h_help[i];
+    // }
+    // std::cout<<std::endl;
+    // std::cout<<"Total: "<<total<<std::endl;
+
+    // total = 0;
+    // std::cout<<"help2:"<<std::endl;
+    // for(int i = 0; i < localSize; i++) {
+    //     std::cout<<h_help2[i]<<' ';
+    //     // total += h_help2[i];
+    // }
+    // std::cout<<std::endl;
+    // // std::cout<<"Total: "<<total<<std::endl;
+
+    // delete[] h_help;
+    // delete[] h_help2;
 
     clReleaseMemObject(d_his_in);
     clReleaseMemObject(d_his_out);
@@ -135,7 +187,7 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
 double block_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, cl_mem d_out_values, cl_mem d_start, int length, int buckets, bool reorder, PlatInfo& info, int localSize, int gridSize, int sharedSize) {
 //    std::cout<<"Function: block_split_kv"<<std::endl;
 
-    localSize = 128, gridSize = 65536, sharedSize=512;
+//    localSize = 128, gridSize = 65536, sharedSize=512;
     int globalSize = localSize * gridSize;
     cl_int status = 0;
     int argsNum = 0;
@@ -178,7 +230,7 @@ double block_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, c
     status = clFinish(info.currentQueue);
     gettimeofday(&end, NULL);
     double histogramTime = diffTime(end, start);
-    std::cout<<"Histogram time: "<<histogramTime<<" ms."<<std::endl;
+//    std::cout<<"Histogram time: "<<histogramTime<<" ms."<<std::endl;
 
     totalTime += histogramTime;
     checkErr(status, ERR_EXEC_KERNEL);
@@ -186,7 +238,7 @@ double block_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, c
     //prefix scan
     double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
     totalTime += scanTime;
-    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
+//    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
 
 
     //gather the start position (optional)
@@ -206,7 +258,22 @@ double block_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, c
 //    totalTime += gatherTime;
 
     cl_kernel scatterWithHisKernel;
-    if (reorder) scatterWithHisKernel = KernelProcessor::getKernel("splitKernel.cl", "block_reorder_scatter_kv", info.context);
+    if (reorder) {
+        char extra[500] = {'\0'};
+        if (buckets <= 32) strcpy(extra, "-DSMALLER_WARP_SIZE");    //one-level local scan
+        else {  //two-level local scan
+            int loop = (buckets+localSize-1)/localSize;             //number of elements each work-item processes
+            if (loop == 1)  strcpy(extra, "-DLARGER_WARP_SIZE_SINGLE_LOOP");
+            else {
+                strcpy(extra, "-DLARGER_WARP_SIZE_MULTIPLE_LOOPS");
+                char loop_str[20];
+                my_itoa(loop, loop_str, 10);
+                strcat(extra, " -DLOOPS=");
+                strcat(extra, loop_str);
+            }
+        }
+        scatterWithHisKernel = KernelProcessor::getKernel("splitKernel.cl", "block_reorder_scatter_kv",info.context,extra);
+    }
     else scatterWithHisKernel = KernelProcessor::getKernel("splitKernel.cl", "block_scatter_kv", info.context);
 
     argsNum = 0;
@@ -216,12 +283,11 @@ double block_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, c
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_out_values);
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_his_out);
-    status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int) * buckets, NULL);
+    status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int) * (buckets+1), NULL);
     status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int), &buckets);
 
     if (reorder) {
         status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(cl_mem), &d_his_in);
-        status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int) * buckets, NULL);
         status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int) * sharedSize, NULL);
         status |= clSetKernelArg(scatterWithHisKernel, argsNum++, sizeof(int) * sharedSize, NULL);
     }
@@ -238,7 +304,7 @@ double block_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, c
     double scatterTime = diffTime(end, start);
 
     //*2 for keys and values, another *2 for read and write data
-    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
+//    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
 
     totalTime += scatterTime;
 

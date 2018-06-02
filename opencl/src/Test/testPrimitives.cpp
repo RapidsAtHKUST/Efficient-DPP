@@ -757,9 +757,9 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime) {
     cout<<"Func: thread_k"<<'\t';
     for(int e = 0; e < experTime; e++) {
         double tempTime;
-        tempTime = block_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, true, info);
+        // tempTime = block_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, true, info);
 //    tempTime = thread_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, info);
-//        tempTime = block_split_k(d_in_keys, d_out_keys, d_start, len, buckets, true, info);
+       tempTime = block_split_k(d_in_keys, d_out_keys, d_start, len, buckets, true, info);
 
 
 //    tempTime = thread_split_k(d_in_keys, d_out_keys, d_start, len, buckets, info);
@@ -846,7 +846,7 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime) {
 void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& info) {
     cl_int status;
     int experTime = 10;
-    int localSizeBegin, localSizeEnd, gridSizeBegin, gridSizeEnd, limitSharedSize;
+    int localSizeBegin, localSizeEnd, gridSizeBegin, gridSizeEnd, limitSharedSize, limitedRegSize;
 
     //on gpu
     if (device==0) {
@@ -855,6 +855,7 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
         gridSizeBegin = 1024;
         gridSizeEnd = 131072;
         limitSharedSize = 47*1024;      //47KB
+        limitedRegSize = 64 * 1024;
     }
     else if (device==1) {       //on CPU
         localSizeBegin = 64;
@@ -880,10 +881,6 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
             if (algo == 3) scale = 1;
             if (algo == 5) scale = 2;
             if (scale * sharedSize * sizeof(int) > limitSharedSize) continue;
-
-            if (algo == 3 || algo == 5) {
-                if (localSize < buckets) continue;
-            }
 
             if (algo == 0 || algo == 1) {
                 //check the local memory size for the thread-level split

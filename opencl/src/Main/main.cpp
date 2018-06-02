@@ -138,11 +138,11 @@ int main(int argc, const char * argv[]) {
 //     cout<<"Time:"<<totalTime<<" ms.\t";
 //     cout<<"Throughput:"<<length*1.0* sizeof(int)/1024/1024/1024/totalTime*1000<<" GB/s"<<endl;
 
-    testSplit(length, info, 32, totalTime);
+   // testSplit(length, info, 3072, totalTime);
 
-//    for(int buckets = 2; buckets <= 4096; buckets <<= 1) {
-//        testSplitParameters(length, buckets, 0, 5, info);
-//    }
+    for(int buckets = 2; buckets <= 2048; buckets <<= 1) {
+        testSplitParameters(length, buckets, 0, 5, info);
+    }
 
 //------- finished operations ---------------
 
