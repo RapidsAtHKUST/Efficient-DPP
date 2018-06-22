@@ -708,7 +708,7 @@ void testScanParameters(int length, int selection, PlatInfo& info) {
 }
 
 //fanout: number of partitions needed
-bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime) {
+bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime) {
 
     cl_int status = 0;
     bool res = true;
@@ -752,9 +752,9 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime) {
     checkErr(status, ERR_WRITE_BUFFER);
 
     int experTime = 10;
-    totalTime = 0;
+    aveTime = 0;
 
-    cout<<"Func: thread_k"<<'\t';
+    double *timeRecorder = new double[experTime];
     for(int e = 0; e < experTime; e++) {
         double tempTime;
         // tempTime = block_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, true, info);
@@ -786,13 +786,9 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime) {
                 bits_prev = bits_now;
             }
         }
-        else {
-            totalTime += tempTime;
-        }
+        timeRecorder[e] = tempTime;
     }
-    totalTime /= (experTime-1);
-
-
+    aveTime = averageHampel(timeRecorder, experTime);
 
 //    cout<<"input:"<<endl;
 //    for(int i = 0 ; i < len; i++) {
@@ -821,10 +817,10 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime) {
     status = clReleaseMemObject(d_out_keys);
     checkErr(status, ERR_RELEASE_MEM);
     
-    delete [] h_in_keys;
-    delete [] h_out_keys;
+    if(h_in_keys) delete [] h_in_keys;
+    if(h_out_keys) delete [] h_out_keys;
     
-    std::cout<<"Time: "<<totalTime<<" ms."<<"("<<len* sizeof(int)*2/totalTime*1000/1e9<<"GB/s)"<<std::endl;
+    std::cout<<"Time: "<<aveTime<<" ms."<<"("<<len* sizeof(int)*2/aveTime*1000/1e9<<"GB/s)"<<std::endl;
 
     return res;
 }
@@ -846,7 +842,7 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime) {
 void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& info) {
     cl_int status;
     int experTime = 10;
-    int localSizeBegin, localSizeEnd, gridSizeBegin, gridSizeEnd, limitSharedSize, limitedRegSize;
+    int localSizeBegin, localSizeEnd, gridSizeBegin, gridSizeEnd, limitSharedSize;
 
     //on gpu
     if (device==0) {
@@ -855,15 +851,22 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
         gridSizeBegin = 1024;
         gridSizeEnd = 131072;
         limitSharedSize = 47*1024;      //47KB
-        limitedRegSize = 64 * 1024;
     }
     else if (device==1) {       //on CPU
         localSizeBegin = 64;
         localSizeEnd = 512;
         gridSizeBegin = 128;
-        gridSizeEnd = 32768;
-        limitSharedSize = 999999999;    //no shared size limit
+        gridSizeEnd = 131072;
+        limitSharedSize = 32*1024;    //CPU also has limited local mem size
     }
+    else if (device==2) {       //on MIC
+        localSizeBegin = 64;
+        localSizeEnd = 2048;
+        gridSizeBegin = 128;
+        gridSizeEnd = 4096;
+        limitSharedSize = 64*1024;    //CPU also has limited local mem size
+    }
+    else return;
 
     //best results
     double bestTime = 99999;
@@ -877,14 +880,19 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
             //check the shared memory size
             if (sharedSize < localSize) continue;
 
-            int scale = 0;
-            if (algo == 3) scale = 1;
-            if (algo == 5) scale = 2;
-            if (scale * sharedSize * sizeof(int) > limitSharedSize) continue;
+            if (algo == 3 || algo == 5) {
+                int scale = 0;
+                if (algo == 3) scale = 1;
+                if (algo == 5) scale = 2;
+
+                if ( sizeof(int)*(buckets+1) + scale * sharedSize * sizeof(int) > limitSharedSize) {
+                    continue;
+                }
+            }
 
             if (algo == 0 || algo == 1) {
                 //check the local memory size for the thread-level split
-                if (localSize * buckets * sizeof(int) >= 48 * 1024) continue;
+                if (localSize * buckets * sizeof(int) >= limitSharedSize) continue;
 
                 //check the global memory size for the thread-level split
                 unsigned his_len = localSize * gridSize;
@@ -893,7 +901,6 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
             }
 
             bool res = true;
-//            std::cout<<"local="<<localSize<<"\tgrid="<<gridSize<<"\tshared="<<sharedSize;
 
 //------------------ data initialization -------------------
             int *h_in_keys = new int[len];
@@ -926,8 +933,8 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
             status = clEnqueueWriteBuffer(info.currentQueue, d_in_values, CL_TRUE, 0, sizeof(int)*len, h_in_values, 0, 0, 0);
             checkErr(status, ERR_WRITE_BUFFER);
 //------------------ data initialization end-------------------
-
-            double totalTime = 0.0;
+            float aveTime = 0.0;
+            double *timeRecorder = new double[experTime];
             for(int e = 0; e < experTime; e++) {
                 double tempTime;
                 switch (algo) {
@@ -971,21 +978,17 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
                         bits_prev = bits_now;
                     }
                 }
-                else {
-                    totalTime += tempTime;
-                }
+                timeRecorder[e] = tempTime;
             }
-            totalTime /= (experTime-1);
-//            std::cout<<"\ttime="<<totalTime<<"ms";
+            aveTime = averageHampel(timeRecorder,experTime);
+            if (timeRecorder)   delete[] timeRecorder;
 
-            if (totalTime < bestTime) {
-                bestTime = totalTime;
+            if (aveTime < bestTime) {
+                bestTime = aveTime;
                 bestLocalSize = localSize;
                 bestGridSize = gridSize;
                 bestSharedSize = sharedSize;
-//                std::cout<<"\tbest"<<std::endl;
             }
-//            else std::cout<<std::endl;
 
             status = clReleaseMemObject(d_in_keys);
             checkErr(status, ERR_RELEASE_MEM);
@@ -998,10 +1001,10 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
             status = clReleaseMemObject(d_start);
             checkErr(status, ERR_RELEASE_MEM);
 
-            delete [] h_in_keys;
-            delete [] h_out_keys;
-            delete [] h_in_values;
-            delete [] h_out_values;
+            if(h_in_keys) delete [] h_in_keys;
+            if(h_out_keys) delete [] h_out_keys;
+            if(h_in_values) delete [] h_in_values;
+            if(h_out_values) delete [] h_out_values;
         }
     }
     cout<<"bLocal="<<bestLocalSize<<" bGrid="<<bestGridSize<<" Time="<<bestTime<<"ms"<<endl;

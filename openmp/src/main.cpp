@@ -21,19 +21,23 @@ double avgTime[NUM_FUCTIONS]={0};
 int main(int argc, char* argv[]) {
 
 	double totalTime;
-
+	double mulTime=999999;
 	// int n = atoi(argv[1]);
 
 	// cout<<"num:"<<n<<endl;
 
 cout<<"---------------- begin test ----------------"<<endl;
 
-	int num = 64/sizeof(int)*1024*1024;
-	int *a = new int[num];
-	int *b = new int[num];
-	for(int i = 0; i < num; i++) a[i] = 1;
+//	int num = 64/sizeof(int)*1024*1024;
+//	int *a = new int[num];
+//	int *b = new int[num];
+//	for(int i = 0; i < num; i++) a[i] = 1;
+	int len  = 512 * 8192 * 100;
+	int *input = (int*)_mm_malloc(sizeof(int)*len,64);
+	int *output = (int*)_mm_malloc(sizeof(int)*len,64);
+	for(int i = 0; i < num; i++) input[i] = i;
 
-	testScan_tbb(a, b, num, 1);
+//	testScan_tbb(a, b, num, 1);
 	// for(int i = 0; i < expr; i++) {
 	// 	totalTime = mem_read_test(input, n);
 	// 	if (totalTime < readTime) readTime = totalTime;
@@ -46,10 +50,10 @@ cout<<"---------------- begin test ----------------"<<endl;
 	// }
 	// cout<<"write test: finished."<<endl;
 
-	// for(int i = 0; i < expr; i++) {
-	// 	totalTime = mem_mul_test(input, output, n);
-	// 	if (totalTime < mulTime) mulTime = totalTime;
-	// }
+	 for(int i = 0; i < expr; i++) {
+	 	totalTime = mem_mul_test(input, output, n);
+	 	if (totalTime < mulTime) mulTime = totalTime;
+	 }
 
 	// for(int i = 0; i < expr; i++) {
 	// 	totalTime = mem_add_test(input,input_2, output, n);
@@ -62,16 +66,16 @@ cout<<"---------------- begin test ----------------"<<endl;
 	// 	<<"Read Throughput: "<< computeMem(n, sizeof(int), readTime)<<" GB/s"<<endl;
 	// cout<<"Write totalTime:"<<writeTime<<" ms.\t"
 	// <<"Write Throughput: "<< computeMem(n, sizeof(int), writeTime)<<" GB/s"<<endl;
-	// cout<<"Mul totalTime:"<<mulTime<<" ms.\t"
-	// <<"Mul Throughput: "<< computeMem(n*2, sizeof(int), mulTime)<<" GB/s"<<endl;
+	 cout<<"Mul totalTime:"<<mulTime<<" ms.\t"
+	 <<"Mul Throughput: "<< computeMem(n*2, sizeof(int), mulTime)<<" GB/s"<<endl;
 	// cout<<"Add totalTime:"<<addTime<<" ms.\t"
 	// <<"Add Throughput: "<< computeMem(n*3, sizeof(int), addTime)<<" GB/s"<<endl;
 
 	// delete[] input;
 	// delete[] input_2;
 	// delete[] output;
-	// _mm_free(input);
-	// _mm_free(output);
+	 _mm_free(input);
+	 _mm_free(output);
 //----------------------------------- scan testing -----------------------------------
 //	int expr = 10;
 //

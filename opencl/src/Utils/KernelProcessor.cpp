@@ -41,7 +41,7 @@ void KernelProcessor::kernelRead(char *addr) {
 
 void KernelProcessor::compile(cl_context context, char* extra) {
 
-    //establish the program the compile it
+    //establish the program and compile it
     cl_int err;
     this->program = clCreateProgramWithSource(context, 1, (const char**)(&this->source), 0, &err);
     checkErr(err, "Failed to creat program.");

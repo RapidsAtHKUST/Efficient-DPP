@@ -1,0 +1,26 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 1000
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Many Integrated Core Acceleration Card
+------ End of hardware checking ------
+
+Length=33554432 Algo=4 Buckets=2 bLocal=128 bGrid=4096 Time=27.373ms
+Length=33554432 Algo=4 Buckets=4 bLocal=512 bGrid=2048 Time=32.5553ms
+Length=33554432 Algo=4 Buckets=8 bLocal=64 bGrid=2048 Time=36.6062ms
+Length=33554432 Algo=4 Buckets=16 bLocal=64 bGrid=2048 Time=43.6917ms
+Length=33554432 Algo=4 Buckets=32 bLocal=64 bGrid=2048 Time=50.435ms
+Length=33554432 Algo=4 Buckets=64 bLocal=64 bGrid=2048 Time=56.9996ms
+Length=33554432 Algo=4 Buckets=128 bLocal=128 bGrid=2048 Time=59.7083ms
+Length=33554432 Algo=4 Buckets=256 bLocal=64 bGrid=2048 Time=63.3024ms
+Length=33554432 Algo=4 Buckets=512 bLocal=2048 bGrid=2048 Time=87.9295ms
+Length=33554432 Algo=4 Buckets=1024 bLocal=1024 bGrid=1024 Time=113.414ms
+Length=33554432 Algo=4 Buckets=2048 bLocal=128 bGrid=1024 Time=146.863ms
+Length=33554432 Algo=4 Buckets=4096 bLocal=512 bGrid=1024 Time=171.552ms

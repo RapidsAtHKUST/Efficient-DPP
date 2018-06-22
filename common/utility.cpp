@@ -201,6 +201,41 @@ double clEventTime(const cl_event event){
     return (end - start) / 1000000.0;
 }
 
+double averageHampel(double *input, int num) {
+    int valid = 0;
+    double total = 0;
+
+    double *temp_input = new double[num];
+    double *myabs = new double[num];
+    double mean, abs_mean;
+
+    for(int i = 0; i < num; i++) temp_input[i]=input[i];
+
+    std::sort(temp_input, temp_input+num);
+    if (num % 2 == 0)  mean = 0.5*(temp_input[num/2-1] + temp_input[num/2]);
+    else               mean = temp_input[(num-1)/2];
+
+    for(int i = 0; i < num; i++)    myabs[i] = fabs(temp_input[i]-mean);
+
+    std::sort(myabs, myabs+num);
+    if (num % 2 == 0)  abs_mean = 0.5*(myabs[num/2-1] + myabs[num/2]);
+    else               abs_mean = myabs[(num-1)/2];
+
+    abs_mean /= 0.6745;
+
+    for(int i = 0; i < num; i++) {
+        double div = myabs[i] / abs_mean;
+        if (div <= 3.5) {
+            total += temp_input[i];
+            valid ++;
+        }
+    }
+    total = 1.0 * total / valid;
+
+    if(temp_input)  delete[] temp_input;
+    if (myabs)      delete[] myabs;
+    return total;
+}
 
 
 #endif

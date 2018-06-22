@@ -1,7 +1,7 @@
 #ifndef SPLIT_KERNEL_CL
 #define SPLIT_KERNEL_CL
 
-#define WARP_BITS   (5)
+#define WARP_BITS   (3)
 #define WARP_SIZE   (1<<WARP_BITS)
 
 #ifdef SMALLER_WARP_SIZE        //num <= WARP_SIZE
@@ -9,10 +9,15 @@
     if (localId < num) {                                                    \
         int temp = arr[localId+offset];                                     \
         if (localId >= 1) arr[localId+offset] += arr[localId - 1+offset];   \
+        mem_fence(CLK_LOCAL_MEM_FENCE); \
         if (localId >= 2) arr[localId+offset] += arr[localId - 2+offset];   \
+        mem_fence(CLK_LOCAL_MEM_FENCE); \
         if (localId >= 4) arr[localId+offset] += arr[localId - 4+offset];   \
+        mem_fence(CLK_LOCAL_MEM_FENCE); \
         if (localId >= 8) arr[localId+offset] += arr[localId - 8+offset];   \
+        mem_fence(CLK_LOCAL_MEM_FENCE); \
         if (localId >= 16) arr[localId+offset] += arr[localId - 16+offset]; \
+        mem_fence(CLK_LOCAL_MEM_FENCE); \
         arr[localId+offset] -= temp;                                        \
     }                                                                       \
     barrier(CLK_LOCAL_MEM_FENCE);
@@ -26,8 +31,11 @@
    if (localId < num) {                                                     \
        int temp = arr[localId+offset];                                      \
        if (lane >= 1) arr[localId+offset] += arr[localId - 1 +offset];      \
+       mem_fence(CLK_LOCAL_MEM_FENCE); \
        if (lane >= 2) arr[localId+offset] += arr[localId - 2 +offset];      \
+       mem_fence(CLK_LOCAL_MEM_FENCE); \
        if (lane >= 4) arr[localId+offset] += arr[localId - 4 +offset];      \
+       mem_fence(CLK_LOCAL_MEM_FENCE); \
        if (lane >= 8) arr[localId+offset] += arr[localId - 8 +offset];      \
        if (lane >= 16) arr[localId+offset] += arr[localId - 16 +offset];    \
        if (lane == 0) tempSums[warpId] = arr[(warpId+1)*WARP_SIZE-1+offset];\
@@ -38,8 +46,11 @@
    if (warpId == 0) {                                                       \
        int temp = tempSums[localId];                                        \
        if (lane >= 1) tempSums[localId] += tempSums[localId - 1];           \
+       mem_fence(CLK_LOCAL_MEM_FENCE); \
        if (lane >= 2) tempSums[localId] += tempSums[localId - 2];           \
+       mem_fence(CLK_LOCAL_MEM_FENCE); \
        if (lane >= 4) tempSums[localId] += tempSums[localId - 4];           \
+       mem_fence(CLK_LOCAL_MEM_FENCE); \
        if (lane >= 8) tempSums[localId] += tempSums[localId - 8];           \
        if (lane >= 16) tempSums[localId] += tempSums[localId - 16];         \
        tempSums[localId] -= temp;                                           \
@@ -75,8 +86,11 @@
     barrier(CLK_LOCAL_MEM_FENCE);                                           \
                                                                             \
     if (lane >= 1) arr[localId+offset] += arr[localId - 1 +offset];         \
+    mem_fence(CLK_LOCAL_MEM_FENCE); \
     if (lane >= 2) arr[localId+offset] += arr[localId - 2 +offset];         \
+    mem_fence(CLK_LOCAL_MEM_FENCE); \
     if (lane >= 4) arr[localId+offset] += arr[localId - 4 +offset];         \
+    mem_fence(CLK_LOCAL_MEM_FENCE); \
     if (lane >= 8) arr[localId+offset] += arr[localId - 8 +offset];         \
     if (lane >= 16) arr[localId+offset] += arr[localId - 16 +offset];       \
     if (lane == 0) tempSums[warpId] = arr[(warpId+1)*WARP_SIZE-1+offset];   \
@@ -86,8 +100,11 @@
     if (warpId == 0) {                                                      \
         int temp = tempSums[localId];                                       \
         if (lane >= 1) tempSums[localId] += tempSums[localId - 1];          \
+        mem_fence(CLK_LOCAL_MEM_FENCE); \
         if (lane >= 2) tempSums[localId] += tempSums[localId - 2];          \
+        mem_fence(CLK_LOCAL_MEM_FENCE); \
         if (lane >= 4) tempSums[localId] += tempSums[localId - 4];          \
+        mem_fence(CLK_LOCAL_MEM_FENCE); \
         if (lane >= 8) tempSums[localId] += tempSums[localId - 8];          \
         if (lane >= 16) tempSums[localId] += tempSums[localId - 16];        \
         tempSums[localId] -= temp;                                          \
@@ -104,6 +121,19 @@
     #define LOCAL_SCAN(arr,num,offset) ;
 #endif
 
+int findLog2(int input) {
+    int lookup[20] = {2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536,131072,262144,524288,1048576};
+    int start = 0, end = 20, middle = (start+end)/2;
+
+    while(lookup[middle] != input) {
+        if (start >= end)   return -1;
+        if (input > lookup[middle])  start = middle+1;
+        else                         end = middle-1;
+        middle = (start+end)/2;
+    }
+    return middle+1;
+}
+
 //# buckets > localSize, each thread processes (loops) elements
 // void temp_scan(local int* arr, int num, int offset, global int* help, global int* help2) {
 //     const int localId = get_local_id(0);
@@ -112,14 +142,14 @@
 //     int warpId = localId >> WARP_BITS;
 //     int warpNum = localSize >> WARP_BITS;
 //     int loops = (num + localSize - 1)/localSize;
-
+//
 //     local int tempSums[WARP_SIZE];
-//     int myPrivate[3];    
-
+//     int myPrivate[3];
+//
 //     //local to registers
 //     for(int i = 0; i < loops; i++) myPrivate[i] = arr[localId*loops + i + offset];
 //     barrier(CLK_LOCAL_MEM_FENCE);
-
+//
 //     //register scan
 //     int local_temp0 = myPrivate[0];
 //     myPrivate[0] = 0;
@@ -131,41 +161,125 @@
 //     int temp0 = local_temp0 + myPrivate[loops-1];
 //     arr[localId+offset] = temp0;
 //     barrier(CLK_LOCAL_MEM_FENCE);
-
+//
 // int b = get_group_id(0);
 // if (b==0)   help[localId] = arr[localId];
 // barrier(CLK_LOCAL_MEM_FENCE);
-
-
+//
+//
 //     //now arr has only (localSize) elements
-//     if (lane >= 1) arr[localId+offset] += arr[localId - 1 +offset];     
-//     if (lane >= 2) arr[localId+offset] += arr[localId - 2 +offset];     
-//     if (lane >= 4) arr[localId+offset] += arr[localId - 4 +offset];     
-//     if (lane >= 8) arr[localId+offset] += arr[localId - 8 +offset];     
-//     if (lane >= 16) arr[localId+offset] += arr[localId - 16 +offset];   
+//     if (lane >= 1) arr[localId+offset] += arr[localId - 1 +offset];
+//     if (lane >= 2) arr[localId+offset] += arr[localId - 2 +offset];
+//     if (lane >= 4) arr[localId+offset] += arr[localId - 4 +offset];
+//     if (lane >= 8) arr[localId+offset] += arr[localId - 8 +offset];
+//     if (lane >= 16) arr[localId+offset] += arr[localId - 16 +offset];
 //     if (lane == 0) tempSums[warpId] = arr[(warpId+1)*WARP_SIZE-1+offset];
-//     arr[localId+offset] -= temp0;  
+//     arr[localId+offset] -= temp0;
 //     barrier(CLK_LOCAL_MEM_FENCE);
-
-//     if (warpId == 0) {                                                      
-//         int temp = tempSums[localId];    
-//         if (lane >= 1) tempSums[localId] += tempSums[localId - 1];          
-//         if (lane >= 2) tempSums[localId] += tempSums[localId - 2];          
-//         if (lane >= 4) tempSums[localId] += tempSums[localId - 4];          
-//         if (lane >= 8) tempSums[localId] += tempSums[localId - 8];          
-//         if (lane >= 16) tempSums[localId] += tempSums[localId - 16];        
-//         tempSums[localId] -= temp;                                          
-//     }                                                                       
+//
+//     if (warpId == 0) {
+//         int temp = tempSums[localId];
+//         if (lane >= 1) tempSums[localId] += tempSums[localId - 1];
+//         if (lane >= 2) tempSums[localId] += tempSums[localId - 2];
+//         if (lane >= 4) tempSums[localId] += tempSums[localId - 4];
+//         if (lane >= 8) tempSums[localId] += tempSums[localId - 8];
+//         if (lane >= 16) tempSums[localId] += tempSums[localId - 16];
+//         tempSums[localId] -= temp;
+//     }
 //     barrier(CLK_LOCAL_MEM_FENCE);
-
+//
 //     int myLocalSum = arr[localId+offset] + tempSums[warpId];
 //     barrier(CLK_LOCAL_MEM_FENCE);
-
+//
 //     //put registers data back to the local memory
 //     for(int i = 0; i < loops; i++)
 //         arr[localId*loops + i + offset] = myPrivate[i] + myLocalSum;
 //     barrier(CLK_LOCAL_MEM_FENCE);
 // }
+
+//local sklansky scan
+void sklansky_scan(local int* lo, int length)
+{
+    int localId = get_local_id(0);
+
+    int mask_j = (length>>1) -1;
+    int mask_k = 0;
+    int temp = 1;
+    int localTemp;
+
+    if (localId < length)
+        localTemp = lo[localId];
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    int length_log = findLog2(length);
+    for(int i = 0; i < length_log; i++) {
+        if (localId < (length>>1)) {            //only half of the threads execute
+            int para_j = (localId >> i) & mask_j;
+            int para_k = localId & mask_k;
+
+            int j = temp - 1 + (temp<<1)*para_j;
+            int k = para_k;
+            lo[j+k+1] = lo[j] + lo[j+k+1];
+
+            mask_j >>= 1;
+            mask_k = (mask_k<<1)+1;
+            temp <<= 1;
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+
+    if (localId < length)
+        lo[localId] -= localTemp;
+    barrier(CLK_LOCAL_MEM_FENCE);
+}
+
+void scan_local(local int* lo, int length)
+{
+    const int localId = get_local_id(0);
+    const int localSize = get_local_size(0);
+    int tempStore;  //to store the first 1024 elements in the original lo array
+    int tempSum;
+    int row_start, row_end;
+    local int temps[64];
+//    length is smaller than the localSize, just use the local scan scheme
+    if(length <= localSize) {
+        sklansky_scan(lo, length);
+        return;
+    }
+
+    //1. Reduction (per thread)
+    int ele_per_thread = (length + localSize - 1)/localSize;
+    row_start = localId * ele_per_thread;
+    row_end = (localId + 1) * ele_per_thread;
+
+    int local_sum = 0;
+    for (int r = row_start; r < row_end; r++) {
+        local_sum += lo[r];
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    tempStore = lo[localId];                    //switch out the first localSize elements
+    lo[localId] = local_sum;
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    //local scan
+    sklansky_scan(lo, localSize);
+
+    tempSum = lo[localId];
+    lo[localId] = tempStore;    //switch back the first localSize elements
+
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    //3. Scan
+    int local_temp0 = lo[row_start];
+    lo[row_start] = tempSum;
+    for (int r = row_start + 1; r < row_end; r++) {
+        int local_temp1 = lo[r];
+        lo[r] = local_temp0 + lo[r - 1];
+        local_temp0 = local_temp1;
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+}
 
 //thread-level histogram: each thraed has a private histogram stored in the local memory
 kernel void thread_histogram(
@@ -402,7 +516,9 @@ kernel void block_reorder_scatter_k(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     //scan the local ptrs exclusively
-    LOCAL_SCAN(local_start_ptrs, buckets,1);
+//    LOCAL_SCAN(local_start_ptrs, buckets,1);
+
+    scan_local(local_start_ptrs+1, buckets);
 
     //scatter the input to the local memory
     i = globalId;
@@ -467,7 +583,8 @@ kernel void block_reorder_scatter_kv(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     //scan the local ptrs exclusively
-    LOCAL_SCAN(local_start_ptrs, buckets,1);
+//    LOCAL_SCAN(local_start_ptrs, buckets,1);
+    scan_local(local_start_ptrs+1, buckets);
 
     //scatter the input to the local memory
     i = globalId;

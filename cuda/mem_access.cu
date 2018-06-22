@@ -1,18 +1,27 @@
+/*
+ * compile: nvcc -o mem_access -arch=sm_35 -O3 mem_access.cu -I /usr/local/cuda/samples/common/inc/
+ */
 #include <iostream>
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
 using namespace std;
 
+#define SCALAR  (3)
 
-__global__ void mul_kernel(int *d_in, int *d_out, int scalar)
+__global__ void mul_kernel(int *d_in, int *d_out, int num)
 {
     int globalId = blockIdx.x * blockDim.x + threadIdx.x;
-    d_out[globalId] = d_in[globalId]*scalar;
+    int globalSIze = blockDim.x * gridDim.x;
+
+    while (globalId < num) {
+        d_out[globalId] = d_in[globalId]*SCALAR;
+        globalId += globalSIze;
+    }
 }
 
-float mul(int *d_in, int *d_out, int blockSize, int gridSize)
+float mul(int *d_in, int *d_out, int num)
 {
-    int scalar = 3;
+    int blockSize = 1024, gridSize = 32768;
     dim3 grid(gridSize);
     dim3 block(blockSize);
 
@@ -23,7 +32,7 @@ float mul(int *d_in, int *d_out, int blockSize, int gridSize)
     cudaEventCreate(&end);
 
     cudaEventRecord(start);
-    mul_kernel<<<grid, block>>>(d_in, d_out, scalar);
+    mul_kernel<<<grid, block>>>(d_in, d_out, num);
     cudaEventRecord(end);
 
     cudaEventSynchronize(start);
@@ -38,9 +47,8 @@ float mul(int *d_in, int *d_out, int blockSize, int gridSize)
 }
 
 void testMem() {
-    cudaError_t err;
-    int blockSize = 1024, gridSize = 32768;
-    int len = blockSize * gridSize;
+
+    int len = 512 * 8192 * 100;     //1600MB
     std::cout<<"Data size(Multiplication): "<<len<<" ("<<len* sizeof(int)/1024/1024<<"MB)"<<std::endl;
 
     float mulTime = 0.0;
@@ -54,20 +62,26 @@ void testMem() {
     checkCudaErrors(cudaMalloc(&d_out,sizeof(int)*len));
     cudaMemcpy(d_in, h_in, sizeof(int)*len, cudaMemcpyHostToDevice);
 
-    for(int i = 0; i < 10; i++) {
-        float tempTime = mul(d_in, d_out, blockSize, gridSize);
-
-        //throw away the first result
+    int experTime = 10;
+    for(int i = 0; i < experTime; i++) {
+        float tempTime = mul(d_in, d_out, len);
         if (i != 0)     mulTime += tempTime;
     }
-    mulTime /= (10- 1);
+    mulTime /= (experTime - 1);
 
     delete[] h_in;
+    checkCudaErrors(cudaFree(d_in));
     checkCudaErrors(cudaFree(d_out));
+
+    //both read and write
+    double throughput = 2*sizeof(int)*len / mulTime / 1e6;
+
+    std::cout<<"Time for multiplication: "<<mulTime<<" ms."<<'\t'
+        <<"Bandwidth: "<<throughput<<" GB/s"<<std::endl;
 }
 
 int main() {
+    cudaSetDevice(1);
     testMem();
     return 0;
 }
-

@@ -20,12 +20,13 @@
 double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, bool reorder, PlatInfo& info, int localSize, int gridSize, int sharedSize) {
 //    std::cout<<"Function: block_split_k"<<std::endl;
 
-   // localSize = 256, gridSize = 4096, sharedSize=8192;
-    int globalSize = localSize * gridSize;
+//    localSize = 256, gridSize = 4096, sharedSize=8192;
     cl_int status = 0;
+    cl_event event;
+
+    int globalSize = localSize * gridSize;
     int argsNum = 0;
     double totalTime = 0;
-
     checkLocalMemOverflow(sizeof(int) * buckets);    //this small, because of using atomic add
 
     //kernel reading
@@ -44,8 +45,6 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
     cl_mem d_his_out = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)* his_len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
-    struct timeval start, end;
-
     //set kernel arguments
     argsNum = 0;
     status |= clSetKernelArg(histogramKernel, argsNum++, sizeof(cl_mem), &d_in_keys);
@@ -58,22 +57,19 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
 #ifdef PRINT_KERNEL
     printExecutingKernel(createListKernel);
 #endif
-    gettimeofday(&start, NULL);
-    status = clEnqueueNDRangeKernel(info.currentQueue, histogramKernel, 1, 0, global, local, 0, 0, 0);
+    status = clEnqueueNDRangeKernel(info.currentQueue, histogramKernel, 1, 0, global, local, 0, 0, &event);
+    checkErr(status, ERR_EXEC_KERNEL);
     status = clFinish(info.currentQueue);
-    gettimeofday(&end, NULL);
-    double histogramTime = diffTime(end, start);
+    double histogramTime = clEventTime(event);
+    totalTime += histogramTime;
     // std::cout<<"Histogram time: "<<histogramTime<<" ms."<<std::endl;
 
-    totalTime += histogramTime;
-    checkErr(status, ERR_EXEC_KERNEL);
-
     //prefix scan
-//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 64, 39, 112, 0);
-    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
-
+    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 64, 39, 112, 0);
+//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
     totalTime += scanTime;
-   // std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
+//    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
+
 
 
     //gather the start position (optional)
@@ -95,7 +91,9 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
     cl_kernel scatterWithHisKernel;
     if (reorder) {
         char extra[500] = {'\0'};
-        if (buckets <= 32) strcpy(extra, "-DSMALLER_WARP_SIZE");    //one-level local scan
+        if (buckets <= 8) {
+            strcpy(extra, "-DSMALLER_WARP_SIZE");
+        }    //one-level local scan
         else {  //two-level local scan
             int loop = (buckets+localSize-1)/localSize;             //number of elements each work-item processes
             if (loop == 1)  strcpy(extra, "-DLARGER_WARP_SIZE_SINGLE_LOOP");
@@ -138,16 +136,12 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
 #ifdef PRINT_KERNEL
     printExecutingKernel(splitWithListKernel);
 #endif
-    gettimeofday(&start, NULL);
-    status = clEnqueueNDRangeKernel(info.currentQueue, scatterWithHisKernel, 1, 0, global, local, 0, 0, 0);
+    status = clEnqueueNDRangeKernel(info.currentQueue, scatterWithHisKernel, 1, 0, global, local, 0, 0, &event);
+    checkErr(status, ERR_EXEC_KERNEL);
     status = clFinish(info.currentQueue);
-    gettimeofday(&end, NULL);
-    double scatterTime = diffTime(end, start);
-
-    //*2 for keys and values, another *2 for read and write data
-   // std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
-
+    double scatterTime = clEventTime(event);
     totalTime += scatterTime;
+   // std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
 
     // status = clEnqueueReadBuffer(info.currentQueue, d_help, CL_TRUE, 0, sizeof(int)*localSize, h_help, 0, 0, 0);
     // checkErr(status, ERR_WRITE_BUFFER);
@@ -236,7 +230,8 @@ double block_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, c
     checkErr(status, ERR_EXEC_KERNEL);
 
     //prefix scan
-    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
+//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
+    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 64, 39, 112, 0);
     totalTime += scanTime;
 //    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
 
@@ -326,7 +321,9 @@ double block_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, c
 */
 double thread_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, PlatInfo& info, int localSize, int gridSize) {
 
-//    localSize = 128, gridSize = 4096;
+    cl_event event;
+
+//    localSize = 128, gridSize = 128;
     int globalSize = localSize * gridSize;
     cl_int status = 0;
     int argsNum = 0;
@@ -368,11 +365,10 @@ double thread_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int l
 #ifdef PRINT_KERNEL
     printExecutingKernel(createListKernel);
 #endif
-    gettimeofday(&start, NULL);
-    status = clEnqueueNDRangeKernel(info.currentQueue, histogramKernel, 1, 0, global, local, 0, 0, 0);
+    status = clEnqueueNDRangeKernel(info.currentQueue, histogramKernel, 1, 0, global, local, 0, 0, &event);
+    checkErr(status, ERR_EXEC_KERNEL);
     status = clFinish(info.currentQueue);
-    gettimeofday(&end, NULL);
-    double histogramTime = diffTime(end, start);
+    double histogramTime = clEventTime(event);
 //    std::cout<<"Histogram time: "<<histogramTime<<" ms."<<std::endl;
 
     totalTime += histogramTime;
@@ -399,11 +395,9 @@ double thread_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int l
 #ifdef PRINT_KERNEL
     printExecutingKernel(splitWithListKernel);
 #endif
-    gettimeofday(&start, NULL);
-    status = clEnqueueNDRangeKernel(info.currentQueue, scatterWithHisKernel, 1, 0, global, local, 0, 0, 0);
+    status = clEnqueueNDRangeKernel(info.currentQueue, scatterWithHisKernel, 1, 0, global, local, 0, 0, &event);
     status = clFinish(info.currentQueue);
-    gettimeofday(&end, NULL);
-    double scatterTime = diffTime(end, start);
+    double scatterTime = clEventTime(event);
 
     //*2 for keys and values, another *2 for read and write data
 //    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
@@ -467,15 +461,17 @@ double thread_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, 
     status = clFinish(info.currentQueue);
     gettimeofday(&end, NULL);
     double histogramTime = diffTime(end, start);
-    std::cout<<"Histogram time: "<<histogramTime<<" ms."<<std::endl;
+//    std::cout<<"Histogram time: "<<histogramTime<<" ms."<<std::endl;
 
     totalTime += histogramTime;
     checkErr(status, ERR_EXEC_KERNEL);
 
     //prefix scan
-    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
+//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
+    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 64, 39, 112, 0);
+
     totalTime += scanTime;
-    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
+//    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
 
     scatterWithHisKernel = KernelProcessor::getKernel("splitKernel.cl", "thread_scatter_kv", info.context);
 
@@ -500,7 +496,7 @@ double thread_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, 
     double scatterTime = diffTime(end, start);
 
     //*2 for keys and values, another *2 for read and write data
-    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
+//    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
 
     totalTime += scatterTime;
 
