@@ -543,91 +543,64 @@ bool testScatter(int len, const PlatInfo info) {
     return res;
 }
 
-bool testScan(int length, int isExclusive, double &totalTime, int localSize, int gridSize, int R, int L, PlatInfo& info) {
-    bool res = true;
+//only test exclusive scan
+bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, int L, PlatInfo& info) {
     cl_int status = 0;
-    totalTime = 0;
 
     float sizeMB = 1.0*length*sizeof(int)/1024/1024;
     cout<<"length:"<<length<<' ';
-    
-    int *gpu_io = new int[length];
-    int *cpu_input = new int[length];
-    int *cpu_output = new int[length];
-    
-    // valRandom<int>(gpu_io, length, 1500);
-    for(int i = 0; i < length; i++) {
-        gpu_io[i] = 1;
-        cpu_input[i] = 1;
-    }
 
-    int experTime = 100;
-    double normalTempTime;
-    int normalCount = 0;
-    bool next_valid = true;
+    int *h_input = new int[length];
+    int *h_output = new int[length];
+    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;  //data initialization
+
+    int experTime = 20;
+    double tempTimes[experTime];
     for(int e = 0; e < experTime; e++) {
-        cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
+
+        cl_mem d_input = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
-        status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int) * length, gpu_io, 0, 0, 0);
+        cl_mem d_output = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+
+        status = clEnqueueWriteBuffer(info.currentQueue, d_input, CL_TRUE, 0, sizeof(int) * length, h_input, 0, 0, 0);
         checkErr(status, ERR_WRITE_BUFFER);
+        clFinish(info.currentQueue);
 
-        //for the Xeon GPU, 39 work-groups, 256 work-grou size, 31 R
+        //for the Xeon GPU, 39 work-groups, 256 work-group size, 31 R
         //for the GPU, 15 work-groups, 1024 work-group size, 11 L
-        double tempTime = scan_fast(d_in, d_in, length, isExclusive, info, localSize, gridSize, R, L); //CPU
-//        double tempTime = scan_fast(d_in, length, isExclusive, info, 1024, 15, 0, 11); //GPU
-
-        status = clEnqueueReadBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int) * length, gpu_io, 0, NULL, NULL);
+        double tempTime = scan_fast(d_input, d_output, length, info, localSize, gridSize, R, L); //CPU
+//        double tempTime = scan_fast(d_in, length, info, 1024, 15, 0, 11); //GPU
+//        double tempTime = scan_fast(d_in, d_in, length, info, localSize, gridSize, R, L); //MIC
+        status = clEnqueueReadBuffer(info.currentQueue, d_output, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
         checkErr(status, ERR_READ_BUFFER);
         status = clFinish(info.currentQueue);
 
-        status = clReleaseMemObject(d_in);
+        status = clReleaseMemObject(d_input);
+        checkErr(status, ERR_RELEASE_MEM);
+        status = clReleaseMemObject(d_output);
         checkErr(status, ERR_RELEASE_MEM);
 
-        // cout<<e<<' '<<tempTime<<endl;
         //check
         if (e == 0) {
-            if (isExclusive == 0) {         //inclusive
-                cpu_output[0] = cpu_input[0];
-                for (int i = 1; i < length; i++) {
-                    cpu_output[i] = cpu_input[i] + cpu_output[i - 1];
-                }
-            } else {                          //exclusive
-                cpu_output[0] = 0;
-                for (int i = 1; i < length; i++) {
-                    cpu_output[i] = cpu_output[i - 1] + cpu_input[i - 1];
-                }
-            }
-
+            int acc = 0;
             for (int i = 0; i < length; i++) {
-                if (cpu_output[i] != gpu_io[i]) {
-                    res = false;
-                    // std::cout << cpu_output[i] << ' ' << gpu_io[i] << std::endl;
-                    break;
-                }
-            }
-            // normalTempTime = tempTime;
-        }
-        else if (res == true) {
-            //only count the experTime/2 of the experiments
-            if (e >= experTime/2) {
-                totalTime += tempTime;
-                normalCount++;
+                if (h_output[i] != acc) return false;
+                acc += h_input[i];
             }
         }
-        else {
-            break;
-        }
-    }
-    totalTime /= normalCount;
+        cout<<"time:"<<tempTime<<endl;
+        tempTimes[e] = tempTime;
 
-    //release
-    delete [] gpu_io;
-    delete [] cpu_input;
-    delete [] cpu_output;
+    }
+    aveTime = averageHampel(tempTimes, experTime);
+
+    if(h_input) delete[] h_input;
+    if(h_output) delete[] h_output;
 
 //     cout<<"Time:"<<totalTime<<" ms.\t";
 //     cout<<"Throughput:"<<sizeMB*1.0/1024/totalTime*1000<<" GB/s"<<endl;
-    return res;
+    return true;
 }
 
 //search the most suitable (localSize, R, L) parameters for a scan scheme
@@ -638,21 +611,21 @@ bool testScan(int length, int isExclusive, double &totalTime, int localSize, int
  * 1. GPU: local memory size: 48KB, register size: 64KB
  * 2. CPU: register size: 32KB
  */
-void testScanParameters(int length, int selection, PlatInfo& info) {
+void testScanParameters(int length, int device, PlatInfo& info) {
     int grid_size, size_begin, size_end, R_end, L_end, R_begin = 0, L_begin = 0;
     size_t cpu_reg = 32*1024, gpu_reg = 64*1024, gpu_local = 48*1024, mic_reg = 32*1024;
 
-    if (selection == 0) {       //gpu
+    if (device == 0) {       //gpu
         size_begin = 1024;
         size_end = 128;
         grid_size = 15;
     }
-    else if (selection == 1) {  //cpu
+    else if (device == 1) {  //cpu, R and L share the registers
         size_begin = 512;
         size_end = 64;
         grid_size = 39;
     }
-    else if (selection == 2) { //MIC
+    else if (device == 2) { //MIC
         size_begin = 2048;
         size_end = 64;
         grid_size = 240;
@@ -661,27 +634,28 @@ void testScanParameters(int length, int selection, PlatInfo& info) {
     int best_size, best_R, best_L;
     double bestThr = 0;
     for(size_t cur_size = size_begin; cur_size >= size_end; cur_size>>=1) {
-        if (selection == 0) {
+        if (device == 0) {
             R_end = gpu_reg / cur_size / sizeof(int) - 1;
-            L_end = gpu_reg / cur_size / sizeof(int) - 1;
+            L_end = gpu_local / cur_size / sizeof(int) - 1;
         }
-        else if (selection == 1) {
+        else if (device == 1) {
             R_end = cpu_reg / cur_size / sizeof(int) - 1;
-            L_end = 2;       //cpu does not prefer L, just test 2
+            L_end = cpu_reg/ cur_size/ sizeof(int) - 1;
         }
-        else if (selection == 2) {
+        else if (device == 2) {
             R_end = mic_reg / cur_size / sizeof(int) - 1;
             L_end = 2;
         }
         for(int R = R_begin; R <= R_end; R++) {
             for(int L = L_begin; L <= L_end; L++) {
                 if (R == 0 && L == 0) continue;
+                if ( (device==1 || device==2) && (R+L>R_end))   continue;
                 double tempTime;
-                bool res = testScan(length, 1, tempTime, cur_size, grid_size, R, L, info);
+                bool res = testScan(length,  tempTime, cur_size, grid_size, R, L, info);
 
                 //compuation
-                double throughput = 1.0*length*sizeof(int)/1024/1024/1024/tempTime*1000;
-                cout<<"localSize="<<cur_size<<' '<<"R="<<R<<" L="<<L<<" Thr="<<throughput<<"GB/s";
+                double throughput = 1.0*length/1024/1024/1024/tempTime*1000;
+                cout<<"localSize="<<cur_size<<' '<<"R="<<R<<" L="<<L<<" Thr="<<throughput<<"GKeys/s";
 
                 if (!res)   {
                     cout<<" wrong"<<endl;

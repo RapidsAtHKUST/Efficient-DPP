@@ -65,8 +65,8 @@ double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int le
     // std::cout<<"Histogram time: "<<histogramTime<<" ms."<<std::endl;
 
     //prefix scan
-    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 64, 39, 112, 0);
-//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
+    double scanTime = scan_fast(d_his_in, d_his_out, his_len, info, 64, 39, 112, 0);
+//    double scanTime = scan_fast(d_his_in, d_his_out, his_len,  info, 1024, 15, 0, 11);
     totalTime += scanTime;
 //    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
 
@@ -230,8 +230,8 @@ double block_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, c
     checkErr(status, ERR_EXEC_KERNEL);
 
     //prefix scan
-//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
-    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 64, 39, 112, 0);
+//    double scanTime = scan_fast(d_his_in, d_his_out, his_len,  info, 1024, 15, 0, 11);
+    double scanTime = scan_fast(d_his_in, d_his_out, his_len, info, 64, 39, 112, 0);
     totalTime += scanTime;
 //    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
 
@@ -375,8 +375,8 @@ double thread_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int l
     checkErr(status, ERR_EXEC_KERNEL);
 
     //prefix scan
-//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);   //GPU
-    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 64, 39, 110, 0);
+//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, info, 1024, 15, 0, 11);   //GPU
+    double scanTime = scan_fast(d_his_in, d_his_out, his_len, info, 64, 39, 110, 0);
 
     totalTime += scanTime;
 //    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;
@@ -467,8 +467,8 @@ double thread_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, 
     checkErr(status, ERR_EXEC_KERNEL);
 
     //prefix scan
-//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 1024, 15, 0, 11);
-    double scanTime = scan_fast(d_his_in, d_his_out, his_len, 1, info, 64, 39, 112, 0);
+//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, info, 1024, 15, 0, 11);
+    double scanTime = scan_fast(d_his_in, d_his_out, his_len, info, 64, 39, 112, 0);
 
     totalTime += scanTime;
 //    std::cout<<"Scan time:"<<scanTime<<" ms."<<std::endl;

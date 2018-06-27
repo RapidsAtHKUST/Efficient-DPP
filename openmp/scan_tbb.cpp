@@ -6,15 +6,17 @@
  *      ./scan_tbb_cpu
  *
  * Execute on MIC (only native execution mode):
- * 1. Complile the file:
+ * 1. source the system environment
+ *      source /usr/local/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64
+ * 2. Complile the file:
  *      icc -mmic -O3 -o scan_tbb_mic scan_tbb.cpp -ltbb
- * 2. Copy the executable file to MIC:
+ * 3. Copy the executable file to MIC:
  *      scp scan_tbb_mic mic0:~
- * 3. (optional) If the MIC does not have libtbb.so.2, copy the library from .../intel/tbb/lib/mic to MIC:
+ * 4. (optional) If the MIC does not have libtbb.so.2, copy the library from .../intel/tbb/lib/mic to MIC:
  *      e.g.: scp libtbb.so.2 mic0:~
- * 4. (optional) Set the library path on MIC:
+ * 5. (optional) Set the library path on MIC:
  *      e.g.: export LD_LIBRARY_PATH=~
- * 5. Execute:
+ * 6. Execute:
  *      ./scan_tbb_mic
  */
 #include <iostream>
@@ -66,6 +68,13 @@ double averageHampel(double *input, int num) {
     return total;
 }
 
+void dataInitialization(int *input, int num, int max) {
+    srand(time(NULL));
+    for(int i = 0; i < num; i++) {
+        input[i] = rand() % max;
+    }
+}
+
 double diffTime(struct timeval end, struct timeval start) {
     return 1000 * (end.tv_sec - start.tv_sec) + 0.001 * (end.tv_usec - start.tv_usec);
 }
@@ -109,36 +118,40 @@ double scan_tbb(int *input, int* output, int len) {
 };
 
 void test_scan_tbb() {
-    for(int scale = 10; scale <= 30; scale++) {
+    for(int scale = 30; scale <= 30; scale++) {
         bool res = true;
         int length = 1<<scale;
         std::cout<<scale<<" length: "<<length<<'\t';
 
-        int *input = new int[length];
-        int *output = new int[length];
-        for(int i = 0; i < length; i++) input[i] = 1;
-
         int experTime = 10;
         double tempTimes[experTime];
         for(int e = 0; e < experTime; e++) {
+            int *input = new int[length];
+            int *output = new int[length];
+            dataInitialization(input,length,10);
+
+            //exclusive scan
             tempTimes[e] = scan_tbb(input, output, length);
+
             if (e == 0) {         //check
+                int acc = 0;
                 for (int i = 0; i < length; i++) {
-                    if (output[i] != i ) {  //exclusive
+                    if (output[i] != acc) {
                         res = false;
                         break;
                     }
+                    acc += input[i];
                 }
             }
+
+            if(input)   delete[] input;
+            if(output)  delete[] output;
         }
         double aveTime = averageHampel(tempTimes,experTime);
 
-        if(input)   delete[] input;
-        if(output)  delete[] output;
-
         if (res)
             std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
-                     <<"Throughput:"<<1.0*length* sizeof(int)/1024/1024/1024/aveTime*1e3/sizeof(int)<<" Gkeys/s"<<std::endl;
+                     <<"Throughput:"<<1.0*length/1024/1024/1024/aveTime*1e3<<" Gkeys/s"<<std::endl;
         else std::cout<<"wrong results"<<std::endl;
     }
 }

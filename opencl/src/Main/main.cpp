@@ -118,32 +118,38 @@ int main(int argc, const char * argv[]) {
 //      testGather(dataSize, info);
 //        testScatter(num, info);
 
-//    for(int scale = 10; scale <= 30; scale++) {
+//    for(int scale = 19; scale <= 30; scale++) {
 //        int num = 1<<scale;
-//        double totalTime;
+//        double aveTime;
 //        cout<<scale<<'\t';
-//        testScan(num, 1, totalTime, 64, 240, 33, 1, info);
-//        cout<<"Time:"<<totalTime<<" ms.\t";
-//        cout<<"Throughput:"<<num*1.0* sizeof(int)/1024/1024/1024/totalTime*1000<<" GB/s"<<endl;
+//        bool res = testScan(num, aveTime, 64, 39, 112, 0, info);    //CPU testing
+////        bool res = testScan(num, aveTime, 1024, 15, 0, 11, info);    //GPU testing
+//
+//        if (!res) {
+//            cerr<<"Wrong result!"<<endl;
+//            exit(1);
+//        }
+//        cout<<"Time:"<<aveTime<<" ms.\t";
+//        cout<<"Throughput:"<<num*1.0 /1024/1024/1024/aveTime*1000<<" GKeys/s"<<endl;
 //    }
 
 
-    // testScanParameters(length, 2, info);
+//     testScanParameters(length, 1, info);
 
-//    bool res = testScan(length, 1, totalTime, 1024, 15, 0, 11, info);    //gpu
-//    bool res = testScan(length, 1, totalTime, 64, 39, 121, 0, info);    //cpu
-//    bool res = testScan(length, 1, totalTime, 64, 240, 33, 1, info);    //mic
+//    bool res = testScan(length, totalTime, 1024, 15, 0, 11, info);    //gpu
+    bool res = testScan(length, totalTime, 64, 39, 121, 0, info);    //cpu
+//    bool res = testScan(length, totalTime, 64, 240, 33, 1, info);    //mic
 //    if (res)    cout<<"right\t";
 //    else        cout<<"wrong\t";
-//     cout<<"Time:"<<totalTime<<" ms.\t";
-//     cout<<"Throughput:"<<length*1.0* sizeof(int)/1024/1024/1024/totalTime*1000<<" GB/s"<<endl;
+     cout<<"Time:"<<totalTime<<" ms.\t";
+     cout<<"Throughput:"<<length*1.0/1024/1024/1024/totalTime*1000<<" GKeys/s"<<endl;
 
 //    testSplit(length, info,128, totalTime);
 
-    cout<<"Key-only:"<<endl;
-    for(int buckets = 2; buckets <= 4096; buckets<<=1) {
-        testSplitParameters(length, buckets, 1, 5, info);
-    }
+//    cout<<"Key-only:"<<endl;
+//    for(int buckets = 2; buckets <= 4096; buckets<<=1) {
+//        testSplitParameters(length, buckets, 1, 5, info);
+//    }
 
 //------- finished operations ---------------
 

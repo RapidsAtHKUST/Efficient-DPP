@@ -34,8 +34,7 @@ double gather(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem 
 
 double scatter(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, const PlatInfo info, int pass);
 
-
-double scan_fast(cl_mem &d_in, cl_mem &d_out, int length, int isExclusive, PlatInfo& info, int localSize, int gridSize, int R, int L);
+double scan_fast(cl_mem &d_in, cl_mem &d_out, int length, PlatInfo& info, int localSize, int gridSize, int R, int L);
 
 double scan(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize = BLOCKSIZE);
 double scan_ble(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize = BLOCKSIZE);
@@ -67,7 +66,7 @@ void testAccess(PlatInfo& info);
 bool testGather(int len, const PlatInfo info);
 bool testScatter(int len, const PlatInfo info);
 void testAtomic(PlatInfo& info);
-bool testScan(int length, int isExclusive, double &totalTime, int localSize, int gridSize, int R, int L, PlatInfo& info);
+bool testScan(int length, double &totalTime, int localSize, int gridSize, int R, int L, PlatInfo& info);
 void testScanParameters(int length, int selection, PlatInfo& info);
 bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime);
 void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& info);
@@ -94,7 +93,6 @@ bool testRadixSort(
     int *fixedValues, 
     int length, PlatInfo& info, double& totalTime);
 
-bool testScan(int *fixedSource, int length, PlatInfo& info, double& totalTime, int isExclusive, int localSize = BLOCKSIZE);
 
 bool testBitonitSort(Record *fixedSource, int length, PlatInfo& info, int dir, double& totalTime, int localSize = BLOCKSIZE, int gridSize = GRIDSIZE);
 

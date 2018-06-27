@@ -62,6 +62,13 @@ double averageHampel(double *input, int num) {
     return total;
 }
 
+void dataInitialization(int *input, int num, int max) {
+    srand(time(NULL));
+    for(int i = 0; i < num; i++) {
+        input[i] = rand() % max;
+    }
+}
+
 double diffTime(struct timeval end, struct timeval start) {
     return 1000 * (end.tv_sec - start.tv_sec) + 0.001 * (end.tv_usec - start.tv_usec);
 }
@@ -82,8 +89,8 @@ double scan_omp(int *input, int* output, int len) {
         //reduce & local prefix sum
 #pragma omp for schedule(static) nowait
         for (int i = 0; i < len; i++) {
-            localSum += input[i];
             output[i] = localSum;
+            localSum += input[i];
         }
         reduceSum[tid] = localSum;
 
@@ -115,31 +122,35 @@ void test_scan_omp() {
         int length = 1<<scale;
         std::cout<<scale<<" length: "<<length<<'\t';
 
-        int *input = new int[length];
-        int *output = new int[length];
-        for(int i = 0; i < length; i++) input[i] = 1;
-
-        int experTime = 10;
+        int experTime = 50;
         double tempTimes[experTime];
         for(int e = 0; e < experTime; e++) {
+            int *input = new int[length];
+            int *output = new int[length];
+            dataInitialization(input,length,10);
+
+            //exclusive scan
             tempTimes[e] = scan_omp(input, output, length);
+
             if (e == 0) {         //check
+                int acc = 0;
                 for (int i = 0; i < length; i++) {
-                    if (output[i] != i + 1) {
+                    if (output[i] != acc) {
                         res = false;
                         break;
                     }
+                    acc += input[i];
                 }
             }
+
+            if(input)   delete[] input;
+            if(output)  delete[] output;
         }
         double aveTime = averageHampel(tempTimes,experTime);
 
-        if(input)   delete[] input;
-        if(output)  delete[] output;
-
         if (res)
             std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
-                     <<"Throughput:"<<1.0*length* sizeof(int)/1024/1024/1024/aveTime*1e3/sizeof(int)<<" Gkeys/s"<<std::endl;
+                     <<"Throughput:"<<1.0*length/1024/1024/1024/aveTime*1e3<<" Gkeys/s"<<std::endl;
         else std::cout<<"wrong results"<<std::endl;
     }
 }
