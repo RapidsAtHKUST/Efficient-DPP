@@ -546,13 +546,18 @@ bool testScatter(int len, const PlatInfo info) {
 //only test exclusive scan
 bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, int L, PlatInfo& info) {
     cl_int status = 0;
+    bool res = true;
 
     float sizeMB = 1.0*length*sizeof(int)/1024/1024;
     cout<<"length:"<<length<<' ';
 
     int *h_input = new int[length];
     int *h_output = new int[length];
-    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;  //data initialization
+//    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;  //data initialization
+    for(int i = 0; i < length; i++) {
+        h_input[i] = 0;
+        h_output[i] = -99;
+    }  //data initialization
 
     int experTime = 20;
     double tempTimes[experTime];
@@ -569,9 +574,8 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
 
         //for the Xeon GPU, 39 work-groups, 256 work-group size, 31 R
         //for the GPU, 15 work-groups, 1024 work-group size, 11 L
-        double tempTime = scan_fast(d_input, d_output, length, info, localSize, gridSize, R, L); //CPU
-//        double tempTime = scan_fast(d_in, length, info, 1024, 15, 0, 11); //GPU
-//        double tempTime = scan_fast(d_in, d_in, length, info, localSize, gridSize, R, L); //MIC
+        double tempTime = scan_fast(d_input, d_output, length, info, localSize, gridSize, R, L);
+
         status = clEnqueueReadBuffer(info.currentQueue, d_output, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
         checkErr(status, ERR_READ_BUFFER);
         status = clFinish(info.currentQueue);
@@ -585,7 +589,10 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
         if (e == 0) {
             int acc = 0;
             for (int i = 0; i < length; i++) {
-                if (h_output[i] != acc) return false;
+                if (h_output[i] != acc) {
+                    res = false;
+                    break;
+                }
                 acc += h_input[i];
             }
         }
@@ -600,7 +607,7 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
 
 //     cout<<"Time:"<<totalTime<<" ms.\t";
 //     cout<<"Throughput:"<<sizeMB*1.0/1024/totalTime*1000<<" GB/s"<<endl;
-    return true;
+    return res;
 }
 
 //search the most suitable (localSize, R, L) parameters for a scan scheme

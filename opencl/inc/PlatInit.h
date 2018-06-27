@@ -13,6 +13,7 @@
 #define  MAX_DEVICES_NUM 10         //at most 10 device can be detected
 
 typedef struct PlatInfo {
+    cl_device_id device;
     cl_context context;
     cl_command_queue currentQueue;
 } PlatInfo;
@@ -32,6 +33,7 @@ private:
     unsigned int numOfDev;                      //number of devices
     cl_platform_id platform;                    //current platform id
     cl_device_id devices[MAX_DEVICES_NUM];      //devices id array
+    cl_device_id device;                        //current device
     cl_context  context;                        //current context
     cl_command_queue queue;                     //current command queue
     
@@ -51,6 +53,7 @@ public:
     void setGPU(int gpu);
     unsigned int getNumOfDev();
     cl_context getContext();
+    cl_device_id getDevice();
     cl_device_id* getDevices();
 };
 

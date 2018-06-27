@@ -62,10 +62,11 @@ int main(int argc, const char * argv[]) {
 
     //platform initialization
     PlatInit* myPlatform = PlatInit::getInstance(0);
-    cl_command_queue queue = myPlatform->getQueue();
+    cl_device_id device = myPlatform->getDevice();
     cl_context context = myPlatform->getContext();
-    cl_command_queue currentQueue = queue;
+    cl_command_queue currentQueue = myPlatform->getQueue();
 
+    info.device = device;
     info.context = context;
     info.currentQueue = currentQueue;
 
@@ -93,7 +94,6 @@ int main(int argc, const char * argv[]) {
     int scatter_blockSize = -1, scatter_gridSize = -1;
     int scan_blockSize = -1;
 
-    int length = 1<<25;
     double totalTime;
 
 //      testMem(info);
@@ -132,17 +132,21 @@ int main(int argc, const char * argv[]) {
 //        cout<<"Time:"<<aveTime<<" ms.\t";
 //        cout<<"Throughput:"<<num*1.0 /1024/1024/1024/aveTime*1000<<" GKeys/s"<<endl;
 //    }
+    int length = 1<<28;
+    test_wg_sequence(length, info);
 
 
 //     testScanParameters(length, 1, info);
-
+//    int length = 1<<25;
 //    bool res = testScan(length, totalTime, 1024, 15, 0, 11, info);    //gpu
-    bool res = testScan(length, totalTime, 64, 39, 121, 0, info);    //cpu
+//    bool res = testScan(length, totalTime, 64, 4682, 0, 112, info);    //cpu
 //    bool res = testScan(length, totalTime, 64, 240, 33, 1, info);    //mic
-//    if (res)    cout<<"right\t";
-//    else        cout<<"wrong\t";
-     cout<<"Time:"<<totalTime<<" ms.\t";
-     cout<<"Throughput:"<<length*1.0/1024/1024/1024/totalTime*1000<<" GKeys/s"<<endl;
+
+//     if (res)   cout<<"right ";
+//     else       cout<<"wrong ";
+
+//     cout<<"Time:"<<totalTime<<" ms.\t";
+//     cout<<"Throughput:"<<length*1.0/1024/1024/1024/totalTime*1000<<" GKeys/s"<<endl;
 
 //    testSplit(length, info,128, totalTime);
 

@@ -62,6 +62,7 @@ double hashjoin_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys
 
 //-------------------------test primitives-------------------------
 void testMem(PlatInfo& info);
+void test_wg_sequence(int len, PlatInfo& info);
 void testAccess(PlatInfo& info);
 bool testGather(int len, const PlatInfo info);
 bool testScatter(int len, const PlatInfo info);

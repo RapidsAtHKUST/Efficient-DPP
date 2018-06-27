@@ -52,8 +52,7 @@ void PlatInit::initPlat() {
     char dname[MAX_DEVICES_NUM][1500];              //info show, at most 10 devices can be detected
     
     int chosenDevice = -1;                      //the index of the chosen device
-    cl_device_id chosenDeviceID;
-    
+
     status = clGetPlatformIDs(0, 0, &num);         //check number of platforms
     checkErr(status,"No platform available.");
     
@@ -84,8 +83,9 @@ void PlatInit::initPlat() {
     cout<<"Please enter the index of the device to use (0,1,2...) : ";
 
 //    cin >> chosenDevice;
-    chosenDevice = 0;
+    chosenDevice = 1;
 
+    this->device = devices[chosenDevice];
     // chosenDevice = 1;   //cpu
     if (chosenDevice < 0 || chosenDevice >= numOfDev)   {
         cerr<<"Wrong parameter."<<endl;
@@ -93,17 +93,16 @@ void PlatInit::initPlat() {
     }
     
     cout<<"Selected device: "<<dname[chosenDevice]<<endl;
-    chosenDeviceID = devices[chosenDevice];
 
     //step 2 : create the context
     const cl_context_properties prop[3] = {CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(this->platform),0};
     
     //only 1 device is used
-    this->context = clCreateContext(prop, 1, &devices[chosenDevice], NULL, NULL, &status);
+    this->context = clCreateContext(prop, 1, &this->device, NULL, NULL, &status);
     checkErr(status, "Fail to create the context.");
     
     //step 3 : create the command queue
-    this->queue = clCreateCommandQueue(context, devices[chosenDevice], CL_QUEUE_PROFILING_ENABLE, &status);
+    this->queue = clCreateCommandQueue(context, this->device, CL_QUEUE_PROFILING_ENABLE, &status);
     checkErr(status, "Failed to create the command queue.");
     
     std::cout<<"------ End of hardware checking ------"<<endl<<endl;
@@ -128,6 +127,10 @@ unsigned int PlatInit::getNumOfDev() {
 
 cl_context PlatInit::getContext() {
     return this->context;
+}
+
+cl_device_id PlatInit::getDevice() {
+    return this->device;
 }
 
 cl_device_id* PlatInit::getDevices() {

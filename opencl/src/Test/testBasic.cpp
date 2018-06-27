@@ -26,7 +26,7 @@ void testMem(PlatInfo& info) {
     size_t global[1] = {(size_t)(localSize * gridSize)};
 
     //get the kernel
-    cl_kernel mul_kernel = KernelProcessor::getKernel("memKernel.cl", "mem_mul_bandwidth", info.context);
+    cl_kernel mul_kernel = KernelProcessor::getKernel("memKernel.cl", "mul_bandwidth", info.context);
 
     int len = localSize*gridSize;
     std::cout<<"Data size for read/write(multiplication test): "<<len<<" ("<<len*sizeof(int)*1.0/1024/1024<<"MB)"<<std::endl;
@@ -80,9 +80,9 @@ void testAccess(PlatInfo& info) {
     std::cout<<"Maximal data size: "<<length<<" ("<<length* sizeof(int)/1024/1024<<"MB)"<<std::endl;
 
     //kernel reading
-    cl_kernel mul_strided_kernel = KernelProcessor::getKernel("memKernel.cl", "mem_mul_strided", info.context);
-    cl_kernel mul_coalesced_kernel = KernelProcessor::getKernel("memKernel.cl", "mem_mul_coalesced", info.context);
-    cl_kernel mul_warped_kernel = KernelProcessor::getKernel("memKernel.cl", "mem_mul_strided_warpwise", info.context);
+    cl_kernel mul_row_kernel = KernelProcessor::getKernel("memKernel.cl", "mul_row_based", info.context);
+    cl_kernel mul_column_kernel = KernelProcessor::getKernel("memKernel.cl", "mul_column_based", info.context);
+    cl_kernel mul_mixed_kernel = KernelProcessor::getKernel("memKernel.cl", "mul_mixed", info.context);
 
     //memory allocation
     int *h_in = new int[length];
@@ -97,27 +97,26 @@ void testAccess(PlatInfo& info) {
     status = clFinish(info.currentQueue);
 
 #ifndef SILENCE
-    FUNC_BEGIN;
     SHOW_PARALLEL(localSize, gridSize);
     SHOW_DATA_NUM(length);
 #endif
 
     //set kernel arguments: mul_coalesced_kernel
     argsNum = 0;
-    status |= clSetKernelArg(mul_coalesced_kernel, argsNum++, sizeof(cl_mem), &d_in);
-    status |= clSetKernelArg(mul_coalesced_kernel, argsNum++, sizeof(cl_mem), &d_out);
+    status |= clSetKernelArg(mul_column_kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(mul_column_kernel, argsNum++, sizeof(cl_mem), &d_out);
     checkErr(status, ERR_SET_ARGUMENTS);
 
     //set kernel arguments: mul_strided_kernel
     argsNum = 0;
-    status |= clSetKernelArg(mul_strided_kernel, argsNum++, sizeof(cl_mem), &d_in);
-    status |= clSetKernelArg(mul_strided_kernel, argsNum++, sizeof(cl_mem), &d_out);
+    status |= clSetKernelArg(mul_row_kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(mul_row_kernel, argsNum++, sizeof(cl_mem), &d_out);
     checkErr(status, ERR_SET_ARGUMENTS);
 
     //set kernel arguments: mul_warped_kernel
     argsNum = 0;
-    status |= clSetKernelArg(mul_warped_kernel, argsNum++, sizeof(cl_mem), &d_in);
-    status |= clSetKernelArg(mul_warped_kernel, argsNum++, sizeof(cl_mem), &d_out);
+    status |= clSetKernelArg(mul_mixed_kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(mul_mixed_kernel, argsNum++, sizeof(cl_mem), &d_out);
     checkErr(status, ERR_SET_ARGUMENTS);
 
     //set work group and NDRange sizes
@@ -128,29 +127,29 @@ void testAccess(PlatInfo& info) {
     status = clFinish(info.currentQueue);
 
     //time recorder
-    double *coalesced_time = new double[repeat_max+1];
-    double *coalesced_throughput = new double[repeat_max+1];
-    double *strided_time = new double[repeat_max+1];
-    double *strided_throughput = new double[repeat_max+1];
-    double *warped_time = new double[repeat_max+1];
-    double *warped_throughput = new double[repeat_max+1];
+    double *column_time = new double[repeat_max+1];
+    double *column_throughput = new double[repeat_max+1];
+    double *row_time = new double[repeat_max+1];
+    double *row_throughput = new double[repeat_max+1];
+    double *mixed_time = new double[repeat_max+1];
+    double *mixed_throughput = new double[repeat_max+1];
 
     for(int i = 1; i <= repeat_max; i++) {
-        coalesced_time[i] = 0.0;
-        coalesced_throughput[i] = 0.0;
-        strided_time[i] = 0.0;
-        strided_throughput[i] = 0.0;
-        warped_time[i] = 0.0;
-        warped_throughput[i] = 0.0;
+        column_time[i] = 0.0;
+        column_throughput[i] = 0.0;
+        row_time[i] = 0.0;
+        row_throughput[i] = 0.0;
+        mixed_time[i] = 0.0;
+        mixed_throughput[i] = 0.0;
     }
 
     //coalesced
     cout<<"------------------ Coalesced Access ------------------"<<endl;
     for(int re = 1; re <= repeat_max; re++) {
         for(int i = 0; i < MEM_EXPR_TIME; i++) {
-            status |= clSetKernelArg(mul_coalesced_kernel, 2, sizeof(int), &re);
+            status |= clSetKernelArg(mul_column_kernel, 2, sizeof(int), &re);
             checkErr(status, ERR_SET_ARGUMENTS);
-            status = clEnqueueNDRangeKernel(info.currentQueue, mul_coalesced_kernel, 1, 0, global, local, 0, 0, &event);
+            status = clEnqueueNDRangeKernel(info.currentQueue, mul_column_kernel, 1, 0, global, local, 0, 0, &event);
             clFlush(info.currentQueue);
             status = clFinish(info.currentQueue);
 
@@ -158,17 +157,17 @@ void testAccess(PlatInfo& info) {
             double tempTime = clEventTime(event);
 
             //throw away the first result
-            if (i != 0)     coalesced_time[re] += tempTime;
+            if (i != 0)     column_time[re] += tempTime;
         }
     }
 
     for(int re = 1; re <= repeat_max; re++) {
-        coalesced_time[re] /= (MEM_EXPR_TIME - 1);
-        assert(coalesced_time[re] > 0);
-        coalesced_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), coalesced_time[re]);
+        column_time[re] /= (MEM_EXPR_TIME - 1);
+        assert(column_time[re] > 0);
+        column_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), column_time[re]);
         cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
             <<"("<<localSize*gridSize*(re)<<","<<localSize*gridSize*(re)*1.0* sizeof(int)/1024/1024<<"MB)"
-            <<" Time: "<<coalesced_time[re]<<" ms\t"<<"Throughput: "<<coalesced_throughput[re]<<" GB/s"<<endl;
+            <<" Time: "<<column_time[re]<<" ms\t"<<"Throughput: "<<column_throughput[re]<<" GB/s"<<endl;
     }
     cout<<endl;
 
@@ -176,9 +175,9 @@ void testAccess(PlatInfo& info) {
     cout<<"------------------ Strided Access ------------------"<<endl;
     for(int re = 1; re <= repeat_max; re++) {
         for(int i = 0; i < MEM_EXPR_TIME; i++) {
-            status |= clSetKernelArg(mul_strided_kernel, 2, sizeof(int), &re);
+            status |= clSetKernelArg(mul_row_kernel, 2, sizeof(int), &re);
             checkErr(status, ERR_SET_ARGUMENTS);
-            status = clEnqueueNDRangeKernel(info.currentQueue, mul_strided_kernel, 1, 0, global, local, 0, 0, &event);
+            status = clEnqueueNDRangeKernel(info.currentQueue, mul_row_kernel, 1, 0, global, local, 0, 0, &event);
             clFlush(info.currentQueue);
             status = clFinish(info.currentQueue);
 
@@ -186,27 +185,27 @@ void testAccess(PlatInfo& info) {
             double tempTime = clEventTime(event);
 
             //throw away the first result
-            if (i != 0)     strided_time[re] += tempTime;
+            if (i != 0)     row_time[re] += tempTime;
         }
     }
 
     //warpwise strided
     for(int re = 1; re <= repeat_max; re++) {
-        strided_time[re] /= (MEM_EXPR_TIME - 1);
-        assert(strided_time[re] > 0);
-        strided_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), strided_time[re]);
+        row_time[re] /= (MEM_EXPR_TIME - 1);
+        assert(row_time[re] > 0);
+        row_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), row_time[re]);
         cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
             <<"("<<localSize*gridSize*(re)<<","<<localSize*gridSize*(re)*1.0* sizeof(int)/1024/1024<<"MB)"
-            <<" Time: "<<strided_time[re]<<" ms\t"<<"Throughput: "<<strided_throughput[re]<<" GB/s"<<endl;
+            <<" Time: "<<row_time[re]<<" ms\t"<<"Throughput: "<<row_throughput[re]<<" GB/s"<<endl;
     }
     cout<<endl;
 
     cout<<"------------------ Warpwise Strided Access ------------------"<<endl;
     for(int re = 1; re <= repeat_max; re++) {
         for(int i = 0; i < MEM_EXPR_TIME; i++) {
-            status |= clSetKernelArg(mul_warped_kernel, 2, sizeof(int), &re);
+            status |= clSetKernelArg(mul_mixed_kernel, 2, sizeof(int), &re);
             checkErr(status, ERR_SET_ARGUMENTS);
-            status = clEnqueueNDRangeKernel(info.currentQueue, mul_warped_kernel, 1, 0, global, local, 0, 0, &event);
+            status = clEnqueueNDRangeKernel(info.currentQueue, mul_mixed_kernel, 1, 0, global, local, 0, 0, &event);
             clFlush(info.currentQueue);
             status = clFinish(info.currentQueue);
 
@@ -214,17 +213,17 @@ void testAccess(PlatInfo& info) {
             double tempTime = clEventTime(event);
 
             //throw away the first result
-            if (i != 0)     warped_time[re] += tempTime;
+            if (i != 0)     mixed_time[re] += tempTime;
         }
     }
 
     for(int re = 1; re <= repeat_max; re++) {
-        warped_time[re] /= (MEM_EXPR_TIME - 1);
-        assert(warped_time[re] > 0);
-        warped_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), warped_time[re]);
+        mixed_time[re] /= (MEM_EXPR_TIME - 1);
+        assert(mixed_time[re] > 0);
+        mixed_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), mixed_time[re]);
         cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
             <<"("<<localSize*gridSize*(re)<<","<<localSize*gridSize*(re)*1.0* sizeof(int)/1024/1024<<"MB)"
-            <<" Time: "<<warped_time[re]<<" ms\t"<<"Throughput: "<<warped_throughput[re]<<" GB/s"<<endl;
+            <<" Time: "<<mixed_time[re]<<" ms\t"<<"Throughput: "<<mixed_throughput[re]<<" GB/s"<<endl;
     }
     cout<<endl;
 
@@ -232,21 +231,21 @@ void testAccess(PlatInfo& info) {
 
     //for python formating
     cout<<endl;
-    cout<<"strided_bandwidth = ["<<strided_throughput[1];
+    cout<<"strided_bandwidth = ["<<row_throughput[1];
     for(int re = 2; re <= repeat_max; re++) {
-        cout<<','<<strided_throughput[re];
+        cout<<','<<row_throughput[re];
     }
     cout<<"]"<<endl;
 
-    cout<<"coalesced_bandwidth = ["<<coalesced_throughput[1];
+    cout<<"coalesced_bandwidth = ["<<column_throughput[1];
     for(int re = 2; re <= repeat_max; re++) {
-        cout<<','<<coalesced_throughput[re];
+        cout<<','<<column_throughput[re];
     }
     cout<<"]"<<endl;
 
-    cout<<"mix_bandwidth = ["<<warped_throughput[1];
+    cout<<"mix_bandwidth = ["<<mixed_throughput[1];
     for(int re = 2; re <= repeat_max; re++) {
-        cout<<','<<warped_throughput[re];
+        cout<<','<<mixed_throughput[re];
     }
     cout<<"]"<<endl;
 
@@ -254,20 +253,145 @@ void testAccess(PlatInfo& info) {
     status = clReleaseMemObject(d_out);
     checkErr(status, ERR_RELEASE_MEM);
 
-    delete [] h_in;
-    delete [] h_out;
+    if(h_in) delete [] h_in;
+    if(h_out) delete [] h_out;
 
-    delete[] coalesced_time;
-    delete[] coalesced_throughput;
-    delete[] strided_time;
-    delete[] strided_throughput;
-    delete[] warped_time;
-    delete[] warped_throughput;
-
-#ifndef SILENCE
-    FUNC_END;
-#endif
+    if(column_time) delete[] column_time;
+    if(column_throughput) delete[] column_throughput;
+    if(row_time) delete[] row_time;
+    if(row_throughput) delete[] row_throughput;
+    if(mixed_time) delete[] mixed_time;
+    if(mixed_throughput) delete[] mixed_throughput;
 }
+
+
+double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int grid_size, PlatInfo& info, bool input_equal) {
+    cl_event event;
+    cl_int status;
+    int h_atom = 0;
+
+    cl_kernel kernel = KernelProcessor::getKernel("memKernel.cl", "mul_mixed_wg", info.context);
+
+    //set work group and NDRange sizes
+    size_t local[1] = {(size_t)(local_size)};
+    size_t global[1] = {(size_t)(local_size * grid_size)};
+
+    int experTime = 10;
+    double tempTimes[experTime];
+    for(int e = 0; e < experTime; e++) {
+        cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int)*len, NULL, &status);
+        cl_mem d_out = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int)*len, NULL, &status);
+        cl_mem d_idx_arr = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int)*grid_size, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+
+        status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*len, h_data, 0, 0, 0);
+        checkErr(status, ERR_WRITE_BUFFER);
+        status = clEnqueueWriteBuffer(info.currentQueue, d_idx_arr, CL_TRUE, 0, sizeof(int)*grid_size, h_idx_array, 0, 0, 0);
+        checkErr(status, ERR_WRITE_BUFFER);
+
+        cl_mem d_atom = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int), NULL, &status);
+        status = clEnqueueFillBuffer(info.currentQueue, d_atom, &h_atom, sizeof(int), 0, sizeof(int), 0, 0, 0);
+        checkErr(status, ERR_WRITE_BUFFER);
+
+        int args_num = 0;
+        status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_in);
+        if (input_equal)    status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_in);
+        else                status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_out);
+        status |= clSetKernelArg(kernel, args_num++, sizeof(int), &len);
+        status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_atom);
+        status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_idx_arr);
+        checkErr(status, ERR_SET_ARGUMENTS);
+
+        //kernel execution
+        status = clFinish(info.currentQueue);
+        status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);  //kernel execution
+        status = clFinish(info.currentQueue);
+        checkErr(status, ERR_EXEC_KERNEL);
+
+        //free the memory
+        status = clReleaseMemObject(d_in);
+        status = clReleaseMemObject(d_out);
+        status = clReleaseMemObject(d_idx_arr);
+        status = clReleaseMemObject(d_atom);
+        checkErr(status, ERR_RELEASE_MEM);
+
+        tempTimes[e] = clEventTime(event);
+    }
+    return averageHampel(tempTimes, experTime);
+}
+
+void test_wg_sequence(int len, PlatInfo& info) {
+    cl_int status;
+    int grid_size = 4370, local_size = 512;
+    double aveTime, throughput;
+
+    std::cout<<"Data size : "<<len<<" ("<<len*sizeof(int)*1.0/1024/1024<<"MB)"<<std::endl;
+
+    int *h_data = new int[len];
+    int *h_idx_array = new int[grid_size];
+    for(int i = 0; i < len; i++) h_data[i] = i;
+    for(int i = 0; i < grid_size; i++) h_idx_array[i] = i;
+    //shuffle the idx_array
+    srand(time(NULL));
+    for(int i = 0; i <grid_size * 3; i++) {
+        int idx1 = rand() % grid_size;
+        int idx2 = rand() % grid_size;
+        int temp = h_idx_array[idx1];
+        h_idx_array[idx1] = h_idx_array[idx2];
+        h_idx_array[idx2] = temp;
+    }
+
+//----------------------- case 1: wg_random (in+out) -------------------------------
+    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, false);
+    throughput = computeMem(len*2, sizeof(int), aveTime);
+    cout<<"Case: wg_random(in+out)\tTime: "<<aveTime<<" ms."<<'\t'
+        <<"Throughput: "<<throughput<<" GB/s"<<endl;
+
+//----------------------- case 2: wg_random (in only) -------------------------------
+    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, true);
+    throughput = computeMem(len*2, sizeof(int), aveTime);
+    cout<<"Case: wg_random(in only)\tTime: "<<aveTime<<" ms."<<'\t'
+        <<"Throughput: "<<throughput<<" GB/s"<<endl;
+
+//----------------------- case 3: wg_column (in+out) -------------------------------
+    for(int i = 0; i < grid_size; i++) h_idx_array[i] = i;
+    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, false);
+    throughput = computeMem(len*2, sizeof(int), aveTime);
+    cout<<"Case: wg_column(in+out)\tTime: "<<aveTime<<" ms."<<'\t'
+        <<"Throughput: "<<throughput<<" GB/s"<<endl;
+
+//----------------------- case 4: wg_column (in only) -------------------------------
+    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, true);
+    throughput = computeMem(len*2, sizeof(int), aveTime);
+    cout<<"Case: wg_column(in only)\tTime: "<<aveTime<<" ms."<<'\t'
+        <<"Throughput: "<<throughput<<" GB/s"<<endl;
+
+//----------------------- case 5: wg_row (in+out) -------------------------------
+    int num_CUs;        //the number of CUs on the device
+    clGetDeviceInfo(info.device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(num_CUs), &num_CUs, NULL);
+    int num_wgs_per_cu = (grid_size + num_CUs - 1) / num_CUs;
+    for(int i = 0; i < num_wgs_per_cu; i++) {
+        for(int j = 0; j < num_CUs; j++) {
+            if (i*num_CUs+j >= grid_size)   break;
+            h_idx_array[i*num_CUs+j] = j*num_wgs_per_cu+i;
+        }
+    }
+    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, false);
+    throughput = computeMem(len*2, sizeof(int), aveTime);
+    cout<<"Case: wg_row(in+out)\tTime: "<<aveTime<<" ms."<<'\t'
+        <<"Throughput: "<<throughput<<" GB/s"<<endl;
+
+//----------------------- case 6: wg_row (in only) -------------------------------
+    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, true);
+    throughput = computeMem(len*2, sizeof(int), aveTime);
+    cout<<"Case: wg_row(in only)\tTime: "<<aveTime<<" ms."<<'\t'
+        <<"Throughput: "<<throughput<<" GB/s"<<endl;
+
+
+    if(h_data) delete[] h_data;
+    if(h_idx_array) delete[] h_idx_array;
+}
+
 
 void testBarrier(
     float *fixedValues, PlatInfo& info , double& totalTime, double& percentage, int localSize, int gridSize) {

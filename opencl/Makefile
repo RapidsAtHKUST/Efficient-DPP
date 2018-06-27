@@ -27,8 +27,7 @@ ifeq ($(R), 1)
 endif
 
 INCLUDE := -I$(INCDIR) \
-		   -I$(COMDIR) \
-           -I/ghome/zlai/workspace/Nvidia_OpenCL_SDK_4_2_Linux/OpenCL/common/inc
+		   -I$(COMDIR) 
 LINK := -L/ghome/zlai/workspace/Nvidia_OpenCL_SDK_4_2_Linux/OpenCL/common/lib -lOpenCL
 
 SRC :=  $(filter-out ._%,$(notdir $(shell find -L $(SRCDIR) $(COMDIR) -name *.cpp)))
