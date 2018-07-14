@@ -118,13 +118,14 @@ int main(int argc, const char * argv[]) {
 //      testGather(dataSize, info);
 //        testScatter(num, info);
 
-//    for(int scale = 19; scale <= 30; scale++) {
+    //test scan
+//    for(int scale = 10; scale <= 30; scale++) {
 //        int num = 1<<scale;
 //        double aveTime;
 //        cout<<scale<<'\t';
 //        bool res = testScan(num, aveTime, 64, 39, 112, 0, info);    //CPU testing
-////        bool res = testScan(num, aveTime, 1024, 15, 0, 11, info);    //GPU testing
-//
+//        bool res = testScan(num, aveTime, 64, 240, 67, 0, info);    //MIC testing
+//        bool res = testScan(num, aveTime, 1024, 15, 0, 11, info);    //GPU testing
 //        if (!res) {
 //            cerr<<"Wrong result!"<<endl;
 //            exit(1);
@@ -132,8 +133,9 @@ int main(int argc, const char * argv[]) {
 //        cout<<"Time:"<<aveTime<<" ms.\t";
 //        cout<<"Throughput:"<<num*1.0 /1024/1024/1024/aveTime*1000<<" GKeys/s"<<endl;
 //    }
-    int length = 1<<28;
-    test_wg_sequence(length, info);
+
+//    unsigned long length = 1<<30; //4GB
+//    test_wg_sequence(length, info);
 
 
 //     testScanParameters(length, 1, info);
@@ -148,11 +150,18 @@ int main(int argc, const char * argv[]) {
 //     cout<<"Time:"<<totalTime<<" ms.\t";
 //     cout<<"Throughput:"<<length*1.0/1024/1024/1024/totalTime*1000<<" GKeys/s"<<endl;
 
-//    testSplit(length, info,128, totalTime);
+    int length = 1<<25;
+    char *str[4] = {"Key-value:", "Key-value, reoreder:", "Key-only:", "Key-only, reoreder:"};
+    for(int test_case = 1; test_case < 2; test_case++) {
+        cout<<str[test_case]<<endl;
+        for (int buckets = 2; buckets <= 4096; buckets <<= 1) {
+            testSplit(length, info, buckets, totalTime, test_case);
+        }
+    }
 
 //    cout<<"Key-only:"<<endl;
 //    for(int buckets = 2; buckets <= 4096; buckets<<=1) {
-//        testSplitParameters(length, buckets, 1, 5, info);
+//        testSplitParameters(length, buckets, 1, 3, info);
 //    }
 
 //------- finished operations ---------------

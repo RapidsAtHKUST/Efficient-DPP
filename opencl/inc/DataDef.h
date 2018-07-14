@@ -4,7 +4,7 @@
 
 //------------------- Var used both on host and devices ------------ 
 //warp size, tuned for each platform
-#define WARP_BITS                   (3)
+#define WARP_BITS                   (4)
 #define WARP_SIZE                   (1<<(WARP_BITS))
 
 //throughput processing

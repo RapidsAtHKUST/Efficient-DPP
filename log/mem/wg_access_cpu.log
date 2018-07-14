@@ -1,0 +1,63 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 1000
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+------ End of hardware checking ------
+
+Data size : 1073741824 (4096MB)
+Case: wg_seq(in+out).
+	DS/WG:8KB gs:524288 Time: 2157.08 ms.	Throughput: 3.70872 GB/s
+	DS/WG:16KB gs:262144 Time: 2104.25 ms.	Throughput: 3.80182 GB/s
+	DS/WG:32KB gs:131072 Time: 1765.41 ms.	Throughput: 4.53153 GB/s
+	DS/WG:64KB gs:65536 Time: 1517.76 ms.	Throughput: 5.27092 GB/s
+	DS/WG:128KB gs:32768 Time: 936.034 ms.	Throughput: 8.5467 GB/s
+	DS/WG:256KB gs:16384 Time: 535.98 ms.	Throughput: 14.9259 GB/s
+	DS/WG:512KB gs:8192 Time: 321.875 ms.	Throughput: 24.8544 GB/s
+	DS/WG:1024KB gs:4096 Time: 247.956 ms.	Throughput: 32.2638 GB/s
+	DS/WG:2048KB gs:2048 Time: 231.462 ms.	Throughput: 34.563 GB/s
+	DS/WG:4096KB gs:1024 Time: 227.593 ms.	Throughput: 35.1505 GB/s
+	DS/WG:8192KB gs:512 Time: 232.816 ms.   Throughput: 34.3619 GB/s
+Case: wg_seq(in only).
+	DS/WG:8KB gs:524288 Time: 215.312 ms.	Throughput: 37.1554 GB/s
+	DS/WG:16KB gs:262144 Time: 217.805 ms.	Throughput: 36.7301 GB/s
+	DS/WG:32KB gs:131072 Time: 205.822 ms.	Throughput: 38.8686 GB/s
+	DS/WG:64KB gs:65536 Time: 199.648 ms.	Throughput: 40.0705 GB/s
+	DS/WG:128KB gs:32768 Time: 191.011 ms.	Throughput: 41.8824 GB/s
+	DS/WG:256KB gs:16384 Time: 191.595 ms.	Throughput: 41.7548 GB/s
+	DS/WG:512KB gs:8192 Time: 189.565 ms.	Throughput: 42.2018 GB/s
+	DS/WG:1024KB gs:4096 Time: 191.768 ms.	Throughput: 41.717 GB/s
+	DS/WG:2048KB gs:2048 Time: 190.683 ms.	Throughput: 41.9545 GB/s
+	DS/WG:4096KB gs:1024 Time: 192.168 ms.	Throughput: 41.6301 GB/s
+	DS/WG:8192KB gs:512 Time: 199.112 ms.   Throughput: 40.1784 GB/s
+Case: wg_random(in+out).
+	DS/WG:8KB gs:524288 Time: 278.546 ms.	Throughput: 28.7206 GB/s
+	DS/WG:16KB gs:262144 Time: 265.608 ms.	Throughput: 30.1196 GB/s
+	DS/WG:32KB gs:131072 Time: 253.928 ms.	Throughput: 31.505 GB/s
+	DS/WG:64KB gs:65536 Time: 249.473 ms.	Throughput: 32.0677 GB/s
+	DS/WG:128KB gs:32768 Time: 245.844 ms.	Throughput: 32.5409 GB/s
+	DS/WG:256KB gs:16384 Time: 239.509 ms.	Throughput: 33.4017 GB/s
+	DS/WG:512KB gs:8192 Time: 235.725 ms.	Throughput: 33.9378 GB/s
+	DS/WG:1024KB gs:4096 Time: 233.381 ms.	Throughput: 34.2788 GB/s
+	DS/WG:2048KB gs:2048 Time: 229.748 ms.	Throughput: 34.8207 GB/s
+	DS/WG:4096KB gs:1024 Time: 226.642 ms.	Throughput: 35.298 GB/s
+	DS/WG:8192KB gs:512 Time: 228.557 ms.   Throughput: 35.0023 GB/s
+Case: wg_random(in only).
+	DS/WG:8KB gs:524288 Time: 216.917 ms.	Throughput: 36.8805 GB/s
+	DS/WG:16KB gs:262144 Time: 200.043 ms.	Throughput: 39.9915 GB/s
+	DS/WG:32KB gs:131072 Time: 195.043 ms.	Throughput: 41.0167 GB/s
+	DS/WG:64KB gs:65536 Time: 193.175 ms.	Throughput: 41.4132 GB/s
+	DS/WG:128KB gs:32768 Time: 191.073 ms.	Throughput: 41.8687 GB/s
+	DS/WG:256KB gs:16384 Time: 191.463 ms.	Throughput: 41.7835 GB/s
+	DS/WG:512KB gs:8192 Time: 189.68 ms.	Throughput: 42.1762 GB/s
+	DS/WG:1024KB gs:4096 Time: 190.429 ms.	Throughput: 42.0105 GB/s
+	DS/WG:2048KB gs:2048 Time: 192.279 ms.	Throughput: 41.6062 GB/s
+	DS/WG:4096KB gs:1024 Time: 196.093 ms.	Throughput: 40.7969 GB/s
+	DS/WG:8192KB gs:512 Time: 197.409 ms.   Throughput: 40.5249 GB/s

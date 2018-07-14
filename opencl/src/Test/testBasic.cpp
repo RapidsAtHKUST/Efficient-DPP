@@ -265,12 +265,13 @@ void testAccess(PlatInfo& info) {
 }
 
 
-double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int grid_size, PlatInfo& info, bool input_equal) {
+double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int grid_size, PlatInfo& info, bool loaded) {
     cl_event event;
     cl_int status;
     int h_atom = 0;
+    int args_num;
 
-    cl_kernel kernel = KernelProcessor::getKernel("memKernel.cl", "mul_mixed_wg", info.context);
+    cl_kernel kernel = KernelProcessor::getKernel("memKernel.cl", "wg_access", info.context);
 
     //set work group and NDRange sizes
     size_t local[1] = {(size_t)(local_size)};
@@ -280,12 +281,9 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
     double tempTimes[experTime];
     for(int e = 0; e < experTime; e++) {
         cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int)*len, NULL, &status);
-        cl_mem d_out = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int)*len, NULL, &status);
         cl_mem d_idx_arr = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int)*grid_size, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
-        status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*len, h_data, 0, 0, 0);
-        checkErr(status, ERR_WRITE_BUFFER);
         status = clEnqueueWriteBuffer(info.currentQueue, d_idx_arr, CL_TRUE, 0, sizeof(int)*grid_size, h_idx_array, 0, 0, 0);
         checkErr(status, ERR_WRITE_BUFFER);
 
@@ -293,10 +291,20 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
         status = clEnqueueFillBuffer(info.currentQueue, d_atom, &h_atom, sizeof(int), 0, sizeof(int), 0, 0, 0);
         checkErr(status, ERR_WRITE_BUFFER);
 
-        int args_num = 0;
+        //flush the cache
+        if(loaded) {
+            cl_kernel heat_kernel = KernelProcessor::getKernel("memKernel.cl", "cache_heat", info.context);
+            args_num = 0;
+            status |= clSetKernelArg(heat_kernel, args_num++, sizeof(cl_mem), &d_in);
+            status |= clSetKernelArg(heat_kernel, args_num++, sizeof(int), &len);
+            checkErr(status, ERR_SET_ARGUMENTS);
+
+            status = clEnqueueNDRangeKernel(info.currentQueue, heat_kernel, 1, 0, global, local, 0, 0, 0);
+            status = clFinish(info.currentQueue);
+            checkErr(status, ERR_EXEC_KERNEL,1);
+        }
+        args_num = 0;
         status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_in);
-        if (input_equal)    status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_in);
-        else                status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_out);
         status |= clSetKernelArg(kernel, args_num++, sizeof(int), &len);
         status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_atom);
         status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_idx_arr);
@@ -304,15 +312,86 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
 
         //kernel execution
         status = clFinish(info.currentQueue);
-        status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);  //kernel execution
+
+        //kernel execution
+        struct timeval start, end;
+
+        gettimeofday(&start, NULL);
+        status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);
         status = clFinish(info.currentQueue);
-        checkErr(status, ERR_EXEC_KERNEL);
+        gettimeofday(&end, NULL);
+
+        checkErr(status, ERR_EXEC_KERNEL,2);
+
+        // status = clEnqueueReadBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*len, h_data, 0, 0, 0);
+        // for(int i = 0; i < 1048576; i++) {
+        //     cout<<h_data[i]<<' ';
+        // }
+        // cout<<endl;
 
         //free the memory
         status = clReleaseMemObject(d_in);
-        status = clReleaseMemObject(d_out);
         status = clReleaseMemObject(d_idx_arr);
         status = clReleaseMemObject(d_atom);
+        checkErr(status, ERR_RELEASE_MEM);
+
+        // tempTimes[e] = clEventTime(event);
+        tempTimes[e] = diffTime(end, start);
+    }
+    return averageHampel(tempTimes, experTime);
+}
+
+double wg_sequence_no_atomic(int *h_data, int len, int local_size, int num_of_groups, PlatInfo& info, bool loaded) {
+    cl_event event;
+    cl_int status;
+    int args_num;
+
+    cl_kernel kernel = KernelProcessor::getKernel("memKernel.cl", "wg_access_no_atomic", info.context);
+
+    //set work group and NDRange sizes
+    int grid_size = 40;
+    size_t local[1] = {(size_t)(local_size)};
+    size_t global[1] = {(size_t)(local_size * grid_size)};
+
+    int experTime = 10;
+    double tempTimes[experTime];
+    for(int e = 0; e < experTime; e++) {
+        cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_WRITE , sizeof(int)*len, NULL, &status);
+
+        //flush the cache
+        if(loaded) {
+            cl_kernel heat_kernel = KernelProcessor::getKernel("memKernel.cl", "cache_heat", info.context);
+            args_num = 0;
+            status |= clSetKernelArg(heat_kernel, args_num++, sizeof(cl_mem), &d_in);
+            status |= clSetKernelArg(heat_kernel, args_num++, sizeof(int), &len);
+            checkErr(status, ERR_SET_ARGUMENTS);
+
+            status = clEnqueueNDRangeKernel(info.currentQueue, heat_kernel, 1, 0, global, local, 0, 0, 0);
+            status = clFinish(info.currentQueue);
+            checkErr(status, ERR_EXEC_KERNEL,1);
+        }
+        args_num = 0;
+        status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_in);
+        status |= clSetKernelArg(kernel, args_num++, sizeof(int), &len);
+        status |= clSetKernelArg(kernel, args_num++, sizeof(int), &num_of_groups);
+        checkErr(status, ERR_SET_ARGUMENTS);
+
+        //kernel execution
+        status = clFinish(info.currentQueue);
+
+        //kernel execution
+        status = clEnqueueNDRangeKernel(info.currentQueue, kernel, 1, 0, global, local, 0, 0, &event);
+        status = clFinish(info.currentQueue);
+        checkErr(status, ERR_EXEC_KERNEL,2);
+
+        // status = clEnqueueReadBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*len, h_data, 0, 0, 0);
+        // for(int i = 0; i < 1048576; i++) {
+        //     cout<<h_data[i]<<' ';
+        // }
+        // cout<<endl;
+
+        //free the memory
+        status = clReleaseMemObject(d_in);
         checkErr(status, ERR_RELEASE_MEM);
 
         tempTimes[e] = clEventTime(event);
@@ -320,76 +399,122 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
     return averageHampel(tempTimes, experTime);
 }
 
-void test_wg_sequence(int len, PlatInfo& info) {
-    cl_int status;
-    int grid_size = 4370, local_size = 512;
-    double aveTime, throughput;
-
+void test_wg_sequence(unsigned long len, PlatInfo& info) {
+    len = 1<<29;    //2GB dataset
     std::cout<<"Data size : "<<len<<" ("<<len*sizeof(int)*1.0/1024/1024<<"MB)"<<std::endl;
 
-    int *h_data = new int[len];
-    int *h_idx_array = new int[grid_size];
-    for(int i = 0; i < len; i++) h_data[i] = i;
-    for(int i = 0; i < grid_size; i++) h_idx_array[i] = i;
-    //shuffle the idx_array
-    srand(time(NULL));
-    for(int i = 0; i <grid_size * 3; i++) {
-        int idx1 = rand() % grid_size;
-        int idx2 = rand() % grid_size;
-        int temp = h_idx_array[idx1];
-        h_idx_array[idx1] = h_idx_array[idx2];
-        h_idx_array[idx2] = temp;
-    }
+    int num_CUs, local_size = 512;
+    double aveTime, throughput;
 
-//----------------------- case 1: wg_random (in+out) -------------------------------
-    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, false);
-    throughput = computeMem(len*2, sizeof(int), aveTime);
-    cout<<"Case: wg_random(in+out)\tTime: "<<aveTime<<" ms."<<'\t'
-        <<"Throughput: "<<throughput<<" GB/s"<<endl;
+    //size of the partition each work-group processes
+    int ds_wg_kb, ds_wg_kb_begin = 8, ds_wg_kb_end=8192;
 
-//----------------------- case 2: wg_random (in only) -------------------------------
-    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, true);
-    throughput = computeMem(len*2, sizeof(int), aveTime);
-    cout<<"Case: wg_random(in only)\tTime: "<<aveTime<<" ms."<<'\t'
-        <<"Throughput: "<<throughput<<" GB/s"<<endl;
-
-//----------------------- case 3: wg_column (in+out) -------------------------------
-    for(int i = 0; i < grid_size; i++) h_idx_array[i] = i;
-    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, false);
-    throughput = computeMem(len*2, sizeof(int), aveTime);
-    cout<<"Case: wg_column(in+out)\tTime: "<<aveTime<<" ms."<<'\t'
-        <<"Throughput: "<<throughput<<" GB/s"<<endl;
-
-//----------------------- case 4: wg_column (in only) -------------------------------
-    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, true);
-    throughput = computeMem(len*2, sizeof(int), aveTime);
-    cout<<"Case: wg_column(in only)\tTime: "<<aveTime<<" ms."<<'\t'
-        <<"Throughput: "<<throughput<<" GB/s"<<endl;
-
-//----------------------- case 5: wg_row (in+out) -------------------------------
-    int num_CUs;        //the number of CUs on the device
+    //get the number of CUs on the device
     clGetDeviceInfo(info.device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(num_CUs), &num_CUs, NULL);
-    int num_wgs_per_cu = (grid_size + num_CUs - 1) / num_CUs;
-    for(int i = 0; i < num_wgs_per_cu; i++) {
-        for(int j = 0; j < num_CUs; j++) {
-            if (i*num_CUs+j >= grid_size)   break;
-            h_idx_array[i*num_CUs+j] = j*num_wgs_per_cu+i;
-        }
-    }
-    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, false);
-    throughput = computeMem(len*2, sizeof(int), aveTime);
-    cout<<"Case: wg_row(in+out)\tTime: "<<aveTime<<" ms."<<'\t'
-        <<"Throughput: "<<throughput<<" GB/s"<<endl;
 
-//----------------------- case 6: wg_row (in only) -------------------------------
-    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, true);
-    throughput = computeMem(len*2, sizeof(int), aveTime);
-    cout<<"Case: wg_row(in only)\tTime: "<<aveTime<<" ms."<<'\t'
-        <<"Throughput: "<<throughput<<" GB/s"<<endl;
+    int *h_data = new int[len];
+    for(int i = 0; i < len; i++) h_data[i] = 1;
 
+//----------------------- case 1: Interleaved, unloaded -------------------------------
+   cout<<"Case: Interleaved, unloaded."<<endl;
+   for(ds_wg_kb = ds_wg_kb_end; ds_wg_kb >= ds_wg_kb_begin; ds_wg_kb >>= 1) {
+       int grid_size = len/1024/ ds_wg_kb * sizeof(int);
+       int *h_idx_array = new int[grid_size];
+       for(int i = 0; i < grid_size; i++) h_idx_array[i] = i;
+
+       aveTime = wg_sequence(h_data, len, h_idx_array, local_size, grid_size, info, true);
+        // aveTime = wg_sequence_no_atomic(h_data,len,local_size,grid_size,info,false);
+
+       throughput = computeMem(len, sizeof(int), aveTime);
+       cout<<"\tDS/WG:"<<ds_wg_kb<<"KB "<<"gs:"<<grid_size<<" Time: "<<aveTime<<" ms."<<'\t'
+           <<"Throughput: "<<throughput<<" GB/s"<<endl;
+       if (h_idx_array)    delete[] h_idx_array;
+   }
+
+//----------------------- case 2: Interleaved, loaded -------------------------------
+    // cout<<"Case: Interleaved, loaded."<<endl;
+    // for(ds_wg_kb = ds_wg_kb_begin; ds_wg_kb <= ds_wg_kb_end; ds_wg_kb <<= 1) {
+    //     int grid_size = len/1024/ ds_wg_kb * sizeof(int);
+    //     int *h_idx_array = new int[grid_size];
+    //     for(int i = 0; i < grid_size; i++) h_idx_array[i] = i;
+
+    //     aveTime = wg_sequence(h_data, len, h_idx_array, local_size, grid_size, info, true);
+    //     throughput = computeMem(len, sizeof(int), aveTime);
+    //     cout<<"\tDS/WG:"<<ds_wg_kb<<"KB "<<"gs:"<<grid_size<<" Time: "<<aveTime<<" ms."<<'\t'
+    //         <<"Throughput: "<<throughput<<" GB/s"<<endl;
+
+    //     if (h_idx_array)    delete[] h_idx_array;
+    // }
+
+//----------------------- case 3: Random, unloaded -------------------------------
+
+//    cout<<"Case: Random, unloaded."<<endl;
+//    for(ds_wg_kb = ds_wg_kb_begin; ds_wg_kb <= ds_wg_kb_end; ds_wg_kb <<= 1) {
+//        int grid_size = len/1024/ ds_wg_kb * sizeof(int);
+//        int *h_idx_array = new int[grid_size];
+//        for(int i = 0; i < grid_size; i++) h_idx_array[i] = i;
+//        //shuffle the idx_array
+//        srand(time(NULL));
+//        for(int i = 0; i <grid_size * 3; i++) {
+//            int idx1 = rand() % grid_size;
+//            int idx2 = rand() % grid_size;
+//            int temp = h_idx_array[idx1];
+//            h_idx_array[idx1] = h_idx_array[idx2];
+//            h_idx_array[idx2] = temp;
+//        }
+//
+//        aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, false);
+//        throughput = computeMem(len, sizeof(int), aveTime);
+//        cout<<"\tDS/WG:"<<ds_wg_kb<<"KB "<<"gs:"<<grid_size<<" Time: "<<aveTime<<" ms."<<'\t'
+//            <<"Throughput: "<<throughput<<" GB/s"<<endl;
+//
+//        if (h_idx_array)    delete[] h_idx_array;
+//    }
+
+//----------------------- case 4: Random, loaded -------------------------------
+//    cout<<"Case: Random, loaded."<<endl;
+//    for(ds_wg_kb = ds_wg_kb_begin; ds_wg_kb <= ds_wg_kb_end; ds_wg_kb <<= 1) {
+//        int grid_size = len/1024/ ds_wg_kb * sizeof(int);
+//        int *h_idx_array = new int[grid_size];
+//        for(int i = 0; i < grid_size; i++) h_idx_array[i] = i;
+//
+//        //shuffle the idx_array
+//        srand(time(NULL));
+//        for(int i = 0; i <grid_size * 3; i++) {
+//            int idx1 = rand() % grid_size;
+//            int idx2 = rand() % grid_size;
+//            int temp = h_idx_array[idx1];
+//            h_idx_array[idx1] = h_idx_array[idx2];
+//            h_idx_array[idx2] = temp;
+//        }
+//
+//        aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, true);
+//        throughput = computeMem(len, sizeof(int), aveTime);
+//        cout<<"\tDS/WG:"<<ds_wg_kb<<"KB "<<"gs:"<<grid_size<<" Time: "<<aveTime<<" ms."<<'\t'
+//            <<"Throughput: "<<throughput<<" GB/s"<<endl;
+//
+//        if (h_idx_array)    delete[] h_idx_array;
+//    }
+
+// wg_row, not neccessary
+//    int num_wgs_per_cu = (grid_size + num_CUs - 1) / num_CUs;
+//    for(int i = 0; i < num_wgs_per_cu; i++) {
+//        for(int j = 0; j < num_CUs; j++) {
+//            if (i*num_CUs+j >= grid_size)   break;
+//            h_idx_array[i*num_CUs+j] = j*num_wgs_per_cu+i;
+//        }
+//    }
+//    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, false);
+//    throughput = computeMem(len*2, sizeof(int), aveTime);
+//    cout<<"Case: wg_row(in+out)\tTime: "<<aveTime<<" ms."<<'\t'
+//        <<"Throughput: "<<throughput<<" GB/s"<<endl;
+//
+//    aveTime = wg_sequence(h_data, len, h_idx_array,local_size, grid_size, info, true);
+//    throughput = computeMem(len*2, sizeof(int), aveTime);
+//    cout<<"Case: wg_row(in only)\tTime: "<<aveTime<<" ms."<<'\t'
+//        <<"Throughput: "<<throughput<<" GB/s"<<endl;
 
     if(h_data) delete[] h_data;
-    if(h_idx_array) delete[] h_idx_array;
 }
 
 

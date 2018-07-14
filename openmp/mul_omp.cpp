@@ -28,7 +28,9 @@
 #include <cmath>
 #include <algorithm>
 #include <immintrin.h>
+#include <stdio.h>
 #define SCALAR (3)
+using namespace std;
 
 double averageHampel(double *input, int num) {
     int valid = 0;
@@ -75,12 +77,47 @@ double mem_access_omp(int *input, int *output, int len) {
     struct timeval start, end;
 
     gettimeofday(&start, NULL);
-    #pragma omp parallel for schedule(auto)
+    #pragma omp parallel for schedule(static)
     for(int i = 0; i < len; i++) {
         output[i] = input[i] * SCALAR;
     }
     gettimeofday(&end, NULL);
     double tempTime =  diffTime(end, start);
+
+    return tempTime;
+}
+
+double mem_access_omp_read(int *input, int *output, int len, int chunk_size) {
+
+    struct timeval start, end;
+
+    int num_threads;
+
+//    #pragma omp parallel for schedule(static)
+//    for(int i = 0; i < len; i++) {
+//        input[i] = 1;
+//    }
+//    omp_set_dynamic(0);
+//    omp_set_num_threads(10);
+
+    gettimeofday(&start, NULL);
+#pragma omp parallel
+{
+//    int thread_num = omp_get_thread_num();
+//    int cpu_num = sched_getcpu();
+//    printf("Thread %d on core %d\n",thread_num, cpu_num);
+
+    long acc = 0;
+    #pragma omp for schedule(dynamic,chunk_size)
+    for(int i = 0; i < len; i++) {
+        acc += input[i];
+    }
+    output[0] = acc;
+}
+    gettimeofday(&end, NULL);
+
+    double tempTime =  diffTime(end, start);
+
 
     return tempTime;
 }
@@ -114,7 +151,7 @@ void test_omp() {
     int *output = new int[len];
     for(int i = 0; i < len; i++) input[i] = i;
 
-    int experTime = 150;
+    int experTime = 30;
     double times[experTime];
     for(int e = 0; e < experTime; e++) {
         times[e] = mem_access_omp(input, output, len);
@@ -122,6 +159,27 @@ void test_omp() {
     double aveTime = averageHampel(times,experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
              <<"Throughput:"<<2*1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
+
+    if(input)  delete[] input;
+    if(output)  delete[] output;
+}
+
+void test_omp_read(int chunk_size) {
+    int len = 512 * 8192 * 100;  //1600MB
+    std::cout<<"Data size: "<<len<<" ("<<len* sizeof(int)/1024/1024<<"MB)"<<std::endl;
+
+    int *input = new int[len];
+    int *output = new int[len];
+    for(int i = 0; i < len; i++) input[i] = i;
+
+    int experTime = 30;
+    double times[experTime];
+    for(int e = 0; e < experTime; e++) {
+        times[e] = mem_access_omp_read(input, output, len, chunk_size);
+    }
+    double aveTime = averageHampel(times,experTime);
+    std::cout<<"Chunk size:"<<chunk_size<<"\tTime:"<<aveTime<<" ms"<<'\t'
+             <<"Throughput:"<<1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
 
     if(input)  delete[] input;
     if(output)  delete[] output;
@@ -151,7 +209,9 @@ void test_omp_ss() {
 
 int main()
 {
-    test_omp();
+//    test_omp();
+    for(int i = 64; i <= 524288; i<<=1)
+        test_omp_read(i);
 
     //streaming store, only used on CPU
 //    test_omp_ss();

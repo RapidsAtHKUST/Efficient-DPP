@@ -116,7 +116,7 @@ void printRes(std::string funcName, bool res, double elaspsedTime);
 void my_itoa(int num, char *buffer, int base);
 
 double computeGFLOPS(int dataSize, double elaspedTime, bool isMADD, int repeatTime, int numPerRun);
-double computeMem(int dataSize, int wordSize, double elapsedTime);
+double computeMem(unsigned long dataSize, int wordSize, double elapsedTime);
 
 double averageHampel(double *input, int num);
 

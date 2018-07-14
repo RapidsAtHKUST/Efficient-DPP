@@ -64,7 +64,7 @@ double smj(cl_mem d_R, int rLen, cl_mem d_S, int sLen, cl_mem& d_Out, int & oLen
     totalResNum += tempCount;
     
     //scan
-    totalTime += scan(d_count, itemNum, 1, info);
+//    totalTime += scan(d_count, itemNum, 1, info);
     
     //get the last number
     status = clEnqueueReadBuffer(info.currentQueue, d_count, CL_TRUE,sizeof(uint)*(itemNum-1), sizeof(uint), &tempCount, 0, NULL, NULL);

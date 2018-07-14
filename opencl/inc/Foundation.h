@@ -34,17 +34,23 @@ double gather(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem 
 
 double scatter(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, const PlatInfo info, int pass);
 
-double scan_fast(cl_mem &d_in, cl_mem &d_out, int length, PlatInfo& info, int localSize, int gridSize, int R, int L);
+double scan_fast(cl_mem &d_inout, int length, PlatInfo& info, int localSize, int gridSize, int R, int L);
+double scan_three_kernel(cl_mem &d_inout, unsigned length, PlatInfo &info, int local_size, int grid_size);
+double scan_three_kernel_single(cl_mem &d_inout, unsigned length, PlatInfo &info, int grid_size);
 
 double scan(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize = BLOCKSIZE);
-double scan_ble(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize = BLOCKSIZE);
+
 
 DEPRECATED double scan_blelloch(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize = BLOCKSIZE);
 
-double block_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, bool reorder, PlatInfo& info, int localSize=256, int gridSize=32768, int sharedSize=1024) ;
-double block_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, cl_mem d_out_values, cl_mem d_start, int length, int buckets, bool reorder, PlatInfo& info, int localSize=256, int gridSize=32768, int sharedSize=1024) ;
-double thread_split_k(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, PlatInfo& info, int localSize=256, int gridSize=32768) ;
-double thread_split_kv(cl_mem d_in_keys, cl_mem d_in_values, cl_mem d_out_keys, cl_mem d_out_values, cl_mem d_start, int length, int buckets, PlatInfo& info, int localSize=256, int gridSize=32768) ;
+/*split algorithms*/
+double block_split(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, bool reorder, PlatInfo& info, cl_mem d_in_values=NULL, cl_mem d_out_values=NULL, int local_size=256, int grid_size=32768);
+
+double thread_split(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, PlatInfo& info, cl_mem d_in_values=NULL, cl_mem d_out_values=NULL, int local_size=256, int grid_size=32768);
+
+double single_split(cl_mem d_in_keys, cl_mem d_out_keys, int length, int buckets, bool reorder, PlatInfo& info, cl_mem d_in_values=NULL, cl_mem d_out_values=NULL);
+
+/*end of split algorithms*/
 
 double radixSort(cl_mem& d_source, int length, PlatInfo& info);
 
@@ -62,14 +68,14 @@ double hashjoin_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys
 
 //-------------------------test primitives-------------------------
 void testMem(PlatInfo& info);
-void test_wg_sequence(int len, PlatInfo& info);
+void test_wg_sequence(unsigned long len, PlatInfo& info);
 void testAccess(PlatInfo& info);
 bool testGather(int len, const PlatInfo info);
 bool testScatter(int len, const PlatInfo info);
 void testAtomic(PlatInfo& info);
 bool testScan(int length, double &totalTime, int localSize, int gridSize, int R, int L, PlatInfo& info);
 void testScanParameters(int length, int selection, PlatInfo& info);
-bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime);
+bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime, int test_type);
 void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& info);
 
 

@@ -553,36 +553,32 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
 
     int *h_input = new int[length];
     int *h_output = new int[length];
-//    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;  //data initialization
-    for(int i = 0; i < length; i++) {
-        h_input[i] = 0;
-        h_output[i] = -99;
-    }  //data initialization
+    srand(time(NULL));
+//    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;
+    for(int i = 0; i < length; i++) h_input[i] = 1;
 
     int experTime = 20;
     double tempTimes[experTime];
     for(int e = 0; e < experTime; e++) {
 
-        cl_mem d_input = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
-        checkErr(status, ERR_HOST_ALLOCATION);
-        cl_mem d_output = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
+        cl_mem d_inout = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
-        status = clEnqueueWriteBuffer(info.currentQueue, d_input, CL_TRUE, 0, sizeof(int) * length, h_input, 0, 0, 0);
+        status = clEnqueueWriteBuffer(info.currentQueue, d_inout, CL_TRUE, 0, sizeof(int) * length, h_input, 0, 0, 0);
         checkErr(status, ERR_WRITE_BUFFER);
         clFinish(info.currentQueue);
 
-        //for the Xeon GPU, 39 work-groups, 256 work-group size, 31 R
-        //for the GPU, 15 work-groups, 1024 work-group size, 11 L
-        double tempTime = scan_fast(d_input, d_output, length, info, localSize, gridSize, R, L);
+        double tempTime = scan_fast(d_inout, length, info, localSize, gridSize, R, L);
+        //three-kernel
+//        double tempTime = scan_three_kernel(d_inout, length, info, localSize, gridSize);
+//        double tempTime = scan_three_kernel_single(d_inout, length, info, gridSize);
 
-        status = clEnqueueReadBuffer(info.currentQueue, d_output, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
+        status = clEnqueueReadBuffer(info.currentQueue, d_inout, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
+
         checkErr(status, ERR_READ_BUFFER);
         status = clFinish(info.currentQueue);
 
-        status = clReleaseMemObject(d_input);
-        checkErr(status, ERR_RELEASE_MEM);
-        status = clReleaseMemObject(d_output);
+        status = clReleaseMemObject(d_inout);
         checkErr(status, ERR_RELEASE_MEM);
 
         //check
@@ -594,9 +590,9 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
                     break;
                 }
                 acc += h_input[i];
+//                cout<<h_output[i]<<' ';
             }
         }
-        cout<<"time:"<<tempTime<<endl;
         tempTimes[e] = tempTime;
 
     }
@@ -605,8 +601,8 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
     if(h_input) delete[] h_input;
     if(h_output) delete[] h_output;
 
-//     cout<<"Time:"<<totalTime<<" ms.\t";
-//     cout<<"Throughput:"<<sizeMB*1.0/1024/totalTime*1000<<" GB/s"<<endl;
+//     cout<<"Time:"<<aveTime<<" ms.\t";
+//     cout<<"Throughput:"<<sizeMB*1.0/1024/aveTime*1000<<" GB/s"<<endl;
     return res;
 }
 
@@ -689,7 +685,7 @@ void testScanParameters(int length, int device, PlatInfo& info) {
 }
 
 //fanout: number of partitions needed
-bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime) {
+bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int test_type) {
 
     cl_int status = 0;
     bool res = true;
@@ -722,76 +718,74 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime) {
     cl_mem d_out_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
-    //start position data
-    cl_mem d_start = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*buckets, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);;
-
     //data copy
     status = clEnqueueWriteBuffer(info.currentQueue, d_in_keys, CL_TRUE, 0, sizeof(int)*len, h_in_keys, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
     status = clEnqueueWriteBuffer(info.currentQueue, d_in_values, CL_TRUE, 0, sizeof(int)*len, h_in_values, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
 
-    int experTime = 10;
+    int experTime = 100;
     aveTime = 0;
 
     double *timeRecorder = new double[experTime];
     for(int e = 0; e < experTime; e++) {
         double tempTime;
-        // tempTime = block_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, true, info);
-//    tempTime = thread_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, info);
-       tempTime = block_split_k(d_in_keys, d_out_keys, d_start, len, buckets, true, info);
 
+        switch (test_type) {
+            case 0:     /*key-value*/
+                tempTime = single_split(d_in_keys, d_out_keys, len, buckets, false, info, d_in_values, d_out_values);
+                break;
+            case 1:     /*key-value, reorder*/
+                tempTime = single_split(d_in_keys, d_out_keys, len, buckets, true, info, d_in_values, d_out_values);
+                break;
+            case 2:     /*key-only*/
+                tempTime = single_split(d_in_keys, d_out_keys, len, buckets, false, info);
+                break;
+            case 3:     /*key-only, reorder*/
+                tempTime = single_split(d_in_keys, d_out_keys, len, buckets, true, info);
+                break;
+        }
 
-//    tempTime = thread_split_k(d_in_keys, d_out_keys, d_start, len, buckets, info);
+//        tempTime = block_split(d_in_keys, d_out_keys, NULL, len, buckets, true, info, d_in_values, d_out_values);
+//        tempTime = thread_split(d_in_keys, d_out_keys, NULL, len, buckets, info);
+
         if (e == 0) {
-            //memory written back
             status = clEnqueueReadBuffer(info.currentQueue, d_out_keys, CL_TRUE, 0, sizeof(int)*len, h_out_keys, 0, 0, 0);
             checkErr(status, ERR_READ_BUFFER);
             status = clFinish(info.currentQueue);
 
-//            for(int i = 0; i < len; i++) {
-//                cout<<h_out_keys[i]<<' '<< (h_out_keys[i] & mask) << endl;
-//            }
-//            cout<<endl;
+            /*check the sum*/
+            unsigned long check_total_in = 0;
+            unsigned long check_total_out = 0;
+            check_total_in += h_in_keys[0] & mask;
+            check_total_out += h_out_keys[0] & mask;
 
-            //check
             int bits_prev = h_out_keys[0] & mask;
             for(int i = 1; i < len; i++) {
                 int bits_now = h_out_keys[i] & mask;
+                check_total_out += bits_now;
+
                 if (bits_now < bits_prev)  {
                     res = false;
-                    std::cerr<<"wrong result"<<std::endl;
+                    std::cerr<<"wrong result, comparison not succeed!"<<std::endl;
                     return res;
                 }
                 bits_prev = bits_now;
+
+                /*accumulate the input data*/
+                check_total_in += h_in_keys[i] & mask;
+            }
+            /*sum not equal*/
+            if (check_total_in != check_total_out) {
+                res = false;
+                std::cerr<<"wrong result, sum not match!"<<std::endl;
+                std::cerr<<"right: "<<check_total_in<<"\toutput: "<<check_total_out<<std::endl;
+                return res;
             }
         }
         timeRecorder[e] = tempTime;
     }
     aveTime = averageHampel(timeRecorder, experTime);
-
-//    cout<<"input:"<<endl;
-//    for(int i = 0 ; i < len; i++) {
-//        cout<<h_in[i].x<<' '<<h_in[i].y<<endl;
-//    }
-//
-//    cout<<"output:"<<endl;
-//    for(int i = 0 ; i < len; i++) {
-//        cout<<h_out[i].x<<' '<<h_out[i].y<<endl;
-//    }
-//
-//    int *h_start = new int[buckets];
-//    status = clEnqueueReadBuffer(info.currentQueue, d_start, CL_TRUE, 0, sizeof(int)*buckets, h_start, 0, 0, 0);
-//    checkErr(status, ERR_READ_BUFFER);
-//    status = clFinish(info.currentQueue);
-////
-//    cout<<"start pos:"<<endl;
-//    for(int i = 0; i < buckets; i++) {
-//        if (h_start[i] != 0) {
-//            cout<<i<<' '<<h_start[i]<<endl;
-//        }
-//    }
 
     status = clReleaseMemObject(d_in_keys);
     checkErr(status, ERR_RELEASE_MEM);
@@ -900,9 +894,6 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
             cl_mem d_out_keys = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
             checkErr(status, ERR_HOST_ALLOCATION);
 
-            cl_mem d_start = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*buckets, NULL, &status);
-            checkErr(status, ERR_HOST_ALLOCATION);
-
             cl_mem d_in_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
             checkErr(status, ERR_HOST_ALLOCATION);
             cl_mem d_out_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
@@ -920,35 +911,31 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
                 double tempTime;
                 switch (algo) {
                     case 0:
-                        tempTime = thread_split_k(d_in_keys, d_out_keys, d_start, len, buckets, info, localSize, gridSize);
+                        tempTime = thread_split(d_in_keys, d_out_keys, NULL, len, buckets, info, NULL, NULL, localSize, gridSize);
                         break;
                     case 1:
-                        tempTime = thread_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, info, localSize, gridSize);
+                        tempTime = thread_split(d_in_keys, d_out_keys, NULL, len, buckets, info, d_in_values, d_out_values, localSize, gridSize);
                         break;
                     case 2:
-                        tempTime = block_split_k(d_in_keys, d_out_keys, d_start, len, buckets, false, info, localSize, gridSize, sharedSize);
+                        tempTime = block_split(d_in_keys, d_out_keys, NULL, len, buckets, false, info, NULL, NULL, localSize, gridSize);
                         break;
                     case 3:
-                        tempTime = block_split_k(d_in_keys, d_out_keys, d_start, len, buckets, true, info, localSize, gridSize, sharedSize);
+                        tempTime = block_split(d_in_keys, d_out_keys, NULL, len, buckets, true, info, NULL, NULL,localSize, gridSize);
                         break;
                     case 4:
-                        tempTime = block_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, false, info, localSize, gridSize, sharedSize);
+                        tempTime = block_split(d_in_keys, d_out_keys, NULL, len, buckets, false, info, d_in_values, d_out_values, localSize, gridSize);
                         break;
                     case 5:
-                        tempTime = block_split_kv(d_in_keys, d_in_values, d_out_keys, d_out_values, d_start, len, buckets, true, info, localSize, gridSize, sharedSize);
+                        tempTime = block_split(d_in_keys, d_out_keys, NULL, len, buckets, true, info, d_in_values, d_out_values, localSize, gridSize);
                         break;
                 }
                 if (e == 0) {
-                    //check
-                    //memory written back
                     status = clEnqueueReadBuffer(info.currentQueue, d_out_keys, CL_TRUE, 0, sizeof(int)*len, h_out_keys, 0, 0, 0);
                     checkErr(status, ERR_READ_BUFFER);
                     status = clFinish(info.currentQueue);
 
                     int mask = buckets - 1;
                     int bits_prev = h_out_keys[0] & mask;
-//                    for(int a = 0; a < 8; a++)
-//                        std::cout<<"local_num:"<<h_out_keys[a]<<std::endl;
                     for(int i = 1; i < len; i++) {
                         int bits_now = h_out_keys[i] & mask;
                         if (bits_now < bits_prev)  {
@@ -978,8 +965,6 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
             status = clReleaseMemObject(d_in_values);
             checkErr(status, ERR_RELEASE_MEM);
             status = clReleaseMemObject(d_out_values);
-            checkErr(status, ERR_RELEASE_MEM);
-            status = clReleaseMemObject(d_start);
             checkErr(status, ERR_RELEASE_MEM);
 
             if(h_in_keys) delete [] h_in_keys;

@@ -181,8 +181,8 @@ double computeGFLOPS(int dataSize, double elaspedTime, bool isMADD, int repeatTi
 
 //calculating the memory bandwidth
 //elasped time: in ms using diffTime
-double computeMem(int num, int wordSize, double elapsedTime) {
-    return (double)num * wordSize /1024/1024/1024/elapsedTime * 1000 ;
+double computeMem(unsigned long num, int wordSize, double elapsedTime) {
+    return (double)(1.0*num)/1024/1024/1024*wordSize/elapsedTime * 1000 ;
 }
 
 #ifdef OPENCL_PROJ

@@ -83,7 +83,7 @@ void PlatInit::initPlat() {
     cout<<"Please enter the index of the device to use (0,1,2...) : ";
 
 //    cin >> chosenDevice;
-    chosenDevice = 1;
+    chosenDevice = 0;
 
     this->device = devices[chosenDevice];
     // chosenDevice = 1;   //cpu

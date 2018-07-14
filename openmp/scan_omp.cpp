@@ -73,43 +73,43 @@ double diffTime(struct timeval end, struct timeval start) {
     return 1000 * (end.tv_sec - start.tv_sec) + 0.001 * (end.tv_usec - start.tv_usec);
 }
 
-//reduce-sca-scan scheme
+//scan-add-add scheme, faster than the reduce-scan-scan scheme
 double scan_omp(int *input, int* output, int len) {
     struct timeval start, end;
-    int reduceSum[MAX_THREAD_NUM] = {0};
-    int reduceSum_scanned[MAX_THREAD_NUM] = {0};
+    int reduce_sum[MAX_THREAD_NUM] = {0};
 
     gettimeofday(&start, NULL);
 #pragma omp parallel
     {
         int nthreads = omp_get_num_threads();
         int tid = omp_get_thread_num();
-        int localSum = 0;
+        int local_sum = 0;
 
         //reduce & local prefix sum
 #pragma omp for schedule(static) nowait
         for (int i = 0; i < len; i++) {
-            output[i] = localSum;
-            localSum += input[i];
+            output[i] = local_sum;
+            local_sum += input[i];
         }
-        reduceSum[tid] = localSum;
+        reduce_sum[tid] = local_sum;
 
 #pragma omp barrier
 
         //exclusively scan the reduce sum (at most MAX_THREAD_NUM elements)
 #pragma omp single
         {
-            int temp = 0;
+            int acc = 0;
             for (int i = 0; i < nthreads; i++) {
-                reduceSum_scanned[i] = temp;
-                temp = temp + reduceSum[i];
+                int temp = reduce_sum[i];
+                reduce_sum[i] = acc;
+                acc += temp;
             }
         }
 
-        //scatter back
+        //propogation
 #pragma omp for schedule(static) nowait
         for (int i = 0; i < len; i++) {
-            output[i] += reduceSum_scanned[tid];
+            output[i] += reduce_sum[tid];
         }
     }
     gettimeofday(&end, NULL);

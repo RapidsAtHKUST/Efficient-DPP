@@ -84,7 +84,7 @@ double ninlj(cl_mem& d_R, int rLen, cl_mem& d_S, int sLen, cl_mem& d_Out, int & 
     totalResNum += tempCount;
     
     //scan
-    totalTime += scan(d_count, countNum, 1, info);
+//    totalTime += scan(d_count, countNum, 1, info);
     
     //get the last number
     status = clEnqueueReadBuffer(info.currentQueue, d_count, CL_TRUE,sizeof(uint)*(countNum-1), sizeof(uint), &tempCount, 0, NULL, NULL);

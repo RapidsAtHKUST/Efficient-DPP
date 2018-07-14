@@ -1,0 +1,66 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 1000
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+------ End of hardware checking ------
+
+Key-value:
+Length: 33554432	Buckets: 2	Time: 23.3166 ms.(11.5126GB/s)
+Length: 33554432	Buckets: 4	Time: 22.2653 ms.(12.0562GB/s)
+Length: 33554432	Buckets: 8	Time: 27.548 ms.(9.74428GB/s)
+Length: 33554432	Buckets: 16	Time: 29.7021 ms.(9.0376GB/s)
+Length: 33554432	Buckets: 32	Time: 32.8647 ms.(8.16789GB/s)
+Length: 33554432	Buckets: 64	Time: 30.5195 ms.(8.79553GB/s)
+Length: 33554432	Buckets: 128	Time: 31.1471 ms.(8.61831GB/s)
+Length: 33554432	Buckets: 256	Time: 34.2017 ms.(7.84861GB/s)
+Length: 33554432	Buckets: 512	Time: 39.8149 ms.(6.74208GB/s)
+Length: 33554432	Buckets: 1024	Time: 44.9475 ms.(5.97219GB/s)
+Length: 33554432	Buckets: 2048	Time: 48.8752 ms.(5.49226GB/s)
+Length: 33554432	Buckets: 4096	Time: 53.9415 ms.(4.97642GB/s)
+Key-value, reoreder:
+Length: 33554432	Buckets: 2	Time: 43.9332 ms.(6.11008GB/s)
+Length: 33554432	Buckets: 4	Time: 57.3221 ms.(4.68293GB/s)
+Length: 33554432	Buckets: 8	Time: 49.5355 ms.(5.41905GB/s)
+Length: 33554432	Buckets: 16	Time: 40.555 ms.(6.61904GB/s)
+Length: 33554432	Buckets: 32	Time: 39.5038 ms.(6.79518GB/s)
+Length: 33554432	Buckets: 64	Time: 36.3317 ms.(7.38847GB/s)
+Length: 33554432	Buckets: 128	Time: 37.4032 ms.(7.17681GB/s)
+Length: 33554432	Buckets: 256	Time: 40.8255 ms.(6.57519GB/s)
+Length: 33554432	Buckets: 512	Time: 42.709 ms.(6.28522GB/s)
+Length: 33554432	Buckets: 1024	Time: 49.4526 ms.(5.42814GB/s)
+Length: 33554432	Buckets: 2048	Time: 55.7328 ms.(4.81647GB/s)
+Length: 33554432	Buckets: 4096	Time: 67.9331 ms.(3.95147GB/s)
+Key-only:
+Length: 33554432	Buckets: 2	Time: 13.5014 ms.(19.8821GB/s)
+Length: 33554432	Buckets: 4	Time: 12.7051 ms.(21.1282GB/s)
+Length: 33554432	Buckets: 8	Time: 12.9297 ms.(20.7612GB/s)
+Length: 33554432	Buckets: 16	Time: 14.2505 ms.(18.837GB/s)
+Length: 33554432	Buckets: 32	Time: 16.4138 ms.(16.3542GB/s)
+Length: 33554432	Buckets: 64	Time: 19.4432 ms.(13.8061GB/s)
+Length: 33554432	Buckets: 128	Time: 20.1411 ms.(13.3277GB/s)
+Length: 33554432	Buckets: 256	Time: 21.8533 ms.(12.2835GB/s)
+Length: 33554432	Buckets: 512	Time: 27.3337 ms.(9.82067GB/s)
+Length: 33554432	Buckets: 1024	Time: 29.0607 ms.(9.23705GB/s)
+Length: 33554432	Buckets: 2048	Time: 35.7557 ms.(7.50748GB/s)
+Length: 33554432	Buckets: 4096	Time: 40.9552 ms.(6.55436GB/s)
+Key-only, reoreder:
+Length: 33554432	Buckets: 2	Time: 19.134 ms.(14.0293GB/s)
+Length: 33554432	Buckets: 4	Time: 30.3184 ms.(8.85388GB/s)
+Length: 33554432	Buckets: 8	Time: 31.0692 ms.(8.63992GB/s)
+Length: 33554432	Buckets: 16	Time: 28.9327 ms.(9.27791GB/s)
+Length: 33554432	Buckets: 32	Time: 23.5319 ms.(11.4073GB/s)
+Length: 33554432	Buckets: 64	Time: 26.7817 ms.(10.0231GB/s)
+Length: 33554432	Buckets: 128	Time: 22.4563 ms.(11.9537GB/s)
+Length: 33554432	Buckets: 256	Time: 26.423 ms.(10.1591GB/s)
+Length: 33554432	Buckets: 512	Time: 23.2532 ms.(11.544GB/s)
+Length: 33554432	Buckets: 1024	Time: 24.9879 ms.(10.7426GB/s)
+Length: 33554432	Buckets: 2048	Time: 27.8247 ms.(9.64737GB/s)
+Length: 33554432	Buckets: 4096	Time: 29.3703 ms.(9.13969GB/s)
