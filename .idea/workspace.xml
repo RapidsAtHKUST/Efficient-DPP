@@ -10,7 +10,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ef49929-5a7a-4ced-8093-8b6209d874bb" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/splitKernel.cl" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CMakeDetermineCompilerABI_C.bin" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CMakeDetermineCompilerABI_C.bin" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CMakeDetermineCompilerABI_CXX.bin" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CMakeDetermineCompilerABI_CXX.bin" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CompilerIdC/a.out" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CompilerIdC/a.out" />
@@ -37,22 +36,18 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/openmp/scan_tbb_cpu" afterPath="$PROJECT_DIR$/openmp/scan_tbb_cpu" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/openmp/scan_tbb_mic" afterPath="$PROJECT_DIR$/openmp/scan_tbb_mic" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/utility.cpp" afterPath="$PROJECT_DIR$/common/utility.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/utility.h" afterPath="$PROJECT_DIR$/common/utility.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cuda/Makefile" afterPath="$PROJECT_DIR$/cuda/Makefile" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cuda/bin/cuda_compare" afterPath="$PROJECT_DIR$/cuda/bin/cuda_compare" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cuda/kernels/map.cu" afterPath="$PROJECT_DIR$/cuda/kernels/map.cu" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data_generation/bin/data_generator" afterPath="$PROJECT_DIR$/data_generation/bin/data_generator" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/barrierKernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/barrierKernel.cl" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/latencyKernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/latencyKernel.cl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/split_kernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/split_kernel.cl" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/vpuKernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/vpuKernel.cl" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/assembly.ass" afterPath="$PROJECT_DIR$/opencl/assembly.ass" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/bin/assembly.ass" afterPath="$PROJECT_DIR$/opencl/bin/assembly.ass" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/bin/opencl_compare" afterPath="$PROJECT_DIR$/opencl/bin/opencl_compare" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/inc/DataDef.h" afterPath="$PROJECT_DIR$/opencl/inc/DataDef.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/inc/DataUtil.h" afterPath="$PROJECT_DIR$/opencl/inc/DataUtil.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/inc/Foundation.h" afterPath="$PROJECT_DIR$/opencl/inc/Foundation.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Join/phjImpl.cpp" afterPath="$PROJECT_DIR$/opencl/src/Join/phjImpl.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Main/main.cpp" afterPath="$PROJECT_DIR$/opencl/src/Main/main.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Primitive/splitImpl.cpp" afterPath="$PROJECT_DIR$/opencl/src/Primitive/splitImpl.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp" afterPath="$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp" />
@@ -69,34 +64,98 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.47170627">
+    <splitter split-orientation="horizontal" split-proportion="0.45034543">
       <split-first>
         <leaf>
-          <file leaf-file-name="testPrimitives.cpp" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-1122">
-                  <caret line="730" column="22" lean-forward="false" selection-start-line="730" selection-start-column="22" selection-end-line="730" selection-end-column="22" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
+          <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/opencl/src/Main/main.cpp">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="822">
-                  <caret line="143" column="0" lean-forward="false" selection-start-line="143" selection-start-column="0" selection-end-line="143" selection-end-column="0" />
+                <state relative-caret-position="558">
+                  <caret line="133" column="25" lean-forward="false" selection-start-line="133" selection-start-column="25" selection-end-line="133" selection-end-column="25" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="split_kernel.cl" pinned="false" current-in-tab="true">
+          <file leaf-file-name="split_kernel.cl" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/opencl/Kernels/split_kernel.cl">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="960">
-                  <caret line="391" column="14" lean-forward="false" selection-start-line="391" selection-start-column="14" selection-end-line="391" selection-end-column="14" />
+                <state relative-caret-position="-25">
+                  <caret line="719" column="32" lean-forward="false" selection-start-line="719" selection-start-column="32" selection-end-line="719" selection-end-column="32" />
+                  <folding>
+                    <element signature="e#68#89#0" expanded="true" />
+                    <element signature="e#213#1232#0" expanded="true" />
+                    <element signature="e#14480#14524#0" expanded="true" />
+                    <element signature="e#15230#15263#0" expanded="true" />
+                    <element signature="e#15672#15730#0" expanded="true" />
+                    <element signature="e#15833#15897#0" expanded="true" />
+                    <element signature="e#16444#16477#0" expanded="true" />
+                    <element signature="e#16606#16652#0" expanded="true" />
+                    <element signature="e#16748#16805#0" expanded="true" />
+                    <element signature="e#17023#17067#0" expanded="true" />
+                    <element signature="e#17836#17862#0" expanded="true" />
+                    <element signature="e#18189#18247#0" expanded="true" />
+                    <element signature="e#18350#18414#0" expanded="true" />
+                    <element signature="e#19054#19080#0" expanded="true" />
+                    <element signature="e#19204#19225#0" expanded="true" />
+                    <element signature="e#19299#19334#0" expanded="true" />
+                    <element signature="e#19503#19561#0" expanded="true" />
+                    <element signature="e#19664#19728#0" expanded="true" />
+                    <element signature="e#20026#20088#0" expanded="true" />
+                    <element signature="e#20196#20256#0" expanded="true" />
+                    <element signature="e#21054#21080#0" expanded="true" />
+                    <element signature="e#21245#21282#0" expanded="true" />
+                    <element signature="e#21365#21409#0" expanded="true" />
+                    <element signature="e#21869#21982#0" expanded="true" />
+                    <element signature="e#22137#22205#0" expanded="true" />
+                    <element signature="e#22455#22540#0" expanded="true" />
+                    <element signature="e#24863#24923#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Foundation.h" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/opencl/inc/Foundation.h">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="69">
+                  <caret line="58" column="49" lean-forward="false" selection-start-line="58" selection-start-column="49" selection-end-line="58" selection-end-column="49" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf>
+          <file leaf-file-name="splitImpl.cpp" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/opencl/src/Primitive/splitImpl.cpp">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="-560">
+                  <caret line="432" column="33" lean-forward="false" selection-start-line="432" selection-start-column="33" selection-end-line="432" selection-end-column="33" />
+                  <folding>
+                    <element signature="e#5836#5878#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="testPrimitives.cpp" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="816">
+                  <caret line="911" column="27" lean-forward="false" selection-start-line="911" selection-start-column="27" selection-end-line="911" selection-end-column="27" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="split_kernel.cl" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/opencl/Kernels/split_kernel.cl">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="816">
+                  <caret line="542" column="6" lean-forward="false" selection-start-line="542" selection-start-column="6" selection-end-line="542" selection-end-column="6" />
                   <folding>
                     <element signature="e#68#89#0" expanded="true" />
                     <element signature="e#14480#14524#0" expanded="true" />
@@ -106,22 +165,35 @@
                     <element signature="e#16444#16477#0" expanded="true" />
                     <element signature="e#16606#16652#0" expanded="true" />
                     <element signature="e#16748#16805#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-first>
-      <split-second>
-        <leaf>
-          <file leaf-file-name="splitImpl.cpp" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/opencl/src/Primitive/splitImpl.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="672">
-                  <caret line="85" column="45" lean-forward="false" selection-start-line="85" selection-start-column="45" selection-end-line="85" selection-end-column="45" />
-                  <folding>
-                    <element signature="e#5836#5878#0" expanded="true" />
+                    <element signature="e#17023#17067#0" expanded="true" />
+                    <element signature="e#17836#17862#0" expanded="true" />
+                    <element signature="e#18189#18247#0" expanded="true" />
+                    <element signature="e#18350#18414#0" expanded="true" />
+                    <element signature="e#19054#19080#0" expanded="true" />
+                    <element signature="e#19204#19225#0" expanded="true" />
+                    <element signature="e#19299#19334#0" expanded="true" />
+                    <element signature="e#19503#19561#0" expanded="true" />
+                    <element signature="e#19664#19728#0" expanded="true" />
+                    <element signature="e#20026#20088#0" expanded="true" />
+                    <element signature="e#20196#20256#0" expanded="true" />
+                    <element signature="e#21054#21080#0" expanded="true" />
+                    <element signature="e#21245#21282#0" expanded="true" />
+                    <element signature="e#21365#21409#0" expanded="true" />
+                    <element signature="e#21869#21982#0" expanded="true" />
+                    <element signature="e#22137#22205#0" expanded="true" />
+                    <element signature="e#24863#24923#0" expanded="true" />
+                    <marker date="1531573028000" expanded="true" signature="16444:16476" ph="..." />
+                    <marker date="1531573028000" expanded="true" signature="22678:22720" ph="..." />
+                    <marker date="1531573028000" expanded="true" signature="23064:23720" ph="{...}" />
+                    <marker date="1531573028000" expanded="true" signature="23758:23812" ph="..." />
+                    <marker date="1531573028000" expanded="true" signature="24131:24732" ph="{...}" />
+                    <marker date="1531573028000" expanded="true" signature="24702:24724" ph="..." />
+                    <marker date="1531573028000" expanded="true" signature="25062:25116" ph="..." />
+                    <marker date="1531573028000" expanded="true" signature="25508:25563" ph="..." />
+                    <marker date="1531573028000" expanded="true" signature="25565:27554" ph="{...}" />
+                    <marker date="1531573028000" expanded="true" signature="25887:25987" ph="..." />
+                    <marker date="1531573028000" expanded="true" signature="26518:26641" ph="..." />
+                    <marker date="1531573028000" expanded="true" signature="26969:27049" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -133,9 +205,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>short</find>
-      <find>thread_</find>
-      <find>thread_spli</find>
       <find>block_reorder_scatter_k_larger_32</find>
       <find>testSplitPara</find>
       <find>block_scatter_k</find>
@@ -163,6 +232,9 @@
       <find>\.value</find>
       <find>KVS_AOS</find>
       <find>key</find>
+      <find>tuple</find>
+      <find>reorder_buffer_tuples</find>
+      <find>local_buffer</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -212,16 +284,16 @@
         <option value="$PROJECT_DIR$/opencl/common/utility.h" />
         <option value="$PROJECT_DIR$/opencl/common/utility.cpp" />
         <option value="$PROJECT_DIR$/common/utility.cpp" />
-        <option value="$PROJECT_DIR$/opencl/inc/Foundation.h" />
         <option value="$PROJECT_DIR$/opencl/src/Join/phjImpl.cpp" />
         <option value="$PROJECT_DIR$/opencl/inc/DataDef.h" />
-        <option value="$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp" />
         <option value="$PROJECT_DIR$/opencl/Kernels/splitKernel.cl" />
         <option value="$PROJECT_DIR$/opencl/Kernels/split_AOS_kernel.cl" />
         <option value="$PROJECT_DIR$/opencl/Kernels/split_SOA_kernel.cl" />
+        <option value="$PROJECT_DIR$/opencl/inc/Foundation.h" />
+        <option value="$PROJECT_DIR$/opencl/src/Primitive/splitImpl.cpp" />
+        <option value="$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp" />
         <option value="$PROJECT_DIR$/opencl/Kernels/split_kernel.cl" />
         <option value="$PROJECT_DIR$/opencl/src/Main/main.cpp" />
-        <option value="$PROJECT_DIR$/opencl/src/Primitive/splitImpl.cpp" />
       </list>
     </option>
   </component>
@@ -270,6 +342,12 @@
               <item name="opencl_study" type="dad4c3:CidrFilesViewHelper$MyProjectTreeStructure$1" />
               <item name="opencl_study" type="462c0819:PsiDirectoryNode" />
               <item name="opencl" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="opencl_study" type="dad4c3:CidrFilesViewHelper$MyProjectTreeStructure$1" />
+              <item name="opencl_study" type="462c0819:PsiDirectoryNode" />
+              <item name="opencl" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="opencl_study" type="dad4c3:CidrFilesViewHelper$MyProjectTreeStructure$1" />
@@ -394,18 +472,18 @@
       <workItem from="1528292988914" duration="14625000" />
       <workItem from="1528428292103" duration="97094000" />
       <workItem from="1529976061749" duration="70157000" />
-      <workItem from="1530590022397" duration="192386000" />
+      <workItem from="1530590022397" duration="200643000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1239177000" />
+    <option name="totallyTimeSpent" value="1247434000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="2576" height="1416" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.07988871" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.07949126" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.10078125" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="true" content_ui="tabs" />
@@ -424,6 +502,26 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
+    <layout-to-restore>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.10078125" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="true" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.07949126" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.08783784" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+    </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
@@ -719,14 +817,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/inc/Foundation.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="789">
-          <caret line="86" column="32" lean-forward="false" selection-start-line="86" selection-start-column="32" selection-end-line="86" selection-end-column="32" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/opencl/inc/DataUtil.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="552">
@@ -759,28 +849,31 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp">
+    <entry file="file://$PROJECT_DIR$/opencl/inc/Foundation.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1122">
-          <caret line="730" column="22" lean-forward="false" selection-start-line="730" selection-start-column="22" selection-end-line="730" selection-end-column="22" />
+        <state relative-caret-position="69">
+          <caret line="58" column="49" lean-forward="false" selection-start-line="58" selection-start-column="49" selection-end-line="58" selection-end-column="49" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Main/main.cpp">
+    <entry file="file://$PROJECT_DIR$/opencl/src/Primitive/splitImpl.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="822">
-          <caret line="143" column="0" lean-forward="false" selection-start-line="143" selection-start-column="0" selection-end-line="143" selection-end-column="0" />
-          <folding />
+        <state relative-caret-position="-560">
+          <caret line="432" column="33" lean-forward="false" selection-start-line="432" selection-start-column="33" selection-end-line="432" selection-end-column="33" />
+          <folding>
+            <element signature="e#5836#5878#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/opencl/Kernels/split_kernel.cl">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="960">
-          <caret line="391" column="14" lean-forward="false" selection-start-line="391" selection-start-column="14" selection-end-line="391" selection-end-column="14" />
+        <state relative-caret-position="-25">
+          <caret line="719" column="32" lean-forward="false" selection-start-line="719" selection-start-column="32" selection-end-line="719" selection-end-column="32" />
           <folding>
             <element signature="e#68#89#0" expanded="true" />
+            <element signature="e#213#1232#0" expanded="true" />
             <element signature="e#14480#14524#0" expanded="true" />
             <element signature="e#15230#15263#0" expanded="true" />
             <element signature="e#15672#15730#0" expanded="true" />
@@ -788,17 +881,41 @@
             <element signature="e#16444#16477#0" expanded="true" />
             <element signature="e#16606#16652#0" expanded="true" />
             <element signature="e#16748#16805#0" expanded="true" />
+            <element signature="e#17023#17067#0" expanded="true" />
+            <element signature="e#17836#17862#0" expanded="true" />
+            <element signature="e#18189#18247#0" expanded="true" />
+            <element signature="e#18350#18414#0" expanded="true" />
+            <element signature="e#19054#19080#0" expanded="true" />
+            <element signature="e#19204#19225#0" expanded="true" />
+            <element signature="e#19299#19334#0" expanded="true" />
+            <element signature="e#19503#19561#0" expanded="true" />
+            <element signature="e#19664#19728#0" expanded="true" />
+            <element signature="e#20026#20088#0" expanded="true" />
+            <element signature="e#20196#20256#0" expanded="true" />
+            <element signature="e#21054#21080#0" expanded="true" />
+            <element signature="e#21245#21282#0" expanded="true" />
+            <element signature="e#21365#21409#0" expanded="true" />
+            <element signature="e#21869#21982#0" expanded="true" />
+            <element signature="e#22137#22205#0" expanded="true" />
+            <element signature="e#22455#22540#0" expanded="true" />
+            <element signature="e#24863#24923#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Primitive/splitImpl.cpp">
+    <entry file="file://$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="672">
-          <caret line="85" column="45" lean-forward="false" selection-start-line="85" selection-start-column="45" selection-end-line="85" selection-end-column="45" />
-          <folding>
-            <element signature="e#5836#5878#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="816">
+          <caret line="911" column="27" lean-forward="false" selection-start-line="911" selection-start-column="27" selection-end-line="911" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Main/main.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="558">
+          <caret line="133" column="25" lean-forward="false" selection-start-line="133" selection-start-column="25" selection-end-line="133" selection-end-column="25" />
+          <folding />
         </state>
       </provider>
     </entry>

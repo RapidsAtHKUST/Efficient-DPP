@@ -410,8 +410,12 @@ kernel void WI_scatter(
 }
 
 /*------------ WG-level kernels : WIs in a WG share a histogram ------------*/
-kernel void block_histogram(
-    global const int* d_in_keys,
+kernel void WG_histogram(
+#ifdef KVS_AOS
+        global const tuple_t *d_in,   /*input keys*/
+#else
+        global const int *d_in_keys,     /*input keys*/
+#endif
     int length,
     global int *his,        //histogram output
     local int* local_his,   //local buffer: buckets*sizeof(int)
@@ -425,6 +429,7 @@ kernel void block_histogram(
     int groupNum = get_num_groups(0);
 
     unsigned mask = buckets - 1;
+    unsigned offset;
 
     //local histogram initialization
     int i = localId;
@@ -436,7 +441,11 @@ kernel void block_histogram(
 
     i = globalId;
     while (i < length) {
-        int offset = d_in_keys[i] & mask;
+#ifdef KVS_AOS
+        offset = d_in[i].x & mask;
+#else
+        offset = d_in_keys[i] & mask;
+#endif
         atomic_inc(local_his+offset);
         i += globalSize;
     }
@@ -449,18 +458,23 @@ kernel void block_histogram(
     }
 }
 
-kernel void block_scatter(
+kernel void WG_scatter(
+#ifdef KVS_AOS
+        global const tuple_t *d_in,
+        global tuple_t *d_out,
+#else
         global const int *d_in_keys,
         global int *d_out_keys,
+    #ifdef KVS_SOA
+        global const int *d_in_values,
+        global int *d_out_values,
+    #endif
+#endif
         int length,
         int buckets,
         global int *his,
         local int *local_his
-#ifdef KVS
-        ,global const int * d_in_values,
-        global int * d_out_values
-#endif
-        )          //number of radix bits
+        )
 {
     int localId = get_local_id(0);
     int localSize = get_local_size(0);
@@ -470,6 +484,7 @@ kernel void block_scatter(
     int groupNum = get_num_groups(0);
 
     unsigned mask = buckets - 1;
+    unsigned offset;
     int i;
 
     i = localId;
@@ -481,31 +496,50 @@ kernel void block_scatter(
 
     i = globalId;
     while (i < length) {
-        int offset = d_in_keys[i] & mask;
+#ifdef KVS_AOS
+        offset = d_in[i].x & mask;
+#else
+        offset = d_in_keys[i] & mask;
+#endif
         int pos = atomic_inc(local_his+offset);
 
+#ifdef KVS_AOS
+        d_out[pos] = d_in[i];
+#else
         d_out_keys[pos] = d_in_keys[i];
-#ifdef KVS
+    #ifdef KVS_SOA
         d_out_values[pos] = d_in_values[i];
+    #endif
 #endif
         i += globalSize;
     }
 }
 
-//block-level split on key-value data with data reordering
-kernel void block_reorder_scatter(
+/*block-level split on key-value data with data reordering*/
+kernel void WG_reorder_scatter(
+#ifdef KVS_AOS
+        global const tuple_t *d_in,
+        global tuple_t *d_out,
+#else
         global const int *d_in_keys,
         global int *d_out_keys,
-        int length,
-        int buckets,                    //number of radix bits
-        global int *his_scanned,        //histogram scanned
-        local int* local_start_ptrs,    //start pos of each bucket in local mem, bucket elements
-        global int *his_origin,         //histogram not scanned
-        local int *reorder_buffer_keys
-#ifdef KVS
-        ,global const int *d_in_values,
+    #ifdef KVS_SOA
+        global const int *d_in_values,
         global int *d_out_values,
-        local int *reorder_buffer_values
+    #endif
+#endif
+        int length,
+        int buckets,
+        global int *his_scanned,     /*scanned histogram*/
+        local int* local_start_ptrs, /*start pos of each bucket in local mem, bucket elements*/
+        global int *his_origin,      /*original histogram*/
+#ifdef KVS_AOS
+        local tuple_t *reorder_buffer_tuples  /*tuple buffer for AOS*/
+#else
+        local int *reorder_buffer_keys      /*key buffer for KO and SOA*/
+    #ifdef KVS_SOA
+        ,local int *reorder_buffer_values   /*value buffer for SOA*/
+    #endif
 #endif
         )
 {
@@ -517,6 +551,7 @@ kernel void block_reorder_scatter(
     int groupNum = get_num_groups(0);
 
     unsigned mask = buckets - 1;
+    unsigned offset;
     int i;
 
     //load the scanned histogram
@@ -535,13 +570,21 @@ kernel void block_reorder_scatter(
     //scatter the input to the local memory
     i = globalId;
     while (i < length) {
-        int offset = d_in_keys[i] & mask;                   //bucket: offset
+#ifdef KVS_AOS
+        offset = d_in[i].x & mask;
+#else
+        offset = d_in_keys[i] & mask;
+#endif
         int acc = atomic_inc(local_start_ptrs+offset+1);
 
-        //write to the buffer,
+        /*write to the buffer*/
+#ifdef KVS_AOS
+        reorder_buffer_tuples[acc] = d_in[i];
+#else
         reorder_buffer_keys[acc] = d_in_keys[i];
-#ifdef KVS
+    #ifdef KVS_SOA
         reorder_buffer_values[acc] = d_in_values[i];
+    #endif
 #endif
         i += globalSize;
     }
@@ -559,10 +602,15 @@ kernel void block_reorder_scatter(
     int local_sum = local_start_ptrs[buckets];
 
     while (i < local_sum) {
-        int offset = reorder_buffer_keys[i] & mask;
+#ifdef KVS_AOS
+        offset = reorder_buffer_tuples[i].x & mask;
+        d_out[i+local_start_ptrs[offset]] = reorder_buffer_tuples[i];
+#else
+        offset = reorder_buffer_keys[i] & mask;
         d_out_keys[i+local_start_ptrs[offset]] = reorder_buffer_keys[i];
-#ifdef KVS
+    #ifdef KVS_SOA
         d_out_values[i+local_start_ptrs[offset]] = reorder_buffer_values[i];
+    #endif
 #endif
         i += localSize;
     }
@@ -571,9 +619,18 @@ kernel void block_reorder_scatter(
 /*---------------------- single-threaded kernels for CPUs and MICs --------------------------*/
 /*
  * All the kernels are invoked with local_size=1
+ * Only support KO and AOS
  */
+#ifdef KVS_AOS
+    typedef tuple_t Tuple;  /*for AOS*/
+    #define GET_X_VALUE(d_in, idx)    d_in[idx].x
+#else
+    typedef int Tuple;    /*for KO*/
+    #define GET_X_VALUE(d_in, idx)    d_in[idx]
+#endif
+
 kernel void single_histogram(
-        global const int *d_in_keys,
+        global const Tuple *d_in,   /*input keys*/
         const int len_per_group,        /*elements processed by each WG*/
         const int len_total,            /*len of the whole array*/
         const int buckets,              /*number of buckets*/
@@ -584,6 +641,7 @@ kernel void single_histogram(
     int num_groups = get_num_groups(0);
 
     unsigned mask = buckets - 1;
+    unsigned offset;
     unsigned start = len_per_group * group_id;
     unsigned end = len_per_group * (group_id+1);
     if (end > len_total)    end = len_total;
@@ -593,7 +651,7 @@ kernel void single_histogram(
 
     /*iterate the data partition*/
     for(int i = start; i <end; i++) {
-        int offset = d_in_keys[i] & mask;
+        offset = GET_X_VALUE(d_in, i) & mask;
         local_buc[offset]++;
     }
 
@@ -603,23 +661,19 @@ kernel void single_histogram(
 }
 
 kernel void single_scatter(
-        global const int *d_in_keys,
-        global int *d_out_keys,
+        global const Tuple *d_in,
+        global Tuple *d_out,
         const int len_per_group,        /*elements processed by each WG*/
         const int len_total,            /*len of the whole array*/
         const int buckets,
         global int *his,                /*scanned histogram*/
-        local int *local_buc            /*scanned local buckets: buckets*sizeof(int)*/
-#ifdef KVS
-        ,global const int *d_in_values,
-        global int *d_out_values
-#endif
-)
+        local int *local_buc)            /*scanned local buckets: buckets*sizeof(int)*/
 {
     int group_id = get_group_id(0);
     int num_groups = get_num_groups(0);
 
     unsigned mask = buckets - 1;
+    unsigned offset;
     unsigned start = len_per_group * group_id;
     unsigned end = len_per_group * (group_id+1);
     if (end > len_total)    end = len_total;
@@ -630,12 +684,9 @@ kernel void single_scatter(
 
     /*iterate the data partition*/
     for(int i = start; i <end; i++) {
-        int offset = d_in_keys[i] & mask;
+        offset = GET_X_VALUE(d_in, i) & mask;
         unsigned addr = local_buc[offset]++;
-        d_out_keys[addr] = d_in_keys[i];
-#ifdef KVS
-        d_out_values[addr] = d_in_values[i];
-#endif
+        d_out[addr] = d_in[i];
     }
 }
 
@@ -644,82 +695,74 @@ kernel void single_scatter(
 #endif
 
 #ifndef ELE_PER_CACHELINE
-#define ELE_PER_CACHELINE   (CACHELINE_SIZE/sizeof(int))
+    #ifdef KVS_AOS
+        #define ELE_PER_CACHELINE   (CACHELINE_SIZE/sizeof(tuple_t))
+    #else
+        #define ELE_PER_CACHELINE   (CACHELINE_SIZE/sizeof(int))
+    #endif
 #endif
 
 kernel void single_reorder_scatter(
-        global const int *d_in_keys,
-        global int *d_out_keys,
+        global const Tuple *d_in,
+        global Tuple *d_out,
         const int len_per_group,            /*elements processed by each WG*/
         const int len_total,                /*len of the whole array*/
         int buckets,                        /*number of buckets*/
         global int *his,                    /*scanned histogram*/
         local int *local_buc_ptr,           /*scanned local buckets ptrs: buckets*sizeof(int)*/
-        global int *cache_buffer_all_keys   /*for cached writes*/
-#ifdef KVS
-        ,global const int *d_in_values,
-        global int *d_out_values,
-        global int *cache_buffer_all_values /* for cached writes */
-#endif
-)
+        global Tuple *reorder_buffer_all)    /*tuple buffer for AOS*/
+
 {
     int group_id = get_group_id(0);
     int num_groups = get_num_groups(0);
 
     unsigned mask = buckets - 1;
+    unsigned offset, buffer_len;
     unsigned start = len_per_group * group_id;
     unsigned end = len_per_group * (group_id+1);
     if (end > len_total)    end = len_total;
 
     /*local buffer size*/
-    int *local_buffer_keys, *local_buffer_values;
-    local_buffer_keys = (int*)(cache_buffer_all_keys+group_id*ELE_PER_CACHELINE*buckets);
-#ifdef KVS
-    local_buffer_values = (int*)(cache_buffer_all_values+group_id*ELE_PER_CACHELINE*buckets);
-#endif
+    Tuple *local_buffer;
+    local_buffer = (Tuple*)(reorder_buffer_all+ group_id*ELE_PER_CACHELINE*buckets);
 
     /*load the scanned histogram and initialize the local buffer*/
     for(int i = 0; i < buckets; i++) {
         local_buc_ptr[i] = his[i * num_groups + group_id];
-        local_buffer_keys[(i+1)*ELE_PER_CACHELINE-1] = 0; /*last element in the cacheline records the len*/
+
+        /*last element in the cacheline records the len*/
+        GET_X_VALUE(local_buffer, (i+1)*ELE_PER_CACHELINE-1) = 0;
     }
 
     /*iterate the data partition*/
     for(int i = start; i <end; i++) {
-        int offset = d_in_keys[i] & mask;
-
+        offset = GET_X_VALUE(d_in, i) & mask;
         unsigned buffer_len_idx = (offset+1)*ELE_PER_CACHELINE-1;
-        unsigned buffer_len = local_buffer_keys[buffer_len_idx];
 
         /*write to the cache buffer*/
-        local_buffer_keys[offset*ELE_PER_CACHELINE+buffer_len] = d_in_keys[i];
-#ifdef KVS
-        local_buffer_values[offset*ELE_PER_CACHELINE+buffer_len] = d_in_values[i];
-#endif
-        local_buffer_keys[buffer_len_idx]++;
+        buffer_len = GET_X_VALUE(local_buffer,buffer_len_idx);
+        local_buffer[offset*ELE_PER_CACHELINE+buffer_len] = d_in[i];
 
-        if (local_buffer_keys[buffer_len_idx] == (ELE_PER_CACHELINE-1)) {
+        /*update the counter*/
+        GET_X_VALUE(local_buffer,buffer_len_idx)++;
+        buffer_len = GET_X_VALUE(local_buffer,buffer_len_idx);
+
+        if (buffer_len == (ELE_PER_CACHELINE-1)) {
             /*write the buffer to the global array*/
             for(int c = 0; c < ELE_PER_CACHELINE-1; c++) {
-                d_out_keys[local_buc_ptr[offset] + c] = local_buffer_keys[offset * ELE_PER_CACHELINE + c];
-#ifdef KVS
-                d_out_values[local_buc_ptr[offset] + c] = local_buffer_values[offset * ELE_PER_CACHELINE + c];
-#endif
+                d_out[local_buc_ptr[offset] + c] = local_buffer[offset * ELE_PER_CACHELINE + c];
             }
             local_buc_ptr[offset] += (ELE_PER_CACHELINE-1);
-            local_buffer_keys[buffer_len_idx] = 0;
+            GET_X_VALUE(local_buffer,buffer_len_idx) = 0;
         }
     }
 
     /*write the rest elements to the global array*/
     for(int i = 0; i < buckets; i++) {
         unsigned buffer_len_idx = (i+1)*ELE_PER_CACHELINE-1;
-        unsigned buffer_len = local_buffer_keys[buffer_len_idx];
+        buffer_len = GET_X_VALUE(local_buffer,buffer_len_idx);
         for(int c = 0; c < buffer_len; c++) {
-            d_out_keys[local_buc_ptr[i]+c] = local_buffer_keys[i*ELE_PER_CACHELINE+c];
-#ifdef KVS
-            d_out_values[local_buc_ptr[i]+c] = local_buffer_values[i*ELE_PER_CACHELINE+c];
-#endif
+            d_out[local_buc_ptr[i]+c] = local_buffer[i*ELE_PER_CACHELINE+c];
         }
     }
 }

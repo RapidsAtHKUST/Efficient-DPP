@@ -59,11 +59,9 @@ double WG_split(
         int local_size=256, int grid_size=32768);
 
 double single_split(
-        cl_mem d_in_keys, cl_mem d_out_keys,
+        cl_mem d_in, cl_mem d_out,
         int length, int buckets, bool reorder,
-        Data_structure structure, PlatInfo& info,
-        cl_mem d_in_values=0, cl_mem d_out_values=0);
-
+        Data_structure structure, PlatInfo& info);
 
 /*end of split algorithms*/
 

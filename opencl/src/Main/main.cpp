@@ -144,12 +144,12 @@ int main(int argc, const char * argv[]) {
 
     int length = 1<<25;
 //    char *str[4] = {"Key-value:", "Key-value, reoreder:", "Key-only:", "Key-only, reoreder:"};
-//    for(int test_case = 1; test_case < 2; test_case++) {
+    for(int test_case = 0; test_case < 2; test_case++) {
 //        cout<<str[test_case]<<endl;
         for (int buckets = 2; buckets <= 2; buckets <<= 1) {
-            testSplit(length, info, buckets, totalTime, 4, KVS_AOS);
+            testSplit(length, info, buckets, totalTime, test_case, KVS_SOA);
         }
-//    }
+    }
 
 //    cout<<"Key-only:"<<endl;
 //    for(int buckets = 2; buckets <= 4096; buckets<<=1) {

@@ -696,7 +696,7 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, 
 
     cl_int status = 0;
     bool res = true;
-    int experTime = 100;
+    int experTime = 1;
     double tempTime, *time_recorder = new double[experTime];
 
     cout<<"Length: "<<len<<'\t';
@@ -708,7 +708,7 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, 
     cl_mem d_in_keys=0, d_in_values=0, d_out_keys=0, d_out_values=0;
     cl_mem d_in=0, d_out=0;
 
-    /*host memory initialization*/
+    /*host memory allocation & initialization*/
     h_in_keys = new int[len];
     h_out_keys = new int[len];
     h_in_values = new int[len];
@@ -774,23 +774,18 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, 
         if (res == false)   break;
         switch (algo) {
             case 0:     /*key-value*/
-                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, false, structure, info, d_in_values, d_out_values);
+                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, false, structure, info);
                 break;
             case 1:     /*key-value, reorder*/
-                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, true, structure, info, d_in_values, d_out_values);
+                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, true, structure, info);
                 break;
-            case 2:     /*key-only*/
-                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, false, structure, info, d_in_values, d_out_values);
-                break;
-            case 3:     /*key-only, reorder*/
-                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, true, structure, info, d_in_values, d_out_values);
-                break;
-            case 4:
+            case 2:
                 tempTime = WI_split(d_in_unified, d_out_unified, 0, len, buckets, structure, info, d_in_values, d_out_values);
                 break;
+            case 3:
+                tempTime = WG_split(d_in_unified, d_out_unified, 0, len, buckets, true, structure, info, d_in_values, d_out_values);
+                break;
         }
-
-//        tempTime = WG_split(d_in_keys, d_out_keys, NULL, len, buckets, true, info, d_in_values, d_out_values);
 
         if (e == 0) {
             if (structure == KVS_AOS) {
