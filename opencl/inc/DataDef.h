@@ -36,6 +36,8 @@
 #define SCATTER_ELE_PER_THREAD      (8)
 #define SCATTER_TILE_THREAD_NUM     (16)          //SCATTER_TILE_THREAD_NUM threads cooperate in a tile
 
+#define SPLIT_VALUE_DEFAULT         (1024)          /*default value*/
+
 //in one loop a TILE of data is processed at the same time
 //IMPORTANT: make sure that SCATTER_ELE_PER_TILE is less than sizeof(unsigned char) because the internal shared variable is uchar at most this large!
 #define SCATTER_ELE_PER_TILE       	(SCATTER_ELE_PER_THREAD * SCATTER_TILE_THREAD_NUM)
@@ -69,33 +71,13 @@ typedef struct {
         int mark;
     } CSS_Tree_Info;
 
-    typedef struct Basic_info {
-    //vpu testing
-        double vpu_time;
-        double vpu_throughput;
-
-        int vpu_blockSize;
-        int vpu_gridSize;
-        int vpu_vecSize;
-
-        //memory bandwidth
-        double mem_read_time;
-        double mem_read_throughput;
-
-        double mem_write_time;
-        double mem_write_throughput;
-
-        double mem_mul_time;
-        double mem_mul_throughput;
-
-        double mem_add_time;
-        double mem_add_throughput;
-    } Basic_info;
-
-    typedef struct Device_perf_info {
-        Basic_info float_info;
-        Basic_info double_info;
-    } Device_perf_info;
+    /*  define the structure of data
+     *  KO: key-only
+     *  KVS_AOS: key-value store using Array of Structures (AOS)
+     *  KVS_SOA: key-value store using Structure of Arrays (SOA)
+     */
+    enum Data_structure {KO, KVS_AOS, KVS_SOA};
+    typedef cl_int2 tuple_t;    /*for AOS*/
 #endif
 
 #endif

@@ -8,6 +8,161 @@
 #include "Foundation.h"
 
 /*
+ *  WI-level partitioning (Each WI owns a private histogram)
+ *  Input:  1.Table being partitioned,  (d_in, d_in_values)
+ *          2.Table cadinality,         (length)
+ *          3.Buckets                   (buckets)
+ *  Output: 1.Partitioned table         (d_out, d_out_values)
+ *          2.Array recording the start position of each bucket in the table (d_start)
+ *
+ *  If Data_structure is SOA, then d_in represents the input keys.
+ *  If Data_structure is AOS, then d_in represents the input tuples, and the d_in_values, d_out_values shoule be set to 0
+ *
+*/
+double WI_split(
+        cl_mem d_in, cl_mem d_out, cl_mem d_start,
+        int length, int buckets,
+        Data_structure structure, PlatInfo& info,
+        cl_mem d_in_values, cl_mem d_out_values,
+        int local_size, int grid_size)
+{
+    //    localSize = 128, gridSize = 8192;
+
+    /*check the value setting*/
+    if (structure == KVS_SOA) { /*SOA should have both keys and values*/
+        if ( (d_in_values == 0) || (d_out_values == 0) ) {
+            std::cerr <<"Wrong parameters: values are not set."<< std::endl;
+            return -1;
+        }
+    }
+    /*check the key setting*/
+    if (structure == KVS_AOS) {
+        size_t in_mem_size, out_mem_size;
+        clGetMemObjectInfo(d_in, CL_MEM_SIZE, sizeof(size_t), &in_mem_size, NULL);
+        clGetMemObjectInfo(d_out, CL_MEM_SIZE, sizeof(size_t), &out_mem_size, NULL);
+        if ( ( in_mem_size != length * sizeof(tuple_t) )||
+             ( out_mem_size != length * sizeof(tuple_t)) )
+        {
+            std::cerr <<"Wrong parameters: inputs and outputs are not tuples"<< std::endl;
+            return -1;
+        }
+    }
+
+    cl_int status = 0;
+    cl_event event;
+    int argsNum = 0;
+
+    cl_kernel histogram_kernel, gather_his_kernel, scatter_kernel;
+    cl_mem d_his=0;
+    double histogram_time, scan_time, gather_time, scatter_time, total_time=0;
+
+    //set work group and NDRange sizes
+    int global_size = local_size * grid_size;
+    size_t local[1] = {(size_t)local_size};
+    size_t global[1] = {(size_t)global_size};
+
+    /*set the compilation paramters. Each kernel in the kernel file should be compilted with this parameter*/
+    char para_s[500] = {'\0'};
+    if (structure == KO)            strcat(para_s, " -DKO ");
+    else if (structure == KVS_SOA)  strcat(para_s, " -DKVS_SOA ");
+    else if (structure == KVS_AOS)  strcat(para_s, " -DKVS_AOS");
+
+/*1.histogram*/
+    //kernel reading
+    histogram_kernel = KernelProcessor::getKernel("split_kernel.cl", "WI_histogram", info.context, para_s);
+
+    //check whether the histogram can be placed in the global memory (at most 2^32 Bytes)
+//    long limit = 1<<32;
+//    if (his_len_comp*sizeof(int) >= limit)   return 9999;
+
+    /*hostogram allocation*/
+    unsigned long his_len = buckets*global_size;
+    d_his = clCreateBuffer(info.context, CL_MEM_READ_WRITE, his_len*sizeof(int), NULL, &status);
+    checkErr(status, ERR_HOST_ALLOCATION);
+
+    //set kernel arguments
+    argsNum = 0;
+    status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(int), &length);
+    status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(cl_mem), &d_his);
+    status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(int), &buckets);
+    status |= clSetKernelArg(histogram_kernel, argsNum++, local_size*buckets*sizeof(int), NULL);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    status = clEnqueueNDRangeKernel(info.currentQueue, histogram_kernel, 1, 0, global, local, 0, 0, &event);
+    clFinish(info.currentQueue);
+    checkErr(status, ERR_EXEC_KERNEL);
+    histogram_time = clEventTime(event);
+    total_time += histogram_time;
+
+/*2.scan*/
+//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, info, 1024, 15, 0, 11);
+    scan_time = scan_fast(d_his, his_len, info, 64, 39, 112, 0);
+    total_time += scan_time;
+
+/*2.5 gather the start position (optional)*/
+    if (d_start != 0) {
+        gather_his_kernel = KernelProcessor::getKernel("split_kernel.cl", "gatherStartPos", info.context, para_s);
+        argsNum = 0;
+        status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(cl_mem), &d_his);
+        status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &his_len);
+        status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(cl_mem), &d_start);
+        status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &grid_size);
+        checkErr(status, ERR_SET_ARGUMENTS);
+
+        status = clEnqueueNDRangeKernel(info.currentQueue, gather_his_kernel, 1, 0, global, local, 0, 0, &event);
+        status = clFinish(info.currentQueue);
+        gather_time = clEventTime(event);
+        total_time += gather_time;
+    }
+
+/*3.scatter*/
+    scatter_kernel = KernelProcessor::getKernel("split_kernel.cl", "WI_scatter", info.context, para_s);
+
+    argsNum = 0;
+    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_out);
+    if(structure == KVS_SOA) {
+        status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_in_values);
+        status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_out_values);
+    }
+    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(int), &length);
+    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_his);
+    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(int), &buckets);
+    status |= clSetKernelArg(scatter_kernel, argsNum++, local_size*buckets*sizeof(int), NULL);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+#ifdef PRINT_KERNEL
+    printExecutingKernel(splitWithListKernel);
+#endif
+    status = clEnqueueNDRangeKernel(info.currentQueue, scatter_kernel, 1, 0, global, local, 0, 0, &event);
+    clFinish(info.currentQueue);
+    checkErr(status, ERR_EXEC_KERNEL);
+    scatter_time = clEventTime(event);
+    total_time += scatter_time;
+
+    //*2 for keys and values, another *2 for read and write data
+//    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
+
+    std::cout<<std::endl<<"Algo: WI-level\tData type: ";
+    if (structure == KO)            std::cout<<"key-only"<<std::endl;
+    else if (structure == KVS_AOS)  std::cout<<"key-value (AOS)"<<std::endl;
+    else if (structure == KVS_SOA)  std::cout<<"key-value (SOA)"<<std::endl;
+
+    std::cout<<"Total Time: "<<total_time<<" ms"<<std::endl;
+    std::cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<std::endl;
+    std::cout<<"\tScan Time: "<<scan_time<<" ms"<<std::endl;
+    std::cout<<"\tScatter Time: " <<scatter_time<<" ms"<<std::endl;
+    if (d_start != NULL)
+        std::cout<<"\tGather time: "<<gather_time<<" ms."<<std::endl;
+
+    clReleaseMemObject(d_his);
+    checkErr(status, ERR_EXEC_KERNEL);
+
+    return total_time;
+}
+
+/*
  *  Radix partitioning (A block of threads share a histogram)
  *  Input:  1.Table being partitioned,  (d_in_keys, d_in_values)
  *          2.Table cadinality,         (length)
@@ -17,8 +172,13 @@
  *          2.Array recording the start position of each partition in the table (d_start)
  *
 */
-double block_split(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, bool reorder, PlatInfo& info, cl_mem d_in_values, cl_mem d_out_values, int local_size, int grid_size) {
-
+double WG_split(
+        cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start,
+        int length, int buckets, bool reorder,
+        Data_structure structure, PlatInfo& info,
+        cl_mem d_in_values, cl_mem d_out_values,
+        int local_size, int grid_size)
+{
     local_size = 64, grid_size = 16384;
 
     //check data type
@@ -171,148 +331,24 @@ double block_split(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int leng
 }
 
 /*
- *  Thread-level partitioning (Each thread has a histogram)
- *  Input:  1.Table being partitioned,  (d_in_keys, d_in_values)
- *          2.Table cadinality,         (length)
- *          3.Buckets                   (buckets)
- *  Output: 1.Partitioned table         (d_out_keys, d_out_values)
- *          2.Array recording the start position of each bucket in the table (d_start)
- *
-*/
-double thread_split(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, PlatInfo& info, cl_mem d_in_values, cl_mem d_out_values, int local_size, int grid_size) {
-
-    //    localSize = 128, gridSize = 8192;
-    bool key_only;
-    if ((d_in_values != NULL) && (d_out_values != NULL)) key_only = false;
-    else if ((d_in_values == NULL) && (d_out_values == NULL)) key_only = true;
-    else {
-        std::cerr <<"Wrong parameters."<< std::endl;
-        return -1;
-    }
-
-    cl_int status = 0;
-    cl_event event;
-    int argsNum = 0;
-
-    double totalTime = 0;
-
-    cl_kernel histogram_kernel, gather_his_kernel, scatter_kernel;
-    cl_mem d_his;
-    double histogram_time, scan_time, gather_time, scatter_time, total_time=0;
-
-    //kernel reading
-    histogram_kernel = KernelProcessor::getKernel("splitKernel.cl", "thread_histogram", info.context);
-
-    //set work group and NDRange sizes
-    int global_size = local_size * grid_size;
-    size_t local[1] = {(size_t)local_size};
-    size_t global[1] = {(size_t)global_size};
-
-/*1.histogram*/
-    unsigned long his_len = buckets*global_size;
-
-    //check whether the histogram can be placed in the global memory (at most 2^32 Bytes)
-//    long his_len_comp = his_len;
-//    long limit = 1<<32;
-//    if (his_len_comp*sizeof(int) >= limit)   return 9999;
-
-    d_his = clCreateBuffer(info.context, CL_MEM_READ_WRITE, his_len*sizeof(int), NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    //set kernel arguments
-    argsNum = 0;
-    status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(cl_mem), &d_in_keys);
-    status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(int), &length);
-    status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(cl_mem), &d_his);
-    status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(int), &buckets);
-    status |= clSetKernelArg(histogram_kernel, argsNum++, local_size*buckets*sizeof(int), NULL);
-    checkErr(status, ERR_SET_ARGUMENTS);
-
-    status = clEnqueueNDRangeKernel(info.currentQueue, histogram_kernel, 1, 0, global, local, 0, 0, &event);
-    clFinish(info.currentQueue);
-    checkErr(status, ERR_EXEC_KERNEL);
-    histogram_time = clEventTime(event);
-    total_time += histogram_time;
-
-/*2.scan*/
-//    double scanTime = scan_fast(d_his_in, d_his_out, his_len, info, 1024, 15, 0, 11);
-    scan_time = scan_fast(d_his, his_len, info, 64, 39, 112, 0);
-    total_time += scan_time;
-
-/*2.5 gather the start position (optional)*/
-    if (d_start != NULL) {
-        gather_his_kernel = KernelProcessor::getKernel("splitKernel.cl", "gatherStartPos", info.context);
-        argsNum = 0;
-        status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(cl_mem), &d_his);
-        status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &his_len);
-        status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(cl_mem), &d_start);
-        status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &grid_size);
-        checkErr(status, ERR_SET_ARGUMENTS);
-
-        status = clEnqueueNDRangeKernel(info.currentQueue, gather_his_kernel, 1, 0, global, local, 0, 0, &event);
-        status = clFinish(info.currentQueue);
-        gather_time = clEventTime(event);
-        total_time += gather_time;
-    }
-
-/*3.scatter*/
-    //compilation parameters
-    char para_s[500] = {'\0'};
-    if (!key_only)  strcat(para_s, "-DKVS ");
-    scatter_kernel = KernelProcessor::getKernel("splitKernel.cl", "thread_scatter", info.context, para_s);
-
-    argsNum = 0;
-    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_in_keys);
-    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_out_keys);
-    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(int), &length);
-    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_his);
-    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(int), &buckets);
-    status |= clSetKernelArg(scatter_kernel, argsNum++, local_size*buckets*sizeof(int), NULL);
-    if(!key_only) {
-        status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_in_values);
-        status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_out_values);
-    }
-    checkErr(status, ERR_SET_ARGUMENTS);
-
-#ifdef PRINT_KERNEL
-    printExecutingKernel(splitWithListKernel);
-#endif
-    status = clEnqueueNDRangeKernel(info.currentQueue, scatter_kernel, 1, 0, global, local, 0, 0, &event);
-    clFinish(info.currentQueue);
-    checkErr(status, ERR_EXEC_KERNEL);
-    scatter_time = clEventTime(event);
-    total_time += scatter_time;
-
-    //*2 for keys and values, another *2 for read and write data
-//    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
-
-    std::cout<<std::endl<<"Algo: WI-level\tData type: ";
-    if (key_only)   std::cout<<"key-only"<<std::endl;
-    else            std::cout<<"key-value"<<std::endl;
-    std::cout<<"Total Time: "<<total_time<<" ms"<<std::endl;
-    std::cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<std::endl;
-    std::cout<<"\tScan Time: "<<scan_time<<" ms"<<std::endl;
-    std::cout<<"\tScatter Time: " <<scatter_time<<" ms"<<std::endl;
-    if (d_start != NULL)
-        std::cout<<"\tGather time: "<<gather_time<<" ms."<<std::endl;
-
-    clReleaseMemObject(d_his);
-    checkErr(status, ERR_EXEC_KERNEL);
-
-    return totalTime;
-}
-
-/*
  *  Single partitioning (local_size=1, for CPUs and MICs)
  *  Input:  1.Table being partitioned,  (d_in_keys, d_in_values)
  *          2.Table cadinality,         (length)
  *          3.Buckets                   (buckets)
+ *          4.Data structure            (AOS or SOA)
  *  Output: 1.Partitioned table         (d_out_keys, d_out_values)
  *          2.Array recording the start position of each bucket in the table (d_start)
  *
+ *  Data structure:
+ *  1.Structure of arrays(SOA) for GPUs: d_in
+ *
 */
-double single_split(cl_mem d_in_keys, cl_mem d_out_keys, int length, int buckets, bool reorder, PlatInfo& info, cl_mem d_in_values, cl_mem d_out_values) {
-
+double single_split(
+        cl_mem d_in, cl_mem d_out,
+        int length, int buckets, bool reorder,
+        Data_structure structure, PlatInfo& info,
+        cl_mem d_in_values, cl_mem d_out_values)
+{
     int local_size = 1, grid_size = 39;
     int len_per_group = (length + grid_size - 1)/grid_size;
 
@@ -349,7 +385,7 @@ double single_split(cl_mem d_in_keys, cl_mem d_out_keys, int length, int buckets
 
     //set kernel arguments
     argsNum = 0;
-    status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(cl_mem), &d_in_keys);
+    status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(cl_mem), &d_in);
     status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(int), &len_per_group);
     status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(int), &buckets);
@@ -405,8 +441,8 @@ double single_split(cl_mem d_in_keys, cl_mem d_out_keys, int length, int buckets
 
     //end of test
     argsNum = 0;
-    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_in_keys);
-    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_out_keys);
+    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_out);
     status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(int), &len_per_group);
     status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(int), &buckets);

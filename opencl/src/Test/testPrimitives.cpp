@@ -10,13 +10,20 @@
 #include <iomanip>
 using namespace std;
 
+void random_generator_int(int *in_keys, int length, int max) {
+    sleep(1); srand((unsigned)time(NULL));
+    for(int i = 0; i < length ; i++)    in_keys[i] = rand() % max;
+}
 
-void recordRandom(int *a_keys, int *a_values, int length, int max) {
-    srand((unsigned)time(NULL));
-    sleep(1);
-    for(int i = 0; i < length ; i++) {
-        a_keys[i] = rand() % max;
-        a_values[i] = i;
+void fixed_generator_int(int *in_keys, int length, int value) {
+    for(int i = 0; i < length ; i++)    in_keys[i] = value;
+}
+
+void random_generator_tuples(tuple_t *in, int length, int max) {
+    sleep(1); srand((unsigned)time(NULL));
+    for(int i = 0; i < length ; i++)    {
+        in[i].x = rand() % max;
+        in[i].y = SPLIT_VALUE_DEFAULT;        /*all values set to 1*/
     }
 }
 
@@ -685,76 +692,133 @@ void testScanParameters(int length, int device, PlatInfo& info) {
 }
 
 //fanout: number of partitions needed
-bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int test_type) {
+bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, Data_structure structure) {
 
     cl_int status = 0;
     bool res = true;
+    int experTime = 100;
+    double tempTime, *time_recorder = new double[experTime];
+
     cout<<"Length: "<<len<<'\t';
     cout<<"Buckets: "<<buckets<<"\t";
-    
-    int *h_in_keys = new int[len];
-    int *h_in_values = new int[len];
 
-    int *h_out_keys = new int[len];
-    int *h_out_values = new int[len];
+    int *h_in_keys=NULL, *h_in_values=NULL, *h_out_keys=NULL, *h_out_values=NULL;/*for SOA*/
+    tuple_t *h_in=NULL, *h_out=NULL;      /*for AOS*/
 
-    int mask = buckets - 1;
+    cl_mem d_in_keys=0, d_in_values=0, d_out_keys=0, d_out_values=0;
+    cl_mem d_in=0, d_out=0;
 
-    recordRandom(h_in_keys, h_in_values, len, len);
+    /*host memory initialization*/
+    h_in_keys = new int[len];
+    h_out_keys = new int[len];
+    h_in_values = new int[len];
+    h_out_values = new int[len];
+    random_generator_int(h_in_keys, len, len);
+    fixed_generator_int(h_in_values, len, SPLIT_VALUE_DEFAULT);  /*all values set to SPLIT_VALUE_DEFAULT*/
 
-    for(int i = 0; i < len; i++) h_in_values[i] = h_in_keys[i];
-    for(int i = 0; i < len; i++) h_out_keys[i] = -1;
+    if (structure == KVS_AOS) { /*KVS_AOS*/
+        /*extra host memory initialization*/
+        h_in = new tuple_t[len];
+        h_out = new tuple_t[len];
+        for(int i = 0; i < len; i++) {
+            h_in[i].x = h_in_keys[i];
+            h_in[i].y = h_in_values[i];
+        }
 
-    //memory allocation
-    //input data
-    cl_mem d_in_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_in_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
+        /*device memory initialization*/
+        d_in = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(tuple_t)*len, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+        d_out = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(tuple_t)*len, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
 
-    //output data
-    cl_mem d_out_keys = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_out_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
+        /*memory copy*/
+        status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(tuple_t)*len, h_in, 0, 0, 0);
+        checkErr(status, ERR_WRITE_BUFFER);
+    }
+    else {      /*KO or KVS_SOA*/
+        /*device memory initialization*/
+        d_in_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+        d_out_keys = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
 
-    //data copy
-    status = clEnqueueWriteBuffer(info.currentQueue, d_in_keys, CL_TRUE, 0, sizeof(int)*len, h_in_keys, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-    status = clEnqueueWriteBuffer(info.currentQueue, d_in_values, CL_TRUE, 0, sizeof(int)*len, h_in_values, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
+        /*memory copy*/
+        status = clEnqueueWriteBuffer(info.currentQueue, d_in_keys, CL_TRUE, 0, sizeof(int)*len, h_in_keys, 0, 0, 0);
+        checkErr(status, ERR_WRITE_BUFFER);
 
-    int experTime = 100;
-    aveTime = 0;
+        /*further initialize the values*/
+        if(structure == KVS_SOA) {
+            /*device memory initialization*/
+            d_in_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+            checkErr(status, ERR_HOST_ALLOCATION);
+            d_out_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+            checkErr(status, ERR_HOST_ALLOCATION);
 
-    double *timeRecorder = new double[experTime];
+            /*memory copy*/
+            status = clEnqueueWriteBuffer(info.currentQueue, d_in_values, CL_TRUE, 0, sizeof(int)*len, h_in_values, 0, 0, 0);
+            checkErr(status, ERR_WRITE_BUFFER);
+        }
+    }
+
+    cl_mem d_in_unified=0, d_out_unified=0;
+    if (structure == KVS_AOS)   {
+        d_in_unified = d_in;
+        d_out_unified = d_out;
+    }
+    else {
+        d_in_unified = d_in_keys;
+        d_out_unified = d_out_keys;
+    }
+
     for(int e = 0; e < experTime; e++) {
-        double tempTime;
-
-        switch (test_type) {
+        if (res == false)   break;
+        switch (algo) {
             case 0:     /*key-value*/
-                tempTime = single_split(d_in_keys, d_out_keys, len, buckets, false, info, d_in_values, d_out_values);
+                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, false, structure, info, d_in_values, d_out_values);
                 break;
             case 1:     /*key-value, reorder*/
-                tempTime = single_split(d_in_keys, d_out_keys, len, buckets, true, info, d_in_values, d_out_values);
+                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, true, structure, info, d_in_values, d_out_values);
                 break;
             case 2:     /*key-only*/
-                tempTime = single_split(d_in_keys, d_out_keys, len, buckets, false, info);
+                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, false, structure, info, d_in_values, d_out_values);
                 break;
             case 3:     /*key-only, reorder*/
-                tempTime = single_split(d_in_keys, d_out_keys, len, buckets, true, info);
+                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, true, structure, info, d_in_values, d_out_values);
+                break;
+            case 4:
+                tempTime = WI_split(d_in_unified, d_out_unified, 0, len, buckets, structure, info, d_in_values, d_out_values);
                 break;
         }
 
-//        tempTime = block_split(d_in_keys, d_out_keys, NULL, len, buckets, true, info, d_in_values, d_out_values);
-//        tempTime = thread_split(d_in_keys, d_out_keys, NULL, len, buckets, info);
+//        tempTime = WG_split(d_in_keys, d_out_keys, NULL, len, buckets, true, info, d_in_values, d_out_values);
 
         if (e == 0) {
-            status = clEnqueueReadBuffer(info.currentQueue, d_out_keys, CL_TRUE, 0, sizeof(int)*len, h_out_keys, 0, 0, 0);
-            checkErr(status, ERR_READ_BUFFER);
+            if (structure == KVS_AOS) {
+                status = clEnqueueReadBuffer(info.currentQueue, d_out, CL_TRUE, 0, sizeof(tuple_t)*len, h_out, 0, 0, 0);
+                checkErr(status, ERR_READ_BUFFER);
+                status = clFinish(info.currentQueue);
+                /*initialize only for checking*/
+
+                for(int i = 0; i < len; i++) {
+                    h_out_keys[i] = h_out[i].x;
+                    h_out_values[i] = h_out[i].y;
+                }
+            }
+            else {
+                status = clEnqueueReadBuffer(info.currentQueue, d_out_keys, CL_TRUE, 0, sizeof(int) * len, h_out_keys,
+                                             0, 0, 0);
+                checkErr(status, ERR_READ_BUFFER);
+                if (structure == KVS_SOA) {
+                    status = clEnqueueReadBuffer(info.currentQueue, d_out_values, CL_TRUE, 0, sizeof(int) * len,
+                                                 h_out_values,
+                                                 0, 0, 0);
+                    checkErr(status, ERR_READ_BUFFER);
+                }
+            }
             status = clFinish(info.currentQueue);
 
             /*check the sum*/
+            unsigned mask = buckets - 1;
             unsigned long check_total_in = 0;
             unsigned long check_total_out = 0;
             check_total_in += h_in_keys[0] & mask;
@@ -767,34 +831,55 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int test_t
 
                 if (bits_now < bits_prev)  {
                     res = false;
-                    std::cerr<<"wrong result, comparison not succeed!"<<std::endl;
-                    return res;
+                    std::cerr<<"wrong result, keys are not right!"<<std::endl;
+                    break;
                 }
                 bits_prev = bits_now;
 
                 /*accumulate the input data*/
                 check_total_in += h_in_keys[i] & mask;
             }
+
+            /*check the values*/
+            if (structure != KO) {
+                for(int i = 0; i < len; i++) {
+                    if (h_out_values[i] != SPLIT_VALUE_DEFAULT) {
+                        std::cout<<i<<' '<<h_in_values[i]<<' '<<h_out_values[i]<<' '<<SPLIT_VALUE_DEFAULT<<std::endl;
+                        res = false;
+                        std::cerr<<"wrong result, values are not right!"<<std::endl;
+                        break;
+                    }
+                }
+            }
             /*sum not equal*/
             if (check_total_in != check_total_out) {
                 res = false;
-                std::cerr<<"wrong result, sum not match!"<<std::endl;
+                std::cerr<<"wrong result, key sum not match!"<<std::endl;
                 std::cerr<<"right: "<<check_total_in<<"\toutput: "<<check_total_out<<std::endl;
-                return res;
+                break;
             }
         }
-        timeRecorder[e] = tempTime;
+        time_recorder[e] = tempTime;
     }
-    aveTime = averageHampel(timeRecorder, experTime);
+    aveTime = averageHampel(time_recorder, experTime);
 
-    status = clReleaseMemObject(d_in_keys);
-    checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_out_keys);
-    checkErr(status, ERR_RELEASE_MEM);
-    
-    if(h_in_keys) delete [] h_in_keys;
-    if(h_out_keys) delete [] h_out_keys;
-    
+    /*memory free*/
+    cl_mem_free(d_in_keys);
+    cl_mem_free(d_in_values);
+    cl_mem_free(d_out_keys);
+    cl_mem_free(d_out_values);
+    cl_mem_free(d_in);
+    cl_mem_free(d_out);
+
+    if(h_in_keys)       delete [] h_in_keys;
+    if(h_out_keys)      delete [] h_out_keys;
+    if(h_in_values)     delete [] h_in_values;
+    if(h_out_values)    delete [] h_out_values;
+    if(h_in)            delete[] h_in;
+    if(h_out)           delete[] h_out;
+    if(time_recorder)   delete[] time_recorder;
+
+    /*report the results*/
     std::cout<<"Time: "<<aveTime<<" ms."<<"("<<len* sizeof(int)*2/aveTime*1000/1e9<<"GB/s)"<<std::endl;
 
     return res;
@@ -814,7 +899,7 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int test_t
  * restriction:
  * 1. GPU: local memory size: 48KB
  */
-void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& info) {
+void testSplitParameters(int len, int buckets, int device, int algo, Data_structure structure, PlatInfo& info) {
     cl_int status;
     int experTime = 10;
     int localSizeBegin, localSizeEnd, gridSizeBegin, gridSizeEnd, limitSharedSize;
@@ -911,22 +996,22 @@ void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& i
                 double tempTime;
                 switch (algo) {
                     case 0:
-                        tempTime = thread_split(d_in_keys, d_out_keys, NULL, len, buckets, info, NULL, NULL, localSize, gridSize);
+                        tempTime = WI_split(d_in_keys, d_out_keys, NULL, len, buckets, structure, info, NULL, NULL, localSize, gridSize);
                         break;
                     case 1:
-                        tempTime = thread_split(d_in_keys, d_out_keys, NULL, len, buckets, info, d_in_values, d_out_values, localSize, gridSize);
+                        tempTime = WI_split(d_in_keys, d_out_keys, NULL, len, buckets, structure, info, d_in_values, d_out_values, localSize, gridSize);
                         break;
                     case 2:
-                        tempTime = block_split(d_in_keys, d_out_keys, NULL, len, buckets, false, info, NULL, NULL, localSize, gridSize);
+                        tempTime = WG_split(d_in_keys, d_out_keys, NULL, len, buckets, false, structure, info, NULL, NULL, localSize, gridSize);
                         break;
                     case 3:
-                        tempTime = block_split(d_in_keys, d_out_keys, NULL, len, buckets, true, info, NULL, NULL,localSize, gridSize);
+                        tempTime = WG_split(d_in_keys, d_out_keys, NULL, len, buckets, true, structure, info, NULL, NULL,localSize, gridSize);
                         break;
                     case 4:
-                        tempTime = block_split(d_in_keys, d_out_keys, NULL, len, buckets, false, info, d_in_values, d_out_values, localSize, gridSize);
+                        tempTime = WG_split(d_in_keys, d_out_keys, NULL, len, buckets, false, structure, info, d_in_values, d_out_values, localSize, gridSize);
                         break;
                     case 5:
-                        tempTime = block_split(d_in_keys, d_out_keys, NULL, len, buckets, true, info, d_in_values, d_out_values, localSize, gridSize);
+                        tempTime = WG_split(d_in_keys, d_out_keys, NULL, len, buckets, true, structure, info, d_in_values, d_out_values, localSize, gridSize);
                         break;
                 }
                 if (e == 0) {

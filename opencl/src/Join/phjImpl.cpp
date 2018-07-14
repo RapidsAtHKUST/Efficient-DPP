@@ -13,6 +13,8 @@ double probe(cl_mem d_R_keys, cl_mem d_R_values, cl_mem d_S_keys, cl_mem d_S_val
 //testing: only count the number of outputs
 double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len, PlatInfo info)
 {
+    Data_structure structure = KVS_SOA; /*SOA by default*/
+
     struct timeval start, end;
     double totalTime = 0;
     cl_int status;
@@ -36,12 +38,12 @@ double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, c
     checkErr(status, ERR_HOST_ALLOCATION);
 
 //    gettimeofday(&start, NULL);
-    double r_time = block_split(d_R_keys,d_R_values, r_start, rLen, bits, false, info, d_R_partitioned_keys, d_R_partitioned_values);
+    double r_time = WG_split(d_R_keys,d_R_values, r_start, rLen, bits, false, structure, info, d_R_partitioned_keys, d_R_partitioned_values);
 //    gettimeofday(&end, NULL);
 //    double r_time = diffTime(end, start);
 
 //    gettimeofday(&start, NULL);
-    double s_time = block_split(d_S_keys, d_S_values, s_start, sLen, bits, false, info, d_S_partitioned_keys, d_S_partitioned_values);
+    double s_time = WG_split(d_S_keys, d_S_values, s_start, sLen, bits, false, structure, info, d_S_partitioned_keys, d_S_partitioned_values);
 //    gettimeofday(&end, NULL);
 //    double s_time = diffTime(end, start);
 

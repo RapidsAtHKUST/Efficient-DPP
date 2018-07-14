@@ -120,4 +120,6 @@ double computeMem(unsigned long dataSize, int wordSize, double elapsedTime);
 
 double averageHampel(double *input, int num);
 
+void cl_mem_free(cl_mem object);
+
 #endif

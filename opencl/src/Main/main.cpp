@@ -40,14 +40,6 @@ int vec[NUM_VEC_SIZE] = {1,2,4,8,16};
 
 //device basic operation performance matrix
 
-//for vpu testing
-Basic_info perfInfo_float[NUM_BLOCK_VAR][NUM_GRID_VAR][NUM_VEC_SIZE];
-Basic_info perfInfo_double[NUM_BLOCK_VAR][NUM_GRID_VAR][NUM_VEC_SIZE];
-
-//for all
-Device_perf_info bestInfo;
-
-
 void runBarrier(int experTime);
 void runAtomic();
 
@@ -151,13 +143,13 @@ int main(int argc, const char * argv[]) {
 //     cout<<"Throughput:"<<length*1.0/1024/1024/1024/totalTime*1000<<" GKeys/s"<<endl;
 
     int length = 1<<25;
-    char *str[4] = {"Key-value:", "Key-value, reoreder:", "Key-only:", "Key-only, reoreder:"};
-    for(int test_case = 1; test_case < 2; test_case++) {
-        cout<<str[test_case]<<endl;
-        for (int buckets = 2; buckets <= 4096; buckets <<= 1) {
-            testSplit(length, info, buckets, totalTime, test_case);
+//    char *str[4] = {"Key-value:", "Key-value, reoreder:", "Key-only:", "Key-only, reoreder:"};
+//    for(int test_case = 1; test_case < 2; test_case++) {
+//        cout<<str[test_case]<<endl;
+        for (int buckets = 2; buckets <= 2; buckets <<= 1) {
+            testSplit(length, info, buckets, totalTime, 4, KVS_AOS);
         }
-    }
+//    }
 
 //    cout<<"Key-only:"<<endl;
 //    for(int buckets = 2; buckets <= 4096; buckets<<=1) {

@@ -315,8 +315,12 @@ kernel void gatherStartPos( global const int *d_his,
 }
 
 /*thread-level histogram: each thraed has a private histogram stored in the local memory*/
-kernel void thread_histogram(
-        global const int* d_in_keys,     //input data keys
+kernel void WI_histogram(
+#ifdef KVS_AOS
+        global const tuple_t *d_in,   /*input keys*/
+#else
+        global const int *d_in_keys,     /*input keys*/
+#endif
         int length,               //input data length
         global int *his,          //output to the histogram array
         int buckets,
@@ -328,6 +332,7 @@ kernel void thread_histogram(
     int localId = get_local_id(0);
     int localSize = get_local_size(0);
     unsigned mask = buckets - 1;
+    unsigned offset;
 
     int idx = localId;
     while (idx < buckets * localSize) {
@@ -337,7 +342,11 @@ kernel void thread_histogram(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     while (globalId < length) {
-        int offset = d_in_keys[globalId] & mask;
+#ifdef KVS_AOS
+        offset = d_in[globalId].x & mask;
+#else
+        offset = d_in_keys[globalId] & mask;
+#endif
         local_buckets[offset*localSize+localId]++;
         globalId += globalSize;
     }
@@ -349,17 +358,22 @@ kernel void thread_histogram(
     }
 }
 
-kernel void thread_scatter(
+kernel void WI_scatter(
+#ifdef KVS_AOS
+        global const tuple_t *d_in,
+        global tuple_t *d_out,
+#else
         global const int *d_in_keys,
         global int *d_out_keys,
+    #ifdef KVS_SOA
+        global const int *d_in_values,
+        global int *d_out_values,
+    #endif
+#endif
         int length,
         global int *his,
         int buckets,
         local int *local_buckets
-#ifdef KVS
-        ,global const int *d_in_values,
-        global int *d_out_values
-#endif
         )
 {
     int localId = get_local_id(0);
@@ -367,6 +381,7 @@ kernel void thread_scatter(
     int globalId = get_global_id(0);
     int globalSize = get_global_size(0);
     unsigned mask = buckets - 1;
+    unsigned offset;
 
     for(int i = 0; i < buckets; i++) {
         local_buckets[i*localSize + localId] = his[i*globalSize+globalId];
@@ -374,11 +389,20 @@ kernel void thread_scatter(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     while (globalId < length) {
-        int offset = d_in_keys[globalId] & mask;
+#ifdef KVS_AOS
+        offset = d_in[globalId].x & mask;
+#else
+        offset = d_in_keys[globalId] & mask;
+#endif
         int idx = offset*localSize + localId;
+
+#ifdef KVS_AOS
+        d_out[local_buckets[idx]] = d_in[globalId].xy;
+#else
         d_out_keys[local_buckets[idx]] = d_in_keys[globalId];
-#ifdef KVS
+    #ifdef KVS_SOA
         d_out_values[local_buckets[idx]] = d_in_values[globalId];
+    #endif
 #endif
         local_buckets[idx]++;
         globalId += globalSize;

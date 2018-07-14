@@ -194,6 +194,14 @@ void checkErr(cl_int status, const char* name, int tag) {
     }
 }
 
+void cl_mem_free(cl_mem object) {
+    if (object != 0 || object != NULL) {
+        cl_int status = clReleaseMemObject(object);
+        checkErr(status, "Failed to release the device memory object.");
+    }
+}
+
+
 double clEventTime(const cl_event event){
     cl_ulong start,end;
     clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(start), &start, NULL);

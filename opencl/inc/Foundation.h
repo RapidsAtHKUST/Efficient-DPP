@@ -44,11 +44,26 @@ double scan(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSi
 DEPRECATED double scan_blelloch(cl_mem &cl_arr, int num,int isExclusive, PlatInfo& info, int localSize = BLOCKSIZE);
 
 /*split algorithms*/
-double block_split(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, bool reorder, PlatInfo& info, cl_mem d_in_values=NULL, cl_mem d_out_values=NULL, int local_size=256, int grid_size=32768);
+double WI_split(
+        cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start,
+        int length, int buckets,
+        Data_structure structure, PlatInfo& info,
+        cl_mem d_in_values=0, cl_mem d_out_values=0,
+        int local_size=256, int grid_size=32768);
 
-double thread_split(cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start, int length, int buckets, PlatInfo& info, cl_mem d_in_values=NULL, cl_mem d_out_values=NULL, int local_size=256, int grid_size=32768);
+double WG_split(
+        cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start,
+        int length, int buckets, bool reorder,
+        Data_structure structure, PlatInfo& info,
+        cl_mem d_in_values=0, cl_mem d_out_values=0,
+        int local_size=256, int grid_size=32768);
 
-double single_split(cl_mem d_in_keys, cl_mem d_out_keys, int length, int buckets, bool reorder, PlatInfo& info, cl_mem d_in_values=NULL, cl_mem d_out_values=NULL);
+double single_split(
+        cl_mem d_in_keys, cl_mem d_out_keys,
+        int length, int buckets, bool reorder,
+        Data_structure structure, PlatInfo& info,
+        cl_mem d_in_values=0, cl_mem d_out_values=0);
+
 
 /*end of split algorithms*/
 
@@ -75,8 +90,8 @@ bool testScatter(int len, const PlatInfo info);
 void testAtomic(PlatInfo& info);
 bool testScan(int length, double &totalTime, int localSize, int gridSize, int R, int L, PlatInfo& info);
 void testScanParameters(int length, int selection, PlatInfo& info);
-bool testSplit(int len, PlatInfo& info, int buckets, double& totalTime, int test_type);
-void testSplitParameters(int len, int buckets, int device, int algo, PlatInfo& info);
+bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, Data_structure structure);
+void testSplitParameters(int len, int buckets, int device, int algo, Data_structure structure, PlatInfo& info);
 
 
 
