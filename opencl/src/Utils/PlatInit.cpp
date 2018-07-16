@@ -10,25 +10,25 @@
 #include <iostream>
 using namespace std;
 
-PlatInit::PlatInit() {}
-PlatInit::PlatInit(const PlatInit&) {}
+Plat::Plat() {}
+Plat::Plat(const Plat&) {}
 
-void PlatInit::autoDestroy() {
+void Plat::autoDestroy() {
     if (instance != NULL) {
          delete instance;
     }
 }
 
-PlatInit* PlatInit::instance = NULL;
+Plat* Plat::instance = NULL;
 
-PlatInit* PlatInit::getInstance(int gpu) {
+Plat*Plat::getInstance(int gpu) {
     if (1 != gpu && 0 != gpu && 2 != gpu && 3 != gpu) {     //check the correctness of the para
         cerr<<"Wrong parameter for PlatInit::getInstance"<<endl;
         return NULL;
     }
 
-    if (PlatInit::instance == NULL) {
-        instance = new PlatInit();
+    if (Plat::instance == NULL) {
+        instance = new Plat();
         instance->gpu = gpu;
         
         cout<<endl;
@@ -44,7 +44,7 @@ PlatInit* PlatInit::getInstance(int gpu) {
     return instance;
 }
 
-void PlatInit::initPlat() {
+void Plat::initPlat() {
     
     std::cout<<"------ Start hardware checking ------"<<endl;
     cl_int status;                                 //func return value
@@ -83,7 +83,7 @@ void PlatInit::initPlat() {
     cout<<"Please enter the index of the device to use (0,1,2...) : ";
 
 //    cin >> chosenDevice;
-    chosenDevice = 0;
+    chosenDevice = 1;
 
     this->device = devices[chosenDevice];
     // chosenDevice = 1;   //cpu
@@ -108,49 +108,49 @@ void PlatInit::initPlat() {
     std::cout<<"------ End of hardware checking ------"<<endl<<endl;
 }
 
-cl_command_queue PlatInit::getQueue() {
+cl_command_queue Plat::getQueue() {
     return this->queue;
 }
 
-void PlatInit::setGPU(int gpu) {
+void Plat::setGPU(int gpu) {
     if (1 != gpu && 0 != gpu && 2 != gpu && 3 != gpu) {
         cerr<<"Wrong parameter for PlatInit::getInstance."<<endl;
         return;
     }
-    PlatInit::gpu = gpu;
+    Plat::gpu = gpu;
     initPlat();
 }
 
-unsigned int PlatInit::getNumOfDev() {
+unsigned int Plat::getNumOfDev() {
     return this->numOfDev;
 }
 
-cl_context PlatInit::getContext() {
+cl_context Plat::getContext() {
     return this->context;
 }
 
-cl_device_id PlatInit::getDevice() {
+cl_device_id Plat::getDevice() {
     return this->device;
 }
 
-cl_device_id* PlatInit::getDevices() {
+cl_device_id* Plat::getDevices() {
     return this->devices;
 }
 
-PlatInit::~PlatInit() {
+Plat::~Plat() {
 
     clReleaseCommandQueue(queue);
 
     clReleaseContext(context);
     
-    if (PlatInit::instance) {
+    if (Plat::instance) {
         instance = NULL;
     }
 }
 
 PlatInfo getInfo() {
     //platform initialization
-    PlatInit* myPlatform = PlatInit::getInstance();
+    Plat* myPlatform = Plat::getInstance();
     cl_command_queue queue = myPlatform->getQueue();
     cl_context context = myPlatform->getContext();
     cl_command_queue currentQueue = queue;

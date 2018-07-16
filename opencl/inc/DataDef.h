@@ -78,6 +78,7 @@ typedef struct {
      */
     enum Data_structure {KO, KVS_AOS, KVS_SOA};
     typedef cl_int2 tuple_t;    /*for AOS*/
+    enum Algo {WI, WG, WG_reorder, Single,Single_reorder};
 #endif
 
 #endif

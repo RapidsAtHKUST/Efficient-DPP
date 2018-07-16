@@ -38,12 +38,12 @@ double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, c
     checkErr(status, ERR_HOST_ALLOCATION);
 
 //    gettimeofday(&start, NULL);
-    double r_time = WG_split(d_R_keys,d_R_values, r_start, rLen, bits, false, structure, info, d_R_partitioned_keys, d_R_partitioned_values);
+    double r_time = WG_split(d_R_keys, d_R_partitioned_keys, r_start, rLen, buckets, false, structure, info, d_R_values, d_R_partitioned_values);
 //    gettimeofday(&end, NULL);
 //    double r_time = diffTime(end, start);
 
 //    gettimeofday(&start, NULL);
-    double s_time = WG_split(d_S_keys, d_S_values, s_start, sLen, bits, false, structure, info, d_S_partitioned_keys, d_S_partitioned_values);
+    double s_time = WG_split(d_S_keys, d_S_partitioned_keys , s_start, sLen, buckets, false, structure, info, d_S_values, d_S_partitioned_values);
 //    gettimeofday(&end, NULL);
 //    double s_time = diffTime(end, start);
 

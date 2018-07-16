@@ -1,0 +1,17 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 1000
+
+Detection mode: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Many Integrated Core Acceleration Card
+------ End of hardware checking ------
+
+key-value(AOS)
+Length=33554432 Algo=2 Buckets=2 Length: 33554432	Buckets: 2	Time: 112.462 ms.(2.3869GB/s)
+./bin/opencl_compare: line 101: 99980 Terminated              /ghome/zlai/workspace/opencl_study/opencl/bin/executor 1000

@@ -6,54 +6,14 @@
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
 #include "Foundation.h"
-#include <cmath>
 using namespace std;
 
-int dataSize;           //max: MAX_DATA_SIZE
-int outputSizeGS;      //output size of scatter and gather 
-
-bool is_input;          //whether to read data or fast run
 PlatInfo info;          //platform configuration structure
 
-char input_arr_dir[500];
-char input_rec_dir[500];
-char input_loc_dir[500];
-
-Record *fixedRecords;
-
-int *fixedKeys;
-int *fixedValues;
-int *fixedLoc;
-
-//for basic operation testing
-#define MIN_BLOCK       (128)  
-#define MAX_BLOCK       (1024)
-#define MIN_GRID        (256)  
-#define MAX_GRID        (32768)	
-#define MAX_VEC_SIZE	(16)
-
-#define NUM_BLOCK_VAR   (4)	
-#define NUM_GRID_VAR    (8)	
-#define NUM_VEC_SIZE    (5)
-
-int vec[NUM_VEC_SIZE] = {1,2,4,8,16};
-
-//device basic operation performance matrix
-
-void runBarrier(int experTime);
-void runAtomic();
-
-double runMap();
-double runRadixSort(int experTime);
-
-/*parameters:
- * executor DATASIZE
- * DATASIZE : data size
- */
-int main(int argc, const char * argv[]) {
+int main(int argc, const char *argv[]) {
 
     //platform initialization
-    PlatInit* myPlatform = PlatInit::getInstance(0);
+    Plat*myPlatform = Plat::getInstance(0);
     cl_device_id device = myPlatform->getDevice();
     cl_context context = myPlatform->getContext();
     cl_command_queue currentQueue = myPlatform->getQueue();
@@ -66,25 +26,6 @@ int main(int argc, const char * argv[]) {
         cerr<<"Wrong number of parameters."<<endl;
         exit(1);
     }
-
-    // dataSize = 1000000000;
-    dataSize = atoi(argv[1]);       //in MB
-    assert(dataSize > 0);
-
-    #ifdef RECORDS
-//        fixedKeys = new int[dataSize];
-    #endif
-//        fixedValues = new int[dataSize];
-    #ifdef RECORDS
-//        recordRandom<int>(fixedKeys, fixedValues, dataSize);
-    #else
-//        valRandom<int>(fixedValues,dataSize, MAX_NUM);
-    #endif
-
-    int map_blockSize = -1, map_gridSize = -1;
-    int gather_blockSize = -1, gather_gridSize = -1;
-    int scatter_blockSize = -1, scatter_gridSize = -1;
-    int scan_blockSize = -1;
 
     double totalTime;
 
@@ -143,12 +84,8 @@ int main(int argc, const char * argv[]) {
 //     cout<<"Throughput:"<<length*1.0/1024/1024/1024/totalTime*1000<<" GKeys/s"<<endl;
 
     int length = 1<<25;
-//    char *str[4] = {"Key-value:", "Key-value, reoreder:", "Key-only:", "Key-only, reoreder:"};
-    for(int test_case = 0; test_case < 2; test_case++) {
-//        cout<<str[test_case]<<endl;
-        for (int buckets = 2; buckets <= 2; buckets <<= 1) {
-            testSplit(length, info, buckets, totalTime, test_case, KVS_SOA);
-        }
+    for (int buckets = 2; buckets <= 4096; buckets <<= 1) {
+        split_test_parameters(length, buckets, WG_reorder, KVS_AOS, 2, info);
     }
 
 //    cout<<"Key-only:"<<endl;
@@ -184,64 +121,4 @@ int main(int argc, const char * argv[]) {
 //    testHj(dataSize, dataSize, info);         //16: lower 16 bits to generate the buckets
 
     return 0;
-}
-
-void runBarrier(int experTime) {
-
-    cout<<"----------- Barrier test ------------"<<endl;
-
-    int block_min = 128, block_max = 1024;
-    int grid_min = 256, grid_max = 32768;
-
-    float *input = (float*)malloc(sizeof(float)*dataSize);
-    for(int i = 0; i < dataSize;i++) {
-        input[i] = 0;
-    }
-
-    for(int blockSize = block_min; blockSize <= block_max; blockSize<<=1) {
-        for(int gridSize = grid_min; gridSize <= grid_max; gridSize <<= 1) {   
-            double tempTime = MAX_TIME;
-            for(int i = 0 ; i < experTime; i++) {       
-                //--------test map------------
-                double percentage;
-                testBarrier(                
-                input, info,tempTime, percentage, blockSize, gridSize);
-
-                cout<<"blockSize: "<<blockSize<<'\t'
-            	<<"gridSize: "<<gridSize<<'\t'
-            	<<"barrier time: "<<tempTime<<" ms\t"
-            	<<"time per thread: "<<tempTime/(blockSize *  gridSize)*1e6<<" ns\t"
-            	<<"percentage: "<<percentage <<"%"<<endl;
-            }
-        }
-    }
-
-    delete[] input;
-}
-
-double runMap() {
-    int blockSize = 1024, gridSize = 8192;
-    int repeat = 64, repeat_trans = 16;
-    testMap(info, repeat, repeat_trans, blockSize, gridSize);
-}
-
-//no need to set blockSize and gridSize
-double runRadixSort(int experTime) {
-    double bestTime = MAX_TIME;
-    bool res;
-    
-    double tempTime = MAX_TIME;
-    for(int i = 0 ; i < experTime; i++) {       
-        //--------test radix sort------------
-        res = testRadixSort(          
-#ifdef RECORDS
-        fixedKeys,
-#endif
-        fixedValues, 
-        dataSize, info, tempTime);
-    }
-    if (tempTime < bestTime && res == true) {
-        bestTime = tempTime;
-    }
-    return bestTime;
 }

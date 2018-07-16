@@ -2,10 +2,14 @@
 #define SPLIT_KERNEL_CL
 
 #ifdef KVS_AOS
-    typedef int2 tuple_t;
+    typedef int2 Tuple;  /*for AOS*/
+    #define GET_X_VALUE(d_in, idx)    d_in[idx].x
+#else
+    typedef int Tuple;    /*for KO*/
+    #define GET_X_VALUE(d_in, idx)    d_in[idx]
 #endif
 
-#define WARP_BITS   (3)
+#define WARP_BITS   (4)
 #define WARP_SIZE   (1<<WARP_BITS)
 
 #ifdef SMALLER_WARP_SIZE        //num <= WARP_SIZE
@@ -314,15 +318,11 @@ kernel void gatherStartPos( global const int *d_his,
     }
 }
 
-/*thread-level histogram: each thraed has a private histogram stored in the local memory*/
+/*WI-level histogram: each thraed has a private histogram stored in the local memory*/
 kernel void WI_histogram(
-#ifdef KVS_AOS
-        global const tuple_t *d_in,   /*input keys*/
-#else
-        global const int *d_in_keys,     /*input keys*/
-#endif
-        int length,               //input data length
-        global int *his,          //output to the histogram array
+        global const Tuple *d_in,   /*input keys*/
+        int length,                 /*length of the dataset*/
+        global int *his,            /*output histogram*/
         int buckets,
         local int *local_buckets)
 {
@@ -342,11 +342,7 @@ kernel void WI_histogram(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     while (globalId < length) {
-#ifdef KVS_AOS
-        offset = d_in[globalId].x & mask;
-#else
-        offset = d_in_keys[globalId] & mask;
-#endif
+        offset = GET_X_VALUE(d_in, globalId) & mask;
         local_buckets[offset*localSize+localId]++;
         globalId += globalSize;
     }
@@ -359,22 +355,16 @@ kernel void WI_histogram(
 }
 
 kernel void WI_scatter(
-#ifdef KVS_AOS
-        global const tuple_t *d_in,
-        global tuple_t *d_out,
-#else
-        global const int *d_in_keys,
-        global int *d_out_keys,
-    #ifdef KVS_SOA
-        global const int *d_in_values,
-        global int *d_out_values,
-    #endif
+    global const Tuple *d_in,
+    global Tuple *d_out,
+#ifdef KVS_SOA
+    global const Tuple *d_in_values,
+    global Tuple *d_out_values,
 #endif
-        int length,
-        global int *his,
-        int buckets,
-        local int *local_buckets
-        )
+    int length,
+    global int *his,
+    int buckets,
+    local int *local_buckets)
 {
     int localId = get_local_id(0);
     int localSize = get_local_size(0);
@@ -389,20 +379,12 @@ kernel void WI_scatter(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     while (globalId < length) {
-#ifdef KVS_AOS
-        offset = d_in[globalId].x & mask;
-#else
-        offset = d_in_keys[globalId] & mask;
-#endif
+        offset = GET_X_VALUE(d_in, globalId) & mask;
         int idx = offset*localSize + localId;
 
-#ifdef KVS_AOS
-        d_out[local_buckets[idx]] = d_in[globalId].xy;
-#else
-        d_out_keys[local_buckets[idx]] = d_in_keys[globalId];
-    #ifdef KVS_SOA
+        d_out[local_buckets[idx]] = d_in[globalId];
+#ifdef KVS_SOA
         d_out_values[local_buckets[idx]] = d_in_values[globalId];
-    #endif
 #endif
         local_buckets[idx]++;
         globalId += globalSize;
@@ -411,15 +393,11 @@ kernel void WI_scatter(
 
 /*------------ WG-level kernels : WIs in a WG share a histogram ------------*/
 kernel void WG_histogram(
-#ifdef KVS_AOS
-        global const tuple_t *d_in,   /*input keys*/
-#else
-        global const int *d_in_keys,     /*input keys*/
-#endif
-    int length,
-    global int *his,        //histogram output
-    local int* local_his,   //local buffer: buckets*sizeof(int)
-    int buckets)            //number of buckets
+    global const Tuple *d_in,   /*input data*/
+    int length,                 /*length of the dataset*/
+    global int *his,            /*histogram output*/
+    local int* local_his,       /*local buffer: buckets*sizeof(int)*/
+    int buckets)
 {
     int localId = get_local_id(0);
     int localSize = get_local_size(0);
@@ -441,11 +419,7 @@ kernel void WG_histogram(
 
     i = globalId;
     while (i < length) {
-#ifdef KVS_AOS
-        offset = d_in[i].x & mask;
-#else
-        offset = d_in_keys[i] & mask;
-#endif
+        offset = GET_X_VALUE(d_in, i) & mask;
         atomic_inc(local_his+offset);
         i += globalSize;
     }
@@ -459,22 +433,16 @@ kernel void WG_histogram(
 }
 
 kernel void WG_scatter(
-#ifdef KVS_AOS
-        global const tuple_t *d_in,
-        global tuple_t *d_out,
-#else
-        global const int *d_in_keys,
-        global int *d_out_keys,
-    #ifdef KVS_SOA
-        global const int *d_in_values,
-        global int *d_out_values,
-    #endif
+    global const Tuple *d_in,
+    global Tuple *d_out,
+#ifdef KVS_SOA
+    global const Tuple *d_in_values,
+    global Tuple *d_out_values,
 #endif
-        int length,
-        int buckets,
-        global int *his,
-        local int *local_his
-        )
+    int length,
+    int buckets,
+    global int *his,
+    local int *local_his)
 {
     int localId = get_local_id(0);
     int localSize = get_local_size(0);
@@ -496,20 +464,11 @@ kernel void WG_scatter(
 
     i = globalId;
     while (i < length) {
-#ifdef KVS_AOS
-        offset = d_in[i].x & mask;
-#else
-        offset = d_in_keys[i] & mask;
-#endif
+        offset = GET_X_VALUE(d_in, i) & mask;
         int pos = atomic_inc(local_his+offset);
-
-#ifdef KVS_AOS
         d_out[pos] = d_in[i];
-#else
-        d_out_keys[pos] = d_in_keys[i];
-    #ifdef KVS_SOA
+#ifdef KVS_SOA
         d_out_values[pos] = d_in_values[i];
-    #endif
 #endif
         i += globalSize;
     }
@@ -517,32 +476,22 @@ kernel void WG_scatter(
 
 /*block-level split on key-value data with data reordering*/
 kernel void WG_reorder_scatter(
-#ifdef KVS_AOS
-        global const tuple_t *d_in,
-        global tuple_t *d_out,
-#else
-        global const int *d_in_keys,
-        global int *d_out_keys,
-    #ifdef KVS_SOA
-        global const int *d_in_values,
-        global int *d_out_values,
-    #endif
+    global const Tuple *d_in,
+    global Tuple *d_out,
+#ifdef KVS_SOA
+    global const Tuple *d_in_values,
+    global Tuple *d_out_values,
 #endif
-        int length,
-        int buckets,
-        global int *his_scanned,     /*scanned histogram*/
-        local int* local_start_ptrs, /*start pos of each bucket in local mem, bucket elements*/
-        global int *his_origin,      /*original histogram*/
-#ifdef KVS_AOS
-        local tuple_t *reorder_buffer_tuples  /*tuple buffer for AOS*/
-#else
-        local int *reorder_buffer_keys      /*key buffer for KO and SOA*/
-    #ifdef KVS_SOA
-        ,local int *reorder_buffer_values   /*value buffer for SOA*/
-    #endif
+    int length,
+    int buckets,
+    global int *his_scanned,     /*scanned histogram*/
+    local int* local_start_ptrs, /*start pos of each bucket in local mem, bucket elements*/
+    global int *his_origin,      /*original histogram*/
+    local Tuple *reorder_buffer  /*tuple buffer for AOS*/
+#ifdef KVS_SOA
+    ,local Tuple *reorder_buffer_values   /*value buffer for SOA*/
 #endif
-        )
-{
+){
     int localId = get_local_id(0);
     int localSize = get_local_size(0);
     int globalId = get_global_id(0);
@@ -570,21 +519,13 @@ kernel void WG_reorder_scatter(
     //scatter the input to the local memory
     i = globalId;
     while (i < length) {
-#ifdef KVS_AOS
-        offset = d_in[i].x & mask;
-#else
-        offset = d_in_keys[i] & mask;
-#endif
+        offset = GET_X_VALUE(d_in, i) & mask;
         int acc = atomic_inc(local_start_ptrs+offset+1);
 
         /*write to the buffer*/
-#ifdef KVS_AOS
-        reorder_buffer_tuples[acc] = d_in[i];
-#else
-        reorder_buffer_keys[acc] = d_in_keys[i];
-    #ifdef KVS_SOA
+        reorder_buffer[acc] = d_in[i];
+#ifdef KVS_SOA
         reorder_buffer_values[acc] = d_in_values[i];
-    #endif
 #endif
         i += globalSize;
     }
@@ -602,15 +543,10 @@ kernel void WG_reorder_scatter(
     int local_sum = local_start_ptrs[buckets];
 
     while (i < local_sum) {
-#ifdef KVS_AOS
-        offset = reorder_buffer_tuples[i].x & mask;
-        d_out[i+local_start_ptrs[offset]] = reorder_buffer_tuples[i];
-#else
-        offset = reorder_buffer_keys[i] & mask;
-        d_out_keys[i+local_start_ptrs[offset]] = reorder_buffer_keys[i];
-    #ifdef KVS_SOA
+        offset = GET_X_VALUE(reorder_buffer, i) & mask;
+        d_out[i+local_start_ptrs[offset]] = reorder_buffer[i];
+#ifdef KVS_SOA
         d_out_values[i+local_start_ptrs[offset]] = reorder_buffer_values[i];
-    #endif
 #endif
         i += localSize;
     }
@@ -621,14 +557,6 @@ kernel void WG_reorder_scatter(
  * All the kernels are invoked with local_size=1
  * Only support KO and AOS
  */
-#ifdef KVS_AOS
-    typedef tuple_t Tuple;  /*for AOS*/
-    #define GET_X_VALUE(d_in, idx)    d_in[idx].x
-#else
-    typedef int Tuple;    /*for KO*/
-    #define GET_X_VALUE(d_in, idx)    d_in[idx]
-#endif
-
 kernel void single_histogram(
         global const Tuple *d_in,   /*input keys*/
         const int len_per_group,        /*elements processed by each WG*/
@@ -695,11 +623,7 @@ kernel void single_scatter(
 #endif
 
 #ifndef ELE_PER_CACHELINE
-    #ifdef KVS_AOS
-        #define ELE_PER_CACHELINE   (CACHELINE_SIZE/sizeof(tuple_t))
-    #else
-        #define ELE_PER_CACHELINE   (CACHELINE_SIZE/sizeof(int))
-    #endif
+#define ELE_PER_CACHELINE   (CACHELINE_SIZE/sizeof(Tuple))
 #endif
 
 kernel void single_reorder_scatter(
@@ -711,7 +635,6 @@ kernel void single_reorder_scatter(
         global int *his,                    /*scanned histogram*/
         local int *local_buc_ptr,           /*scanned local buckets ptrs: buckets*sizeof(int)*/
         global Tuple *reorder_buffer_all)    /*tuple buffer for AOS*/
-
 {
     int group_id = get_group_id(0);
     int num_groups = get_num_groups(0);

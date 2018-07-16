@@ -45,14 +45,14 @@ DEPRECATED double scan_blelloch(cl_mem &cl_arr, int num,int isExclusive, PlatInf
 
 /*split algorithms*/
 double WI_split(
-        cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start,
+        cl_mem d_in, cl_mem d_out, cl_mem d_start,
         int length, int buckets,
         Data_structure structure, PlatInfo& info,
         cl_mem d_in_values=0, cl_mem d_out_values=0,
         int local_size=256, int grid_size=32768);
 
 double WG_split(
-        cl_mem d_in_keys, cl_mem d_out_keys, cl_mem d_start,
+        cl_mem d_in, cl_mem d_out, cl_mem d_start,
         int length, int buckets, bool reorder,
         Data_structure structure, PlatInfo& info,
         cl_mem d_in_values=0, cl_mem d_out_values=0,
@@ -87,12 +87,42 @@ bool testGather(int len, const PlatInfo info);
 bool testScatter(int len, const PlatInfo info);
 void testAtomic(PlatInfo& info);
 bool testScan(int length, double &totalTime, int localSize, int gridSize, int R, int L, PlatInfo& info);
-void testScanParameters(int length, int selection, PlatInfo& info);
-bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, Data_structure structure);
-void testSplitParameters(int len, int buckets, int device, int algo, Data_structure structure, PlatInfo& info);
+
+/*
+ *  Split test function, to test specific kernel configurations
+ *
+ *  @param len          number of elements of the input dataset
+ *  @param info         platform info
+ *  @param buckets      number of buckets
+ *  @param aveTime      average kernel execution time
+ *  @param algo         algorithms being tested
+ *  @param structure    data structure of the input dataset
+ *  @param local_size   number of WIs in a WG
+ *  @param grid_size    number of WGs in the kernel
+ *
+ * */
+bool split_test_specific(
+        int len, PlatInfo& info, int buckets, double& aveTime,
+        Algo algo, Data_structure structure,
+        int local_size, int grid_size);
 
 
-
+/*
+ *  Split test function, to probe for the best kernel configuration
+ *  of a specific split kernel
+ *
+ *  @param len          number of elements of the input dataset
+ *  @param buckets      number of buckets
+ *  @param algo         algorithms being tested
+ *  @param structure    data structure of the input dataset
+ *  @param device       type of device
+ *  @param info         platform info
+ *
+ * */
+void split_test_parameters(
+        int len, int buckets,
+        Algo algo, Data_structure structure,
+        int device, PlatInfo& info);
 
 
 void testBarrier(

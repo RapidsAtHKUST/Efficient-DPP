@@ -1,13 +1,13 @@
 //
-//  PlatInit.h
+//  Plat.h
 //  gpuqp_opencl
 //
 //  Created by Bryan on 4/7/15.
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
 
-#ifndef __gpuqp_opencl__PlatInit__
-#define __gpuqp_opencl__PlatInit__
+#ifndef __gpuqp_opencl__Plat__
+#define __gpuqp_opencl__Plat__
 
 #include "DataUtil.h"
 #define  MAX_DEVICES_NUM 10         //at most 10 device can be detected
@@ -20,7 +20,7 @@ typedef struct PlatInfo {
 
 PlatInfo getInfo();
 
-class PlatInit
+class Plat
 {
 private:
 
@@ -33,22 +33,22 @@ private:
     unsigned int numOfDev;                      //number of devices
     cl_platform_id platform;                    //current platform id
     cl_device_id devices[MAX_DEVICES_NUM];      //devices id array
-    cl_device_id device;                        //current device
-    cl_context  context;                        //current context
+    cl_device_id device;                        //chosen device
+    cl_context context;                        //current context
     cl_command_queue queue;                     //current command queue
     
 protected:
-    PlatInit();                                 //protected constructor
-    PlatInit(const PlatInit&);                  //protected copy constructor
-    PlatInit& operator=(const PlatInit&);       //protected assignment operator
+    Plat();                                 //protected constructor
+    Plat(const Plat&);                  //protected copy constructor
+    Plat& operator=(const Plat&);       //protected assignment operator
 
     void initPlat();                            //platform initialization
-    static PlatInit* instance;                  //singleton instance
-    static void autoDestroy();                  //only for auto call ~Platinit()
-    ~PlatInit();                                //protected deconstructor
+    static Plat* instance;                  //singleton instance
+    static void autoDestroy();                  //only for auto call ~Plat()
+    ~Plat();                                //protected deconstructor
     
 public:
-    static PlatInit* getInstance(int gpu = 0);  //it detects all the devices by default
+    static Plat* getInstance(int gpu = 0);  //it detects all the devices by default
     cl_command_queue getQueue();
     void setGPU(int gpu);
     unsigned int getNumOfDev();

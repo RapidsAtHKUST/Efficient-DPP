@@ -691,12 +691,22 @@ void testScanParameters(int length, int device, PlatInfo& info) {
     cout<<"\tThroughput="<<bestThr<<"GB/s"<<endl;
 }
 
-//fanout: number of partitions needed
-bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, Data_structure structure) {
-
+/*
+ * Split test function, to test specific kernel configurations
+ *
+ *  len:            length of the dataset
+ *  algo:           WI_split, WG_split, WG_reorder_split, Single_split, Single_reorder_split
+ *  structure:      KO, AOS or SOA
+ *
+ * */
+bool split_test_specific(
+        int len, PlatInfo& info, int buckets, double& ave_time,
+        Algo algo, Data_structure structure,
+        int local_size, int grid_size)
+{
     cl_int status = 0;
     bool res = true;
-    int experTime = 1;
+    int experTime = 100;
     double tempTime, *time_recorder = new double[experTime];
 
     cout<<"Length: "<<len<<'\t';
@@ -773,23 +783,45 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, 
     for(int e = 0; e < experTime; e++) {
         if (res == false)   break;
         switch (algo) {
-            case 0:     /*key-value*/
-                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, false, structure, info);
+            case Single:     /*single split*/
+                tempTime = single_split(
+                        d_in_unified, d_out_unified,
+                        len, buckets, false, structure, info);
                 break;
-            case 1:     /*key-value, reorder*/
-                tempTime = single_split(d_in_unified, d_out_unified, len, buckets, true, structure, info);
+            case Single_reorder:     /*single split, reorder*/
+                tempTime = single_split(
+                        d_in_unified, d_out_unified,
+                        len, buckets, true, structure, info);
                 break;
-            case 2:
-                tempTime = WI_split(d_in_unified, d_out_unified, 0, len, buckets, structure, info, d_in_values, d_out_values);
+            case WI:     /*WI-level split*/
+                tempTime = WI_split(
+                        d_in_unified, d_out_unified, 0,
+                        len, buckets, structure, info,
+                        d_in_values, d_out_values,
+                        local_size, grid_size);
                 break;
-            case 3:
-                tempTime = WG_split(d_in_unified, d_out_unified, 0, len, buckets, true, structure, info, d_in_values, d_out_values);
+            case WG:     /*WG-level split*/
+                tempTime = WG_split(
+                        d_in_unified, d_out_unified, 0,
+                        len, buckets, false, structure, info,
+                        d_in_values, d_out_values,
+                        local_size, grid_size);
+                break;
+            case WG_reorder:     /*WG-level split, reorder*/
+                tempTime = WG_split(
+                        d_in_unified, d_out_unified, 0,
+                        len, buckets, true, structure, info,
+                        d_in_values, d_out_values,
+                        local_size, grid_size);
                 break;
         }
 
+        /*check the result*/
         if (e == 0) {
             if (structure == KVS_AOS) {
-                status = clEnqueueReadBuffer(info.currentQueue, d_out, CL_TRUE, 0, sizeof(tuple_t)*len, h_out, 0, 0, 0);
+                status = clEnqueueReadBuffer(
+                        info.currentQueue, d_out, CL_TRUE, 0,
+                        sizeof(tuple_t)*len, h_out, 0, 0, 0);
                 checkErr(status, ERR_READ_BUFFER);
                 status = clFinish(info.currentQueue);
                 /*initialize only for checking*/
@@ -800,13 +832,14 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, 
                 }
             }
             else {
-                status = clEnqueueReadBuffer(info.currentQueue, d_out_keys, CL_TRUE, 0, sizeof(int) * len, h_out_keys,
-                                             0, 0, 0);
+                status = clEnqueueReadBuffer(
+                        info.currentQueue, d_out_keys, CL_TRUE, 0,
+                        sizeof(int) * len, h_out_keys, 0, 0, 0);
                 checkErr(status, ERR_READ_BUFFER);
                 if (structure == KVS_SOA) {
-                    status = clEnqueueReadBuffer(info.currentQueue, d_out_values, CL_TRUE, 0, sizeof(int) * len,
-                                                 h_out_values,
-                                                 0, 0, 0);
+                    status = clEnqueueReadBuffer(
+                            info.currentQueue, d_out_values, CL_TRUE, 0,
+                            sizeof(int) * len, h_out_values, 0, 0, 0);
                     checkErr(status, ERR_READ_BUFFER);
                 }
             }
@@ -856,7 +889,7 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, 
         }
         time_recorder[e] = tempTime;
     }
-    aveTime = averageHampel(time_recorder, experTime);
+    ave_time = averageHampel(time_recorder, experTime);
 
     /*memory free*/
     cl_mem_free(d_in_keys);
@@ -875,7 +908,7 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, 
     if(time_recorder)   delete[] time_recorder;
 
     /*report the results*/
-    std::cout<<"Time: "<<aveTime<<" ms."<<"("<<len* sizeof(int)*2/aveTime*1000/1e9<<"GB/s)"<<std::endl;
+    std::cout<<"Time: "<<ave_time<<" ms."<<"("<<len* sizeof(int)*2/ave_time*1000/1e9<<"GB/s)"<<std::endl;
 
     return res;
 }
@@ -894,166 +927,94 @@ bool testSplit(int len, PlatInfo& info, int buckets, double& aveTime, int algo, 
  * restriction:
  * 1. GPU: local memory size: 48KB
  */
-void testSplitParameters(int len, int buckets, int device, int algo, Data_structure structure, PlatInfo& info) {
+void split_test_parameters(
+        int len, int buckets,
+        Algo algo, Data_structure structure,
+        int device, PlatInfo& info)
+{
     cl_int status;
-    int experTime = 10;
-    int localSizeBegin, localSizeEnd, gridSizeBegin, gridSizeEnd, limitSharedSize;
+    int local_size_begin, local_size_end, grid_size_begin, grid_size_end, local_mem_limited;
+
+    /*Single split has fixed parameters*/
+    if (algo == Single || algo == Single_reorder) {
+        std::cout<<"Single split has fixed parameter: "
+                 <<"local_size=1, grid_size=#CUs. "
+                 <<"No need to probe."<<std::endl;
+        return;
+    }
 
     //on gpu
     if (device==0) {
-        localSizeBegin = 128;
-        localSizeEnd = 1024;
-        gridSizeBegin = 1024;
-        gridSizeEnd = 131072;
-        limitSharedSize = 47*1024;      //47KB
+        local_size_begin = 128;
+        local_size_end = 1024;
+        grid_size_begin = 1024;
+        grid_size_end = 131072;
+        local_mem_limited = 47*1024;      //47KB
     }
     else if (device==1) {       //on CPU
-        localSizeBegin = 64;
-        localSizeEnd = 512;
-        gridSizeBegin = 128;
-        gridSizeEnd = 131072;
-        limitSharedSize = 32*1024;    //CPU also has limited local mem size
+        local_size_begin = 64;
+        local_size_end = 512;
+        grid_size_begin = 128;
+        grid_size_end = 131072;
+        local_mem_limited = 32*1024;    //CPU also has limited local mem size
     }
     else if (device==2) {       //on MIC
-        localSizeBegin = 64;
-        localSizeEnd = 2048;
-        gridSizeBegin = 128;
-        gridSizeEnd = 4096;
-        limitSharedSize = 64*1024;    //CPU also has limited local mem size
+        local_size_begin = 1;
+        local_size_end = 2048;
+        grid_size_begin = 128;
+        grid_size_end = 32768;
+        local_mem_limited = 32*1024;    //MIC also has limited local mem size
     }
     else return;
 
-    //best results
-    double bestTime = 99999;
-    int bestLocalSize=-1, bestGridSize=-1, bestSharedSize=-1;
+    /*best result*/
+    double best_time = 99999;
+    int local_size_best=-1, grid_size_best=-1, local_mem_size_best=-1;
 
     std::cout<<"Length="<<len<<" Algo="<<algo<<" Buckets="<<buckets<<' ';
-    for(int localSize = localSizeBegin; localSize <= localSizeEnd; localSize<<=1) {
-        for(int gridSize = gridSizeBegin; gridSize <= gridSizeEnd; gridSize <<=1) {
-            int sharedSize = len / gridSize;
+    for(int local_size = local_size_begin; local_size <= local_size_end; local_size<<=1) {
+        for(int grid_size = grid_size_begin; grid_size <= grid_size_end; grid_size <<=1) {
+            int local_buffer_len = len / grid_size;
 
             //check the shared memory size
-            if (sharedSize < localSize) continue;
+            if (local_buffer_len < local_size) continue;
 
-            if (algo == 3 || algo == 5) {
+            if (algo == WG_reorder) {
                 int scale = 0;
-                if (algo == 3) scale = 1;
-                if (algo == 5) scale = 2;
+                if (structure == KO)    scale = 1;
+                else                    scale = 2;
 
-                if ( sizeof(int)*(buckets+1) + scale * sharedSize * sizeof(int) > limitSharedSize) {
-                    continue;
-                }
+                /*local memory size exceeds the limit*/
+                size_t local_size_used = sizeof(int)*(1+buckets+scale*local_buffer_len);
+                if (local_size_used > local_mem_limited)    continue;
             }
 
-            if (algo == 0 || algo == 1) {
-                //check the local memory size for the thread-level split
-                if (localSize * buckets * sizeof(int) >= limitSharedSize) continue;
+            if (algo == WI) {
+                /*check the local memory size for the thread-level split*/
+                if (local_size * buckets * sizeof(int) >= local_mem_limited) continue;
 
-                //check the global memory size for the thread-level split
-                unsigned his_len = localSize * gridSize;
+                /*check the global memory size for the thread-level split*/
+                unsigned his_len = local_size * grid_size;
                 unsigned limit = 268435456 / buckets;
                 if (his_len > limit) continue;
             }
 
-            bool res = true;
+            /*invode split_test_specific with the configuration*/
+            double temp_time;
+            bool res = split_test_specific(
+                    len, info, buckets, temp_time,
+                    algo, structure,
+                    local_size, grid_size);
 
-//------------------ data initialization -------------------
-            int *h_in_keys = new int[len];
-            int *h_out_keys = new int[len];
-
-            int *h_in_values = new int[len];
-            int *h_out_values = new int[len];
-
-            recordRandom(h_in_keys, h_in_values, len, len);
-            for(int i = 0; i < len; i++) h_in_values[i] = h_in_keys[i];
-
-            //memory allocation
-            cl_mem d_in_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
-            checkErr(status, ERR_HOST_ALLOCATION);
-            //output data
-            cl_mem d_out_keys = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
-            checkErr(status, ERR_HOST_ALLOCATION);
-
-            cl_mem d_in_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
-            checkErr(status, ERR_HOST_ALLOCATION);
-            cl_mem d_out_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
-            checkErr(status, ERR_HOST_ALLOCATION);
-
-            //data copy
-            status = clEnqueueWriteBuffer(info.currentQueue, d_in_keys, CL_TRUE, 0, sizeof(int)*len, h_in_keys, 0, 0, 0);
-            checkErr(status, ERR_WRITE_BUFFER);
-            status = clEnqueueWriteBuffer(info.currentQueue, d_in_values, CL_TRUE, 0, sizeof(int)*len, h_in_values, 0, 0, 0);
-            checkErr(status, ERR_WRITE_BUFFER);
-//------------------ data initialization end-------------------
-            float aveTime = 0.0;
-            double *timeRecorder = new double[experTime];
-            for(int e = 0; e < experTime; e++) {
-                double tempTime;
-                switch (algo) {
-                    case 0:
-                        tempTime = WI_split(d_in_keys, d_out_keys, NULL, len, buckets, structure, info, NULL, NULL, localSize, gridSize);
-                        break;
-                    case 1:
-                        tempTime = WI_split(d_in_keys, d_out_keys, NULL, len, buckets, structure, info, d_in_values, d_out_values, localSize, gridSize);
-                        break;
-                    case 2:
-                        tempTime = WG_split(d_in_keys, d_out_keys, NULL, len, buckets, false, structure, info, NULL, NULL, localSize, gridSize);
-                        break;
-                    case 3:
-                        tempTime = WG_split(d_in_keys, d_out_keys, NULL, len, buckets, true, structure, info, NULL, NULL,localSize, gridSize);
-                        break;
-                    case 4:
-                        tempTime = WG_split(d_in_keys, d_out_keys, NULL, len, buckets, false, structure, info, d_in_values, d_out_values, localSize, gridSize);
-                        break;
-                    case 5:
-                        tempTime = WG_split(d_in_keys, d_out_keys, NULL, len, buckets, true, structure, info, d_in_values, d_out_values, localSize, gridSize);
-                        break;
-                }
-                if (e == 0) {
-                    status = clEnqueueReadBuffer(info.currentQueue, d_out_keys, CL_TRUE, 0, sizeof(int)*len, h_out_keys, 0, 0, 0);
-                    checkErr(status, ERR_READ_BUFFER);
-                    status = clFinish(info.currentQueue);
-
-                    int mask = buckets - 1;
-                    int bits_prev = h_out_keys[0] & mask;
-                    for(int i = 1; i < len; i++) {
-                        int bits_now = h_out_keys[i] & mask;
-                        if (bits_now < bits_prev)  {
-                            res = false;
-                            cerr<<"\twrong results"<<endl;
-                            return ;
-                        }
-                        bits_prev = bits_now;
-                    }
-                }
-                timeRecorder[e] = tempTime;
+            if (temp_time < best_time) {
+                best_time = temp_time;
+                local_size_best = local_size;
+                grid_size_best = grid_size;
+                local_mem_size_best = local_buffer_len;
             }
-            aveTime = averageHampel(timeRecorder,experTime);
-            if (timeRecorder)   delete[] timeRecorder;
-
-            if (aveTime < bestTime) {
-                bestTime = aveTime;
-                bestLocalSize = localSize;
-                bestGridSize = gridSize;
-                bestSharedSize = sharedSize;
-            }
-
-            status = clReleaseMemObject(d_in_keys);
-            checkErr(status, ERR_RELEASE_MEM);
-            status = clReleaseMemObject(d_out_keys);
-            checkErr(status, ERR_RELEASE_MEM);
-            status = clReleaseMemObject(d_in_values);
-            checkErr(status, ERR_RELEASE_MEM);
-            status = clReleaseMemObject(d_out_values);
-            checkErr(status, ERR_RELEASE_MEM);
-
-            if(h_in_keys) delete [] h_in_keys;
-            if(h_out_keys) delete [] h_out_keys;
-            if(h_in_values) delete [] h_in_values;
-            if(h_out_values) delete [] h_out_values;
         }
     }
-    cout<<"bLocal="<<bestLocalSize<<" bGrid="<<bestGridSize<<" Time="<<bestTime<<"ms"<<endl;
+    cout<<"bLocal="<<local_size_best<<" bGrid="<<grid_size_best<<" Time="<<best_time<<"ms"<<endl;
 }
 
 bool testRadixSort(

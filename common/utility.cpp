@@ -213,6 +213,8 @@ double averageHampel(double *input, int num) {
     int valid = 0;
     double total = 0;
 
+    if (num == 1)   return input[0];
+
     double *temp_input = new double[num];
     double *myabs = new double[num];
     double mean, abs_mean;

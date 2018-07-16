@@ -26,8 +26,6 @@ double WI_split(
         cl_mem d_in_values, cl_mem d_out_values,
         int local_size, int grid_size)
 {
-    //    localSize = 128, gridSize = 8192;
-
     /*check the value setting*/
     if (structure == KVS_SOA) { /*SOA should have both keys and values*/
         if ( (d_in_values == 0) || (d_out_values == 0) ) {
@@ -97,7 +95,7 @@ double WI_split(
 
 /*2.scan*/
 //    double scanTime = scan_fast(d_his_in, d_his_out, his_len, info, 1024, 15, 0, 11);
-    scan_time = scan_fast(d_his, his_len, info, 64, 39, 112, 0);
+//    scan_time = scan_fast(d_his, his_len, info, 64, 39, 112, 0);
     total_time += scan_time;
 
 /*2.5 gather the start position (optional)*/
@@ -149,6 +147,9 @@ double WI_split(
     else if (structure == KVS_AOS)  std::cout<<"key-value (AOS)"<<std::endl;
     else if (structure == KVS_SOA)  std::cout<<"key-value (SOA)"<<std::endl;
 
+    std::cout<<"Local size: "<<local_size<<'\t'
+             <<"Grid size: "<<grid_size<<std::endl;
+
     std::cout<<"Total Time: "<<total_time<<" ms"<<std::endl;
     std::cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<std::endl;
     std::cout<<"\tScan Time: "<<scan_time<<" ms"<<std::endl;
@@ -181,8 +182,6 @@ double WG_split(
         cl_mem d_in_values, cl_mem d_out_values,
         int local_size, int grid_size)
 {
-    local_size = 64, grid_size = 16384;
-
     /*check the value setting*/
     if (structure == KVS_SOA) { /*SOA should have both keys and values*/
         if ( (d_in_values == 0) || (d_out_values == 0) ) {
@@ -257,12 +256,14 @@ double WG_split(
 
 /*2.scan*/
 //    double scanTime = scan_fast(d_his_in, d_his_out, his_len,  info, 1024, 15, 0, 11);
-    scan_time = scan_fast(d_his, his_len, info, 64, 39, 112, 0);
+//    scan_time = scan_fast(d_his, his_len, info, 64, 39, 112, 0);
+    scan_time = scan_fast(d_his, his_len, info, 64, 240, 33, 0);
+
     total_time += scan_time;
 
 /*2.5 gather the start position (optional)*/
     if (d_start != NULL) {
-        gather_his_kernel = KernelProcessor::getKernel("split_ernel.cl", "gatherStartPos", info.context,para_s);
+        gather_his_kernel = KernelProcessor::getKernel("split_kernel.cl", "gatherStartPos", info.context,para_s);
         argsNum = 0;
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(cl_mem), &d_his);
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &his_len);
@@ -330,20 +331,23 @@ double WG_split(
 //    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
 
     /*time report*/
-    std::cout<<std::endl<<"Algo: WG-level\tData type: ";
-    if (structure == KO)            std::cout<<"key-only\t";
-    else if (structure == KVS_AOS)  std::cout<<"key-value (AOS)\t";
-    else if (structure == KVS_SOA)  std::cout<<"key-value (SOA)\t";
-    std::cout<<"Reorder: ";
-    if (reorder)   std::cout<<"yes"<<std::endl;
-    else            std::cout<<"no"<<std::endl;
-
-    std::cout<<"Total Time: "<<total_time<<" ms"<<std::endl;
-    std::cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<std::endl;
-    std::cout<<"\tScan Time: "<<scan_time<<" ms"<<std::endl;
-    std::cout<<"\tScatter Time: " <<scatter_time<<" ms"<<std::endl;
-    if (d_start != NULL)
-        std::cout<<"\tGather time: "<<gather_time<<" ms."<<std::endl;
+//    std::cout<<std::endl<<"Algo: WG-level\tData type: ";
+//    if (structure == KO)            std::cout<<"key-only\t";
+//    else if (structure == KVS_AOS)  std::cout<<"key-value (AOS)\t";
+//    else if (structure == KVS_SOA)  std::cout<<"key-value (SOA)\t";
+//    std::cout<<"Reorder: ";
+//    if (reorder)   std::cout<<"yes"<<std::endl;
+//    else            std::cout<<"no"<<std::endl;
+//
+//    std::cout<<"Local size: "<<local_size<<'\t'
+//             <<"Grid size: "<<grid_size<<std::endl;
+//
+//    std::cout<<"Total Time: "<<total_time<<" ms"<<std::endl;
+//    std::cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<std::endl;
+//    std::cout<<"\tScan Time: "<<scan_time<<" ms"<<std::endl;
+//    std::cout<<"\tScatter Time: " <<scatter_time<<" ms"<<std::endl;
+//    if (d_start != NULL)
+//        std::cout<<"\tGather time: "<<gather_time<<" ms."<<std::endl;
 
     clReleaseMemObject(d_his);
     if (reorder)    clReleaseMemObject(d_his_origin);
@@ -487,17 +491,19 @@ double single_split(
 //    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
 
     /*time report*/
-    std::cout<<std::endl<<"Algo: Single\tData type: ";
-    if (structure == KO)            std::cout<<"key-only\t";
-    else if (structure == KVS_AOS)  std::cout<<"key-value (AOS)\t";
-    std::cout<<"Reorder: ";
-    if (reorder)   std::cout<<"yes"<<std::endl;
-    else            std::cout<<"no"<<std::endl;
-
-    std::cout<<"Total Time: "<<total_time<<" ms"<<std::endl;
-    std::cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<std::endl;
-    std::cout<<"\tScan Time: "<<scan_time<<" ms"<<std::endl;
-    std::cout<<"\tScatter Time: " <<scatter_time<<" ms"<<std::endl;
+//    std::cout<<std::endl<<"Algo: Single\tData type: ";
+//    if (structure == KO)            std::cout<<"key-only\t";
+//    else if (structure == KVS_AOS)  std::cout<<"key-value (AOS)\t";
+//    std::cout<<"Reorder: ";
+//    if (reorder)   std::cout<<"yes"<<std::endl;
+//    else            std::cout<<"no"<<std::endl;
+//
+//    std::cout<<"Local size: "<<local_size<<'\t'
+//             <<"Grid size: "<<grid_size<<std::endl;
+//    std::cout<<"Total Time: "<<total_time<<" ms"<<std::endl;
+//    std::cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<std::endl;
+//    std::cout<<"\tScan Time: "<<scan_time<<" ms"<<std::endl;
+//    std::cout<<"\tScatter Time: " <<scatter_time<<" ms"<<std::endl;
 
     clReleaseMemObject(d_his);
     clReleaseMemObject(d_global_buffer);
