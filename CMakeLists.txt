@@ -257,14 +257,14 @@ set(SOURCE_FILES
         opencl/inc/Foundation.h
         opencl/inc/KernelProcessor.h
         opencl/inc/PlatInit.h
-        opencl/Kernels/gatherKernel.cl
-        opencl/Kernels/hjNonPartitionedKernel.cl
-        opencl/Kernels/hjPartitionedKernel.cl
-        opencl/Kernels/memKernel.cl
+        opencl/Kernels/gather_kernel.cl
+        opencl/Kernels/hj_non_partitioned_kernel.cl
+        opencl/Kernels/hj_partitioned_kernel.cl
+        opencl/Kernels/mem_kernel.cl
         opencl/Kernels/scan_rss_kernel.cl
         opencl/Kernels/scan_rss_single_kernel.cl
-        opencl/Kernels/scanKernel.cl
-        opencl/Kernels/scatterKernel.cl
+        opencl/Kernels/scan_kernel.cl
+        opencl/Kernels/scatter_kernel.cl
         opencl/Kernels/split_kernel.cl
         opencl/obj/bisortImpl.d
         opencl/obj/bisortImpl.o

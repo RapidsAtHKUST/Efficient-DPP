@@ -1,15 +1,12 @@
 #ifndef SCATTER_KERNEL_CL
 #define SCATTER_KERNEL_CL
 
-#include "DataDef.h"
+#include "params.h"
 
-kernel void scatterKernel(global const int *d_in,
-                         global int* d_out,
-                         global const int* loc,
-                         const int length,
-                         const int ele_per_thread,
-                         const int from,        //start position
-                         const int to)          //end position)
+kernel void scatter(
+        global const int *d_in, global int* d_out, global const int* loc,
+        const int length, const int ele_per_thread,
+        const int from, const int to)
 {
     int globalId = get_global_id(0);
     int warpId = globalId >> WARP_BITS;

@@ -18,7 +18,7 @@ double scatter(cl_mem d_in, cl_mem& d_out, int length, cl_mem d_loc, int localSi
     int argsNum = 0;
 
     //kernel reading
-    cl_kernel scatterKernel = Plat::get_kernel("scatterKernel.cl", "scatterKernel");
+    cl_kernel scatterKernel = get_kernel(param.device, param.context, "scatter_kernel.cl", "scatter");
 
     //set kernel arguments
     int globalSize = gridSize * localSize;

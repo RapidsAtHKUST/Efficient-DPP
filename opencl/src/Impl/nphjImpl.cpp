@@ -49,7 +49,7 @@ double build_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_table_key
     int gridSize = 1024;
     int globalSize = localSize * gridSize;
 
-    cl_kernel buildKernel = Plat::get_kernel("hjNonPartitionedKernel.cl", "build");
+    cl_kernel buildKernel = get_kernel(param.device, param.context, "hj_non_partitioned_kernel.cl", "build");
 
     //set work group and NDRange sizes
     size_t local[1] = {(size_t)(localSize)};
@@ -93,7 +93,7 @@ double probe_np(cl_mem d_S_keys, cl_mem d_S_values, int s_len, cl_mem d_table_ke
     int globalSize = localSize * gridSize;
 
     //kernel reading
-    cl_kernel probeKernel = Plat::get_kernel("hjNonPartitionedKernel.cl", "probe");
+    cl_kernel probeKernel = get_kernel(param.device, param.context, "hj_non_partitioned_kernel.cl", "probe");
 
     //memory allocation
 //    cl_mem d_out = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*globalSize, NULL, &status);

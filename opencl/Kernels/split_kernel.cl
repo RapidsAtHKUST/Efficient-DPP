@@ -1,6 +1,8 @@
 #ifndef SPLIT_KERNEL_CL
 #define SPLIT_KERNEL_CL
 
+#include "params.h"
+
 #ifdef KVS_AOS
     typedef int2 Tuple;  /*for AOS*/
     #define GET_X_VALUE(d_in, idx)    d_in[idx].x
@@ -8,9 +10,6 @@
     typedef int Tuple;    /*for KO*/
     #define GET_X_VALUE(d_in, idx)    d_in[idx]
 #endif
-
-#define WARP_BITS   (4)
-#define WARP_SIZE   (1<<WARP_BITS)
 
 #ifdef SMALLER_WARP_SIZE        //num <= WARP_SIZE
     #define LOCAL_SCAN(arr,num,offset)                                      \
@@ -557,7 +556,8 @@ kernel void WG_reorder_scatter(
  * All the kernels are invoked with local_size=1
  * Only support KO and AOS
  */
-kernel void single_histogram(
+kernel  __attribute__((work_group_size_hint(1, 1, 1)))
+void single_histogram(
         global const Tuple *d_in,   /*input keys*/
         const int len_per_group,        /*elements processed by each WG*/
         const int len_total,            /*len of the whole array*/
@@ -588,7 +588,8 @@ kernel void single_histogram(
         his[i*num_groups+group_id] = local_buc[i];
 }
 
-kernel void single_scatter(
+kernel  __attribute__((work_group_size_hint(1, 1, 1)))
+void single_scatter(
         global const Tuple *d_in,
         global Tuple *d_out,
         const int len_per_group,        /*elements processed by each WG*/
@@ -626,7 +627,8 @@ kernel void single_scatter(
 #define ELE_PER_CACHELINE   (CACHELINE_SIZE/sizeof(Tuple))
 #endif
 
-kernel void single_reorder_scatter(
+kernel  __attribute__((work_group_size_hint(1, 1, 1)))
+void single_reorder_scatter(
         global const Tuple *d_in,
         global Tuple *d_out,
         const int len_per_group,            /*elements processed by each WG*/
@@ -646,8 +648,8 @@ kernel void single_reorder_scatter(
     if (end > len_total)    end = len_total;
 
     /*local buffer size*/
-    Tuple *local_buffer;
-    local_buffer = (Tuple*)(reorder_buffer_all+ group_id*ELE_PER_CACHELINE*buckets);
+    global Tuple *local_buffer;
+    local_buffer = (global Tuple*)(reorder_buffer_all+ group_id*ELE_PER_CACHELINE*buckets);
 
     /*load the scanned histogram and initialize the local buffer*/
     for(int i = 0; i < buckets; i++) {

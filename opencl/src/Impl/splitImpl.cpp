@@ -70,7 +70,7 @@ double WI_split(
 
 /*1.histogram*/
     //kernel reading
-    histogram_kernel = Plat::get_kernel("split_kernel.cl", "WI_histogram", para_s);
+    histogram_kernel = get_kernel(param.device, param.context, "split_kernel.cl", "WI_histogram", para_s);
 
     //check whether the histogram can be placed in the global memory (at most 2^32 Bytes)
 //    long limit = 1<<32;
@@ -93,17 +93,18 @@ double WI_split(
     status = clEnqueueNDRangeKernel(param.queue, histogram_kernel, 1, 0, global, local, 0, 0, &event);
     clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
+
     histogram_time = clEventTime(event);
     total_time += histogram_time;
 
 /*2.scan*/
 //    double scanTime = scan_fast(d_his_in, d_his_out, his_len, info, 1024, 15, 0, 11);
-//    scan_time = scan_fast(d_his, his_len, info, 64, 39, 112, 0);
+    scan_time = scan_fast(d_his, his_len, 64, 39, 112, 0);
     total_time += scan_time;
 
 /*2.5 gather the start position (optional)*/
     if (d_start != 0) {
-        gather_his_kernel = Plat::get_kernel("split_kernel.cl", "gatherStartPos", para_s);
+        gather_his_kernel = get_kernel(param.device, param.context, "split_kernel.cl", "gatherStartPos", para_s);
         argsNum = 0;
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(cl_mem), &d_his);
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &his_len);
@@ -118,7 +119,7 @@ double WI_split(
     }
 
 /*3.scatter*/
-    scatter_kernel = Plat::get_kernel("split_kernel.cl", "WI_scatter", para_s);
+    scatter_kernel = get_kernel(param.device, param.context, "split_kernel.cl", "WI_scatter", para_s);
 
     argsNum = 0;
     status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_in);
@@ -230,7 +231,7 @@ double WG_split(
     size_t global[1] = {(size_t) global_size};
 
 /*1.histogram*/
-    histogram_kernel = Plat::get_kernel("split_kernel.cl", "WG_histogram", para_s);
+    histogram_kernel = get_kernel(param.device, param.context, "split_kernel.cl", "WG_histogram", para_s);
     int his_len = buckets * grid_size;
     d_his = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * his_len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
@@ -268,7 +269,7 @@ double WG_split(
 
 /*2.5 gather the start position (optional)*/
     if (d_start != NULL) {
-        gather_his_kernel = Plat::get_kernel("split_kernel.cl", "gatherStartPos", para_s);
+        gather_his_kernel = get_kernel(param.device, param.context, "split_kernel.cl", "gatherStartPos", para_s);
         argsNum = 0;
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(cl_mem), &d_his);
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &his_len);
@@ -297,9 +298,9 @@ double WG_split(
                 strcat(para_s, loop_str);
             }
         }
-        scatter_kernel = Plat::get_kernel("split_kernel.cl", "WG_reorder_scatter", para_s);
+        scatter_kernel = get_kernel(param.device, param.context, "split_kernel.cl", "WG_reorder_scatter", para_s);
     }
-    else scatter_kernel = Plat::get_kernel("split_kernel.cl", "WG_scatter", para_s);
+    else scatter_kernel = get_kernel(param.device, param.context, "split_kernel.cl", "WG_scatter", para_s);
 
     argsNum = 0;
     status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_in);
@@ -422,7 +423,7 @@ double single_split(
     size_t global[1] = {(size_t) global_size};
 
 /*1.histogram*/
-    histogram_kernel = Plat::get_kernel("split_kernel.cl", "single_histogram", para_s);
+    histogram_kernel = get_kernel(param.device, param.context, "split_kernel.cl", "single_histogram", para_s);
     int his_len = buckets * grid_size;
     d_his = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*his_len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
@@ -454,8 +455,8 @@ double single_split(
     //compilation parameters
 
     if (reorder)
-        scatter_kernel = Plat::get_kernel("split_kernel.cl", "single_reorder_scatter", para_s);
-    else scatter_kernel = Plat::get_kernel("split_kernel.cl", "single_scatter", para_s);
+        scatter_kernel = get_kernel(param.device, param.context, "split_kernel.cl", "single_reorder_scatter", para_s);
+    else scatter_kernel = get_kernel(param.device, param.context, "split_kernel.cl", "single_scatter", para_s);
 
     /*alignment buffers*/
     int cacheline_size = 64;

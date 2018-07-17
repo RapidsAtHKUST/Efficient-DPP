@@ -23,9 +23,13 @@ typedef struct device_param_t {
     cl_command_queue    queue;              /*current command queue*/
 
     /*hardware properties*/
-    ulong               gmem_size;          /*global memory size*/
-    size_t              cacheline_size;     /*global memory cache line size*/
-
+    uint64_t            gmem_size;          /*global memory size*/
+    uint64_t            cacheline_size;     /*global memory cache line size*/
+    uint64_t            lmem_size;          /*local memory size*/
+    uint64_t            cus;                /*number of CUs*/
+    uint64_t            max_alloc_size;     /*maximal memory object alloc size*/
+    uint64_t            max_local_size;     /*maximal local size*/
+    uint64_t            wavefront;          /*wavefront size*/
 } device_param_t;
 
 /*
@@ -51,7 +55,6 @@ public:
     static void plat_init(cl_device_type type=CL_DEVICE_TYPE_ALL);    /*initialize the platform with device_type and choose the device*/
     static device_param_t get_device_param();      /*get params of current device*/
 
-    /*create the cl_kernel according to the file name and function name*/
-    static cl_kernel get_kernel(char *file_name, char *func_name, char *params=NULL);
+
 };
 #endif

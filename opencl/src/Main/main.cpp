@@ -11,9 +11,14 @@ using namespace std;
 int main(int argc, const char *argv[]) {
     Plat::plat_init();
 
-    device_param_t param = Plat::get_device_param();
-    cout<<"gmem size:"<<param.gmem_size<<endl;
-    cout<<"Cache line size:"<<param.cacheline_size<<endl;
+//    device_param_t param = Plat::get_device_param();
+//    cout<<"context"<<param.context<<endl;
+//    cout<<"gmem size:"<<param.gmem_size*1.0/1024/1024/1024<<"GB"<<endl;
+//    cout<<"lmem size:"<<param.lmem_size<<endl;
+//    cout<<"Cache line size:"<<param.cacheline_size<<endl;
+//    cout<<"Compute units:"<<param.cus<<endl;
+//    cout<<"Maximal local size:"<<param.max_local_size<<endl;
+//    cout<<"Max Object alloc size:"<<param.max_alloc_size*1.0/1024/1024/1024<<"GB"<<endl;
 
 //      testMem(info);
 //      testAccess(info);
@@ -34,7 +39,7 @@ int main(int argc, const char *argv[]) {
 
 
 //    testAtomic(info);
-//      testGather(dataSize, info);
+
 //        testScatter(num, info);
 
     //test scan
@@ -69,10 +74,16 @@ int main(int argc, const char *argv[]) {
 //     cout<<"Time:"<<totalTime<<" ms.\t";
 //     cout<<"Throughput:"<<length*1.0/1024/1024/1024/totalTime*1000<<" GKeys/s"<<endl;
 
-//    int length = 1<<25;
+    int length = 1<<25;
+    testScatter(length);
 //    for (int buckets = 2; buckets <= 4096; buckets <<= 1) {
 //        split_test_parameters(length, buckets, WG_reorder, KVS_AOS, 2, info);
 //    }
+//    double ave_time;
+//    split_test_specific(
+//            length, 32, ave_time,
+//            WI, KVS_AOS,
+//            16, 16);
 
 //    cout<<"Key-only:"<<endl;
 //    for(int buckets = 2; buckets <= 4096; buckets<<=1) {

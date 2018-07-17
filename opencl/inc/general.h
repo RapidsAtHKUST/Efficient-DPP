@@ -2,10 +2,6 @@
 #define __GENERAL_H__
 
 /*literal macros*/
-#ifndef PROJECT_ROOT
-#define PROJECT_ROOT                        "/Users/Bryan/gpuqp_opencl/gpuqp_opencl/"
-#endif
-
 #define ERR_HOST_ALLOCATION                 "Failed to allocate the host memory."
 #define ERR_WRITE_BUFFER                    "Failed to write to the buffer."
 #define ERR_READ_BUFFER                     "Failed to read back the device memory."
@@ -38,6 +34,11 @@ typedef cl_int2 tuple_t;    /*for AOS*/
 void checkErr(cl_int status, const char* name, int tag=-1);
 void cl_mem_free(cl_mem object);
 double clEventTime(const cl_event event);
+
+/*create the cl_kernel according to the file name and function name*/
+cl_kernel get_kernel(
+        cl_device_id device, cl_context context,
+        char *file_name, char *func_name, char *params=NULL);
 
 double gather(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, int pass);
 double scatter(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, int pass);

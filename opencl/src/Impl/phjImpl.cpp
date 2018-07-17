@@ -75,7 +75,7 @@ double probe(cl_mem d_R_keys, cl_mem d_R_values, cl_mem d_S_keys, cl_mem d_S_val
 
     //kernel reading
     device_param_t param = Plat::get_device_param();
-    cl_kernel probeKernel = Plat::get_kernel("hjPartitionedKernel.cl", "build_probe");
+    cl_kernel probeKernel = get_kernel(param.device, param.context, "hj_partitioned_kernel.cl", "build_probe");
 
     //memory allocation
 //    cl_mem d_out = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*globalSize, NULL, &status);

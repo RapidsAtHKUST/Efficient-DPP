@@ -17,7 +17,7 @@ double gather(cl_mem d_in, cl_mem& d_out, int length, cl_mem d_loc, int localSiz
     int argsNum = 0;
     
     //kernel reading
-    cl_kernel gatherKernel = Plat::get_kernel("gatherKernel.cl", "gatherKernel");
+    cl_kernel gatherKernel = get_kernel(param.device, param.context, "gather_kernel.cl", "gather");
 
     //set kernel arguments
     int globalSize = gridSize * localSize;

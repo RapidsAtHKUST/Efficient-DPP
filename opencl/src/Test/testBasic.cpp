@@ -28,7 +28,7 @@ void testMem() {
     size_t global[1] = {(size_t)(localSize * gridSize)};
 
     //get the kernel
-    cl_kernel mul_kernel = Plat::get_kernel("memKernel.cl", "mul_bandwidth");
+    cl_kernel mul_kernel = get_kernel(param.device, param.context, "memKernel.cl", "mul_bandwidth");
 
     int len = localSize*gridSize;
     std::cout<<"Data size for read/write(multiplication test): "<<len<<" ("<<len*sizeof(int)*1.0/1024/1024<<"MB)"<<std::endl;
@@ -84,9 +84,9 @@ void testAccess() {
     std::cout<<"Maximal data size: "<<length<<" ("<<length* sizeof(int)/1024/1024<<"MB)"<<std::endl;
 
     //kernel reading
-    cl_kernel mul_row_kernel = Plat::get_kernel("memKernel.cl", "mul_row_based");
-    cl_kernel mul_column_kernel = Plat::get_kernel("memKernel.cl", "mul_column_based");
-    cl_kernel mul_mixed_kernel = Plat::get_kernel("memKernel.cl", "mul_mixed");
+    cl_kernel mul_row_kernel = get_kernel(param.device, param.context, "memKernel.cl", "mul_row_based");
+    cl_kernel mul_column_kernel = get_kernel(param.device, param.context, "memKernel.cl", "mul_column_based");
+    cl_kernel mul_mixed_kernel = get_kernel(param.device, param.context, "memKernel.cl", "mul_mixed");
 
     //memory allocation
     int *h_in = new int[length];
@@ -272,7 +272,7 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
     int h_atom = 0;
     int args_num;
 
-    cl_kernel kernel = Plat::get_kernel("memKernel.cl", "wg_access");
+    cl_kernel kernel = get_kernel(param.device, param.context, "memKernel.cl", "wg_access");
 
     //set work group and NDRange sizes
     size_t local[1] = {(size_t)(local_size)};
@@ -294,7 +294,7 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
 
         //flush the cache
         if(loaded) {
-            cl_kernel heat_kernel = Plat::get_kernel("memKernel.cl", "cache_heat");
+            cl_kernel heat_kernel = get_kernel(param.device, param.context, "memKernel.cl", "cache_heat");
             args_num = 0;
             status |= clSetKernelArg(heat_kernel, args_num++, sizeof(cl_mem), &d_in);
             status |= clSetKernelArg(heat_kernel, args_num++, sizeof(int), &len);
@@ -350,7 +350,7 @@ double wg_sequence_no_atomic(int *h_data, int len, int local_size, int num_of_gr
     cl_int status;
     int args_num;
 
-    cl_kernel kernel = Plat::get_kernel("memKernel.cl", "wg_access_no_atomic");
+    cl_kernel kernel = get_kernel(param.device, param.context, "memKernel.cl", "wg_access_no_atomic");
 
     //set work group and NDRange sizes
     int grid_size = 40;
@@ -364,7 +364,7 @@ double wg_sequence_no_atomic(int *h_data, int len, int local_size, int num_of_gr
 
         //flush the cache
         if(loaded) {
-            cl_kernel heat_kernel = Plat::get_kernel("memKernel.cl", "cache_heat");
+            cl_kernel heat_kernel = get_kernel(param.device, param.context, "memKernel.cl", "cache_heat");
             args_num = 0;
             status |= clSetKernelArg(heat_kernel, args_num++, sizeof(cl_mem), &d_in);
             status |= clSetKernelArg(heat_kernel, args_num++, sizeof(int), &len);

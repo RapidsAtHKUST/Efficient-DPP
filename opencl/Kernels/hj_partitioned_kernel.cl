@@ -1,6 +1,8 @@
 #ifndef HJ_KERNEL_CL
 #define HJ_KERNEL_CL
 
+#include "params.h"
+
 // # of work-groups is equal to the number of partitions (buckets) in R and S
 //the start_R and start_S array are generated through 1024 work-groups
 kernel void build_probe (   global const int* d_R_keys,

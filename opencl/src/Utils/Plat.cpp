@@ -60,6 +60,7 @@ void Plat::init_properties() {
     cl_uint plat_num;
     char platform_name[200];                        /*platform name*/
     char devices_name[MAX_DEVICES_NUM][200];        /*devices name*/
+    char cl_version_info[100];
     cl_device_id devices[MAX_DEVICES_NUM];
 
     /*get platforms*/
@@ -71,6 +72,7 @@ void Plat::init_properties() {
     memset(platform_name, '\0', sizeof(char)*200);
     status = clGetPlatformInfo(this->platform, CL_PLATFORM_NAME, 200, platform_name, NULL);
     cout<<"Platform: "<<platform_name<<endl;
+    this->device_params.platform = this->platform;
 
     /*get device IDs*/
     status = clGetDeviceIDs(this->platform, this->type, 0, 0, &this->num_devices);
@@ -86,8 +88,8 @@ void Plat::init_properties() {
 
     cout<<"Please enter the index of the device to use (0,1,2...) : ";
 
-//    cin >> chosenDevice;
-    this->chosen_device_id = 1;
+    cin >> this->chosen_device_id;
+//    this->chosen_device_id = 1;
     if (this->chosen_device_id < 0 || this->chosen_device_id >= num_devices)   {
         cerr<<"Wrong parameter."<<endl;
         exit(1);
@@ -95,6 +97,8 @@ void Plat::init_properties() {
     cl_device_id my_device = devices[this->chosen_device_id];
     cout<<"Selected device: "<<devices_name[this->chosen_device_id]<<endl;
     this->device_params.device = my_device;
+
+    clGetDeviceInfo(my_device, CL_DEVICE_VERSION, sizeof(char)*100, cl_version_info, NULL); /*retrieve the OpenCL support version*/
 
     /*create the context*/
     const cl_context_properties prop[3] = {CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(this->platform),0};
@@ -108,64 +112,37 @@ void Plat::init_properties() {
     this->device_params.queue = my_queue;
 
     /*initialize other params*/
-    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(ulong), &this->device_params.gmem_size, NULL);
-    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(size_t), &this->device_params.cacheline_size, NULL);
+    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(uint64_t), &this->device_params.gmem_size, NULL);  /*global memory size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(uint64_t), &this->device_params.cacheline_size, NULL); /*cacheline size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(uint64_t), &this->device_params.lmem_size, NULL); /*local memory size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(uint64_t), &this->device_params.cus, NULL);       /*number of CUs*/
+    clGetDeviceInfo(my_device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(uint64_t), &this->device_params.max_alloc_size, NULL);       /*number of CUs*/
+    clGetDeviceInfo(my_device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(uint64_t), &this->device_params.max_local_size, NULL);       /*maximal local size*/
+
+    /*get the wavefront size according to the device type*/
+    cl_device_type my_type;
+    clGetDeviceInfo(my_device, CL_DEVICE_TYPE, sizeof(cl_device_type), &my_type, NULL);
+
+    if (my_type == CL_DEVICE_TYPE_GPU) {    /*GPUs*/
+        /*a simple kernel*/
+        cl_kernel temp_kernel = get_kernel(this->device_params.device, this->device_params.context, "gather_kernel.cl", "gather");
+        clGetKernelWorkGroupInfo(temp_kernel, this->device_params.device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(uint64_t), &this->device_params.wavefront, NULL);
+    }
+    else {      /*CPUs and MICs*/
+        clGetDeviceInfo(this->device_params.device, CL_DEVICE_NATIVE_VECTOR_WIDTH_INT, sizeof(uint64_t), &this->device_params.wavefront, NULL);
+    }
+
+    /*display the params*/
+    cout<<"\tVersion: "<<cl_version_info<<endl;
+    cout<<"\tGlobal memory size: "<<this->device_params.gmem_size*1.0/1024/1024/1024<<" GB"<<endl;
+    cout<<"\tLocal memory size: "<<this->device_params.lmem_size*1.0/1024<<" KB"<<endl;
+    cout<<"\tCompute units: "<<this->device_params.cus<<endl;
+    cout<<"\tMaximal local_size: "<<this->device_params.max_local_size<<endl;
+    cout<<"\tMaximal memory object size: "<<this->device_params.max_alloc_size*1.0/1024/1024/1024<<" GB"<<endl;
+    cout<<"\tGlobal memory cache line size: "<<this->device_params.cacheline_size<<" Byte"<<endl;
+    cout<<"\tWavefront size: "<<this->device_params.wavefront<<endl;
 
     std::cout<<"------ End of hardware checking ------"<<endl<<endl;
-}
-
-cl_kernel Plat::get_kernel(char *file_name, char *func_name, char *params) {
-
-    device_param_t param = Plat::instance->device_params;
-
-/*read the raw kernel file*/
-    char *addr = new char[200];
-    strcat(addr, PROJECT_ROOT);
-    strcat(addr, "/Kernels/");
-    strcat(addr, file_name);
-
-    ifstream in(addr,std::fstream::in| std::fstream::binary);
-    if(!in.good()) {
-        cerr<<"Kernel file not exist!"<<endl;
-        exit(1);
-    }
-    
-    /*get file length*/
-    in.seekg(0, std::ios_base::end);    //jump to the end
-    size_t length = in.tellg();         //read the length
-    in.seekg(0, std::ios_base::beg);    //jump to the front
-    
-    //read program source
-    char *source = new char[length+1];
-    in.read(source, length);            //read the kernel file
-    source[length] = '\0';              //set the last one char to '\0'
-
-/*compile the kernel file*/
-    cl_int status;
-    cl_program program = clCreateProgramWithSource(param.context, 1, (const char**)(&source), 0, &status);
-    checkErr(status, "Failed to creat program.");
-
-    char *args = new char[1000];
-    strcat(args, "-I");
-    strcat(args, PROJECT_ROOT);
-    strcat(args, "/inc ");
-
-    strcat(args," -DKERNEL ");
-    strcat(args, params);
-
-    // strcat(args, " -auto-prefetch-level=0 ");    
-    status = clBuildProgram(program, 1, &param.device, args, 0, 0);
-    checkErr(status, "Compilation error.");
-
-/*create the kernel*/
-    cl_kernel kernel = clCreateKernel(program, func_name, &status);
-    checkErr(status, "Kernel function name not found.");
-
-    if(source)  delete[] source;
-    if(addr)    delete[] addr;
-    if(args)    delete[] args;
-
-    return kernel;
 }
 
 /*deconstruction*/

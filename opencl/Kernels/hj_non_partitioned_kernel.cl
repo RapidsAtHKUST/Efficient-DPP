@@ -1,6 +1,8 @@
 #ifndef HJ_KERNEL_CL
 #define HJ_KERNEL_CL
 
+#include "params.h"
+
 //non-partitioned hash join
 //build a shared hash table
 //number of buckets: at least twice the cardinality of the build table

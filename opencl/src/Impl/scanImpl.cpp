@@ -54,7 +54,7 @@ double scan_fast(cl_mem &d_inout, int length, int local_size, int grid_size, int
     my_itoa(DR, R_li, 10);       //transfer R to string
     strcat(extra, R_li);
 
-    cl_kernel scanBlockKernel = Plat::get_kernel("scanKernel.cl", "scan_fast", extra);
+    cl_kernel scanBlockKernel = get_kernel(param.device, param.context, "scan_kernel.cl", "scan_fast", extra);
 
     //initialize the intermediate array
     int *h_inter = new int[num_of_blocks];
@@ -130,7 +130,7 @@ double scan_three_kernel(cl_mem &d_inout, unsigned length, int local_size, int g
     strcat(extra, " -DSCAN_ELE_PER_WI=");
     strcat(extra, para_scan);
 //-------------------------- Step 1: reduce -----------------------------
-    cl_kernel reduce_kernel = Plat::get_kernel("scan_rss_kernel.cl", "reduce", extra);
+    cl_kernel reduce_kernel = get_kernel(param.device, param.context, "scan_rss_kernel.cl", "reduce", extra);
 
     size_t reduce_local[1] = {(size_t)local_size};
     size_t reduce_global[1] = {(size_t)(global_size)};
@@ -155,7 +155,7 @@ double scan_three_kernel(cl_mem &d_inout, unsigned length, int local_size, int g
     totalTime += reduce_time;
 
 //-------------------------- Step 2: intermediate scan -----------------------------
-    cl_kernel scan_small_kernel = Plat::get_kernel("scan_rss_kernel.cl", "scan_exclusive_small", extra); //still need extra paras
+    cl_kernel scan_small_kernel = get_kernel(param.device, param.context, "scan_rss_kernel.cl", "scan_exclusive_small", extra); //still need extra paras
 
     size_t scan_small_local[1] = {(size_t)local_size};
     size_t scan_small_global[1] = {(size_t)(local_size*1)};
@@ -174,7 +174,7 @@ double scan_three_kernel(cl_mem &d_inout, unsigned length, int local_size, int g
     totalTime += scan_small_time;
 
 //-------------------------- Step 3: final exclusive scan -----------------------------
-    cl_kernel scan_kernel = Plat::get_kernel("scan_rss_kernel.cl", "scan_exclusive", extra);
+    cl_kernel scan_kernel = get_kernel(param.device, param.context, "scan_rss_kernel.cl", "scan_exclusive", extra);
 
     int scan_len_per_wg = (length + grid_size - 1)/grid_size;
 
@@ -239,7 +239,7 @@ double scan_three_kernel_single(cl_mem &d_inout, unsigned length, int grid_size)
     int len_per_wg = (length + grid_size - 1) / grid_size;
 
 //-------------------------- Step 1: reduce -----------------------------
-    cl_kernel reduce_kernel = Plat::get_kernel("scan_rss_single_kernel.cl", "reduce_single");
+    cl_kernel reduce_kernel = get_kernel(param.device, param.context, "scan_rss_single_kernel.cl", "reduce_single");
 
     size_t local[1] = {(size_t)local_size};
     size_t global[1] = {(size_t)(local_size*grid_size)};
@@ -261,7 +261,7 @@ double scan_three_kernel_single(cl_mem &d_inout, unsigned length, int grid_size)
     totalTime += reduce_time;
 
 //-------------------------- Step 2: intermediate scan -----------------------------
-    cl_kernel scan_small_kernel = Plat::get_kernel("scan_rss_single_kernel.cl", "scan_no_offset_single"); //still need extra paras
+    cl_kernel scan_small_kernel = get_kernel(param.device, param.context, "scan_rss_single_kernel.cl", "scan_no_offset_single"); //still need extra paras
 
     size_t small_local[1] = {(size_t)(1)};
     size_t small_global[1] = {(size_t)(1)};
@@ -280,7 +280,7 @@ double scan_three_kernel_single(cl_mem &d_inout, unsigned length, int grid_size)
 
 //-------------------------- Step 3: final exclusive scan  -----------------------------
 
-    cl_kernel scan_kernel = Plat::get_kernel("scan_rss_single_kernel.cl", "scan_with_offset_single");
+    cl_kernel scan_kernel = get_kernel(param.device, param.context, "scan_rss_single_kernel.cl", "scan_with_offset_single");
 
     argsNum = 0;
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_inout);

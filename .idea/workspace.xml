@@ -10,79 +10,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ef49929-5a7a-4ced-8093-8b6209d874bb" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/opencl/inc/general.h" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CMakeCCompiler.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CMakeCXXCompiler.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CMakeDetermineCompilerABI_C.bin" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CMakeDetermineCompilerABI_CXX.bin" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CMakeSystem.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CompilerIdC/CMakeCCompilerId.c" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CompilerIdC/a.out" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CompilerIdCXX/CMakeCXXCompilerId.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.9.6/CompilerIdCXX/a.out" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/CMakeDirectoryInformation.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/CMakeError.log" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/CMakeOutput.log" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile2" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/TargetDirectories.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-environment.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/cmake.check_cache" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/comparison_gpu.dir/DependInfo.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/comparison_gpu.dir/build.make" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/comparison_gpu.dir/cmake_clean.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/comparison_gpu.dir/depend.make" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/comparison_gpu.dir/flags.make" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/comparison_gpu.dir/progress.make" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/feature_tests.bin" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/feature_tests.c" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/feature_tests.cxx" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/progress.marks" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/Makefile" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/cmake_install.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/cmake-build-debug/comparison_gpu.cbp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/data_generation/Makefile" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/data_generation/bin/data_generator" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/data_generation/bin/executor" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/data_generation/inc/generation.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/data_generation/nohup.out" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/data_generation/src/generation.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/data_generation/src/main.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/atomicKernel.cl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/barrierKernel.cl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/bitonicSortKernel.cl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/inljKernel.cl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/latencyKernel.cl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/mapKernel.cl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/ninljKernel.cl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/radixSortKernel.cl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/smjKernel.cl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/Kernels/vpuKernel.cl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/assembly.ass" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/inc/CSSTree.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/inc/DataDef.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/inc/DataDef_CL.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/inc/DataUtil.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/inc/Foundation.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/inc/KernelProcessor.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/inc/PlatInit.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/nohup.out" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Join/inljImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Join/ninljImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Join/nphjImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Join/phjImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Join/smjImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Primitive/bisortImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Primitive/gatherImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Primitive/mapImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Primitive/radixSortImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Primitive/scanImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Primitive/scatterImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Primitive/splitImpl.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Utils/CSSTree.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Utils/KernelProcessor.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/opencl/src/Utils/PlatInit.cpp" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cuda/bin/.nfs0000000001a002ae00000002" afterPath="$PROJECT_DIR$/cuda/bin/.nfs0000000001a002ae00000002" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cuda/bin/.nfs0000000001a005a800000001" afterPath="$PROJECT_DIR$/cuda/bin/.nfs0000000001a005a800000001" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cuda/bin/.nfs0000000001a01f5600000003" afterPath="$PROJECT_DIR$/cuda/bin/.nfs0000000001a01f5600000003" />
@@ -103,18 +30,31 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/openmp/scan_tbb_cpu" afterPath="$PROJECT_DIR$/openmp/scan_tbb_cpu" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/openmp/scan_tbb_mic" afterPath="$PROJECT_DIR$/openmp/scan_tbb_mic" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMakeLists.txt" afterPath="$PROJECT_DIR$/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/utility.cpp" afterPath="$PROJECT_DIR$/common/utility.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/utility.h" afterPath="$PROJECT_DIR$/common/utility.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cuda/Makefile" afterPath="$PROJECT_DIR$/cuda/Makefile" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cuda/bin/cuda_compare" afterPath="$PROJECT_DIR$/cuda/bin/cuda_compare" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cuda/kernels/map.cu" afterPath="$PROJECT_DIR$/cuda/kernels/map.cu" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Makefile" afterPath="$PROJECT_DIR$/opencl/Makefile" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/gatherKernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/gatherKernel.cl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/hjNonPartitionedKernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/hjNonPartitionedKernel.cl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/hjPartitionedKernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/hjPartitionedKernel.cl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/memKernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/memKernel.cl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/scanKernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/scanKernel.cl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/scan_rss_kernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/scan_rss_kernel.cl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/scan_rss_single_kernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/scan_rss_single_kernel.cl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/scatterKernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/scatterKernel.cl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/Kernels/split_kernel.cl" afterPath="$PROJECT_DIR$/opencl/Kernels/split_kernel.cl" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/bin/opencl_compare" afterPath="$PROJECT_DIR$/opencl/bin/opencl_compare" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/inc/Plat.h" afterPath="$PROJECT_DIR$/opencl/inc/Plat.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/inc/general.h" afterPath="$PROJECT_DIR$/opencl/inc/general.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Impl/gatherImpl.cpp" afterPath="$PROJECT_DIR$/opencl/src/Impl/gatherImpl.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Impl/nphjImpl.cpp" afterPath="$PROJECT_DIR$/opencl/src/Impl/nphjImpl.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Impl/phjImpl.cpp" afterPath="$PROJECT_DIR$/opencl/src/Impl/phjImpl.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Impl/scanImpl.cpp" afterPath="$PROJECT_DIR$/opencl/src/Impl/scanImpl.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Impl/scatterImpl.cpp" afterPath="$PROJECT_DIR$/opencl/src/Impl/scatterImpl.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Impl/splitImpl.cpp" afterPath="$PROJECT_DIR$/opencl/src/Impl/splitImpl.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Main/main.cpp" afterPath="$PROJECT_DIR$/opencl/src/Main/main.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Test/testBasic.cpp" afterPath="$PROJECT_DIR$/opencl/src/Test/testBasic.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Test/testJoins.cpp" afterPath="$PROJECT_DIR$/opencl/src/Test/testJoins.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp" afterPath="$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Utils/Plat.cpp" afterPath="$PROJECT_DIR$/opencl/src/Utils/Plat.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/opencl/src/Utils/general.cpp" afterPath="$PROJECT_DIR$/opencl/src/Utils/general.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/openmp/Makefile" afterPath="$PROJECT_DIR$/openmp/Makefile" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/openmp/src/map.cpp" afterPath="$PROJECT_DIR$/openmp/src/map.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/openmp/src/vpu.cpp" afterPath="$PROJECT_DIR$/openmp/src/vpu.cpp" />
@@ -129,11 +69,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="testJoins.cpp" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/opencl/src/Test/testJoins.cpp">
+      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/opencl/src/Main/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="264">
-              <caret line="53" column="51" lean-forward="false" selection-start-line="53" selection-start-column="51" selection-end-line="53" selection-end-column="51" />
+            <state relative-caret-position="864">
+              <caret line="78" column="24" lean-forward="false" selection-start-line="78" selection-start-column="24" selection-end-line="78" selection-end-column="24" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="scatterImpl.cpp" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/opencl/src/Impl/scatterImpl.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="687">
+              <caret line="45" column="44" lean-forward="true" selection-start-line="45" selection-start-column="44" selection-end-line="45" selection-end-column="44" />
               <folding />
             </state>
           </provider>
@@ -143,19 +93,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>random_generator_SOA</find>
-      <find>perfInfo_float</find>
-      <find>bestInfo</find>
-      <find>\.key</find>
-      <find>\.value</find>
-      <find>KVS_AOS</find>
-      <find>key</find>
-      <find>tuple</find>
-      <find>reorder_buffer_tuples</find>
-      <find>local_buffer</find>
-      <find>reorder_buffer_keys</find>
-      <find>reorder_buffer_</find>
-      <find>tuple_t</find>
       <find>algo</find>
       <find>WI_split</find>
       <find>PlatInit</find>
@@ -173,6 +110,19 @@
       <find>MAX_NUM</find>
       <find>std::</find>
       <find>MEM_EXPR_TIME</find>
+      <find>ERR_HOST_ALLOCATION</find>
+      <find>this-&gt;device_params</find>
+      <find>params</find>
+      <find>get_device_param</find>
+      <find>Plat::get_k</find>
+      <find>Plat::get_kernel</find>
+      <find>Plat::</find>
+      <find>get_kernel\(param.context</find>
+      <find>this-&gt;device_params.context</find>
+      <find>strcat</find>
+      <find>scanKernel</find>
+      <find>hjNonPartitionedKernel</find>
+      <find>hjPartitionedKernel</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -181,29 +131,16 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/cuda/mem_access.cu" />
-        <option value="$PROJECT_DIR$/openmp/src/main.cpp" />
-        <option value="$PROJECT_DIR$/openmp/mem_accessOMP_mic.cpp" />
-        <option value="$PROJECT_DIR$/openmp/mem_accessOMP.cpp" />
-        <option value="$PROJECT_DIR$/openmp/scanOMP.cpp" />
-        <option value="$PROJECT_DIR$/openmp/scan_tbb.cpp" />
-        <option value="$PROJECT_DIR$/opencl/nohup.out" />
-        <option value="$PROJECT_DIR$/openmp/mul_omp.cpp" />
-        <option value="$PROJECT_DIR$/opencl/Kernels/memKernel.cl" />
         <option value="$PROJECT_DIR$/opencl/src/Join/ninljImpl.cpp" />
         <option value="$PROJECT_DIR$/opencl/src/Join/smjImpl.cpp" />
         <option value="$PROJECT_DIR$/opencl/Kernels/sca_rss_single_kernel.cl" />
         <option value="$PROJECT_DIR$/opencl/src/Primitive/radixSortImpl.cpp" />
-        <option value="$PROJECT_DIR$/opencl/Kernels/scanKernel.cl" />
-        <option value="$PROJECT_DIR$/opencl/Kernels/scan_rss_single_kernel.cl" />
-        <option value="$PROJECT_DIR$/opencl/Kernels/scan_rss_kernel.cl" />
         <option value="$PROJECT_DIR$/openmp/scan_omp.cpp" />
         <option value="$PROJECT_DIR$/opencl/common/utility.h" />
         <option value="$PROJECT_DIR$/opencl/common/utility.cpp" />
         <option value="$PROJECT_DIR$/opencl/Kernels/splitKernel.cl" />
         <option value="$PROJECT_DIR$/opencl/Kernels/split_AOS_kernel.cl" />
         <option value="$PROJECT_DIR$/opencl/Kernels/split_SOA_kernel.cl" />
-        <option value="$PROJECT_DIR$/opencl/Kernels/split_kernel.cl" />
         <option value="$PROJECT_DIR$/opencl/src/Utils/PlatInit.cpp" />
         <option value="$PROJECT_DIR$/opencl/src/Join/inljImpl.cpp" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
@@ -213,7 +150,6 @@
         <option value="$PROJECT_DIR$/opencl/src/Test/testJoins.cpp" />
         <option value="$PROJECT_DIR$/opencl/inc/DataUtil.h" />
         <option value="$PROJECT_DIR$/opencl/inc/DataDef.h" />
-        <option value="$PROJECT_DIR$/opencl/src/Utils/general.cpp" />
         <option value="$PROJECT_DIR$/opencl/inc/Foundation.h" />
         <option value="$PROJECT_DIR$/common/utility.cpp" />
         <option value="$PROJECT_DIR$/common/utility.h" />
@@ -221,17 +157,31 @@
         <option value="$PROJECT_DIR$/opencl/src/Primitive/scanImpl.cpp" />
         <option value="$PROJECT_DIR$/opencl/src/Primitive/scatterImpl.cpp" />
         <option value="$PROJECT_DIR$/opencl/src/Primitive/splitImpl.cpp" />
-        <option value="$PROJECT_DIR$/opencl/src/Impl/phjImpl.cpp" />
-        <option value="$PROJECT_DIR$/opencl/src/Impl/nphjImpl.cpp" />
-        <option value="$PROJECT_DIR$/opencl/src/Main/main.cpp" />
+        <option value="$PROJECT_DIR$/opencl/inc/params.h" />
+        <option value="$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp" />
+        <option value="$PROJECT_DIR$/opencl/inc/KernelProcessor.h" />
+        <option value="$PROJECT_DIR$/opencl/Kernels/scanKernel.cl" />
         <option value="$PROJECT_DIR$/opencl/inc/Plat.h" />
         <option value="$PROJECT_DIR$/opencl/inc/general.h" />
         <option value="$PROJECT_DIR$/opencl/src/Impl/splitImpl.cpp" />
-        <option value="$PROJECT_DIR$/opencl/inc/params.h" />
         <option value="$PROJECT_DIR$/opencl/src/Test/testBasic.cpp" />
-        <option value="$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp" />
-        <option value="$PROJECT_DIR$/opencl/inc/KernelProcessor.h" />
+        <option value="$PROJECT_DIR$/opencl/Kernels/scan_rss_single_kernel.cl" />
+        <option value="$PROJECT_DIR$/opencl/src/Utils/general.cpp" />
+        <option value="$PROJECT_DIR$/opencl/Kernels/hjNonPartitionedKernel.cl" />
+        <option value="$PROJECT_DIR$/opencl/Kernels/hjPartitionedKernel.cl" />
+        <option value="$PROJECT_DIR$/opencl/Kernels/memKernel.cl" />
+        <option value="$PROJECT_DIR$/opencl/Kernels/scan_rss_kernel.cl" />
+        <option value="$PROJECT_DIR$/opencl/Kernels/scatterKernel.cl" />
+        <option value="$PROJECT_DIR$/opencl/Kernels/split_kernel.cl" />
+        <option value="$PROJECT_DIR$/opencl/src/Impl/scanImpl.cpp" />
+        <option value="$PROJECT_DIR$/opencl/src/Impl/nphjImpl.cpp" />
+        <option value="$PROJECT_DIR$/opencl/src/Impl/phjImpl.cpp" />
+        <option value="$PROJECT_DIR$/opencl/Kernels/gatherKernel.cl" />
         <option value="$PROJECT_DIR$/opencl/src/Utils/Plat.cpp" />
+        <option value="$PROJECT_DIR$/opencl/Kernels/scatter_kernel.cl" />
+        <option value="$PROJECT_DIR$/opencl/src/Impl/gatherImpl.cpp" />
+        <option value="$PROJECT_DIR$/opencl/src/Impl/scatterImpl.cpp" />
+        <option value="$PROJECT_DIR$/opencl/src/Main/main.cpp" />
       </list>
     </option>
   </component>
@@ -288,6 +238,12 @@
               <item name="opencl_study" type="462c0819:PsiDirectoryNode" />
               <item name="opencl" type="462c0819:PsiDirectoryNode" />
               <item name="inc" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="opencl_study" type="dad4c3:CidrFilesViewHelper$MyProjectTreeStructure$1" />
+              <item name="opencl_study" type="462c0819:PsiDirectoryNode" />
+              <item name="opencl" type="462c0819:PsiDirectoryNode" />
+              <item name="Kernels" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="opencl_study" type="dad4c3:CidrFilesViewHelper$MyProjectTreeStructure$1" />
@@ -407,12 +363,12 @@
       <workItem from="1531708773532" duration="17402000" />
       <workItem from="1531730978924" duration="32000" />
       <workItem from="1531731026788" duration="133000" />
-      <workItem from="1531731630645" duration="11370000" />
+      <workItem from="1531731630645" duration="31107000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1288654000" />
+    <option name="totallyTimeSpent" value="1308391000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -425,8 +381,9 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="2576" height="1416" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.10850556" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.122019075" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32889965" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.10546875" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="true" content_ui="tabs" />
@@ -459,39 +416,7 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/opencl/assembly.ass" />
-    <entry file="file://$PROJECT_DIR$/openmp/mul_omp.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="549">
-          <caret line="149" column="30" lean-forward="true" selection-start-line="149" selection-start-column="30" selection-end-line="149" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../clogs-1.5.0/kernels/scan.cl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="693">
-          <caret line="355" column="0" lean-forward="false" selection-start-line="355" selection-start-column="0" selection-end-line="355" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Join/smjImpl.cpp" />
-    <entry file="file://$PROJECT_DIR$/opencl/Kernels/radixSortKernel.cl" />
-    <entry file="file://$PROJECT_DIR$/opencl/Kernels/scatterKernel.cl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/Kernels/sca_rss_single_kernel.cl" />
     <entry file="file://$PROJECT_DIR$/opencl/src/Primitive/radixSortImpl.cpp" />
-    <entry file="file://$PROJECT_DIR$/opencl/Kernels/scan_rss_kernel.cl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1544">
-          <caret line="244" column="0" lean-forward="true" selection-start-line="244" selection-start-column="0" selection-end-line="244" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/openmp/scan_tbb.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1077">
@@ -503,27 +428,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="696">
           <caret line="29" column="18" lean-forward="true" selection-start-line="29" selection-start-column="18" selection-end-line="29" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/Kernels/scan_rss_single_kernel.cl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="37" column="38" lean-forward="false" selection-start-line="37" selection-start-column="38" selection-end-line="37" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/Kernels/scanKernel.cl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="957">
-          <caret line="419" column="9" lean-forward="true" selection-start-line="419" selection-start-column="9" selection-end-line="419" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/Kernels/memKernel.cl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="141">
-          <caret line="80" column="33" lean-forward="true" selection-start-line="80" selection-start-column="33" selection-end-line="80" selection-end-column="33" />
         </state>
       </provider>
     </entry>
@@ -591,14 +495,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/Kernels/split_kernel.cl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="48">
-          <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/opencl/inc/Foundation.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="312">
@@ -647,78 +543,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Impl/nphjImpl.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="192">
-          <caret line="8" column="17" lean-forward="false" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Main/main.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="408">
-          <caret line="17" column="22" lean-forward="false" selection-start-line="17" selection-start-column="22" selection-end-line="17" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/inc/Plat.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="264">
-          <caret line="11" column="0" lean-forward="false" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Utils/general.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="72">
-          <caret line="3" column="0" lean-forward="false" selection-start-line="3" selection-start-column="0" selection-end-line="23" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Impl/phjImpl.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="600">
-          <caret line="25" column="12" lean-forward="false" selection-start-line="25" selection-start-column="4" selection-end-line="25" selection-end-column="12" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Impl/splitImpl.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="659">
-          <caret line="220" column="0" lean-forward="true" selection-start-line="220" selection-start-column="0" selection-end-line="220" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/inc/params.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
-          <caret line="20" column="24" lean-forward="false" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="24" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/common/utility.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
-          <caret line="20" column="0" lean-forward="true" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Test/testBasic.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="528">
-          <caret line="100" column="35" lean-forward="false" selection-start-line="100" selection-start-column="35" selection-end-line="100" selection-end-column="35" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/opencl/inc/KernelProcessor.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="504">
@@ -735,36 +559,217 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/inc/general.h">
+    <entry file="file://$PROJECT_DIR$/opencl/src/Test/testJoins.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" column="20" lean-forward="true" selection-start-line="25" selection-start-column="20" selection-end-line="25" selection-end-column="20" />
-          <folding>
-            <element signature="e#904#930#0" expanded="false" />
-          </folding>
+        <state relative-caret-position="504">
+          <caret line="63" column="50" lean-forward="false" selection-start-line="63" selection-start-column="50" selection-end-line="63" selection-end-column="50" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Utils/Plat.cpp">
+    <entry file="file://$PROJECT_DIR$/opencl/inc/Plat.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="504">
-          <caret line="21" column="0" lean-forward="true" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+        <state relative-caret-position="264">
+          <caret line="11" column="20" lean-forward="false" selection-start-line="11" selection-start-column="20" selection-end-line="11" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/utility.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="480">
+          <caret line="20" column="0" lean-forward="false" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Test/testBasic.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="303">
+          <caret line="334" column="47" lean-forward="true" selection-start-line="334" selection-start-column="47" selection-end-line="334" selection-end-column="47" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/opencl/src/Test/testPrimitives.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="888">
-          <caret line="166" column="0" lean-forward="false" selection-start-line="166" selection-start-column="0" selection-end-line="166" selection-end-column="0" />
+        <state relative-caret-position="11382">
+          <caret line="610" column="50" lean-forward="false" selection-start-line="610" selection-start-column="50" selection-end-line="610" selection-end-column="50" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/opencl/src/Test/testJoins.cpp">
+    <entry file="file://$PROJECT_DIR$/opencl/Kernels/scan_rss_single_kernel.cl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="672">
+          <caret line="28" column="20" lean-forward="true" selection-start-line="28" selection-start-column="20" selection-end-line="28" selection-end-column="20" />
+          <folding>
+            <marker date="1531811246000" expanded="true" signature="238:539" ph="{...}" />
+            <marker date="1531811246000" expanded="true" signature="657:834" ph="{...}" />
+            <marker date="1531811246000" expanded="true" signature="1095:1554" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/Kernels/scan_rss_kernel.cl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="8" column="0" lean-forward="false" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
+          <folding>
+            <marker date="1531812402000" expanded="true" signature="0:298" ph="/.../" />
+            <marker date="1531812402000" expanded="true" signature="394:694" ph="{...}" />
+            <marker date="1531812402000" expanded="true" signature="781:2001" ph="{...}" />
+            <marker date="1531812402000" expanded="true" signature="2082:3570" ph="{...}" />
+            <marker date="1531812402000" expanded="true" signature="3946:4997" ph="{...}" />
+            <marker date="1531812402000" expanded="true" signature="5294:6677" ph="{...}" />
+            <marker date="1531812402000" expanded="true" signature="7068:8606" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/Kernels/mem_kernel.cl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="96">
+          <caret line="4" column="0" lean-forward="true" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/Kernels/hj_partitioned_kernel.cl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="96">
+          <caret line="4" column="0" lean-forward="true" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/Kernels/hj_non_partitioned_kernel.cl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="96">
+          <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/Kernels/split_kernel.cl">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="264">
-          <caret line="53" column="51" lean-forward="false" selection-start-line="53" selection-start-column="51" selection-end-line="53" selection-end-column="51" />
+          <caret line="11" column="6" lean-forward="false" selection-start-line="11" selection-start-column="6" selection-end-line="11" selection-end-column="6" />
+          <folding>
+            <element signature="e#89#171#0" expanded="true" />
+            <element signature="e#19190#19252#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/Kernels/scan_kernel.cl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="24">
+          <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/inc/params.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="5" column="0" lean-forward="false" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Impl/scanImpl.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="369">
+          <caret line="55" column="0" lean-forward="true" selection-start-line="55" selection-start-column="0" selection-end-line="55" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Impl/phjImpl.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="69" column="20" lean-forward="true" selection-start-line="69" selection-start-column="20" selection-end-line="69" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Impl/nphjImpl.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="24">
+          <caret line="51" column="89" lean-forward="false" selection-start-line="51" selection-start-column="89" selection-end-line="51" selection-end-column="89" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Impl/splitImpl.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="24">
+          <caret line="72" column="48" lean-forward="false" selection-start-line="72" selection-start-column="48" selection-end-line="72" selection-end-column="48" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/inc/general.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="312">
+          <caret line="40" column="59" lean-forward="false" selection-start-line="40" selection-start-column="55" selection-end-line="40" selection-end-column="59" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Utils/general.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="831">
+          <caret line="69" column="32" lean-forward="false" selection-start-line="69" selection-start-column="32" selection-end-line="69" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Impl/gatherImpl.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="432">
+          <caret line="19" column="96" lean-forward="false" selection-start-line="19" selection-start-column="96" selection-end-line="19" selection-end-column="96" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Utils/Plat.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="927">
+          <caret line="127" column="127" lean-forward="false" selection-start-line="127" selection-start-column="127" selection-end-line="127" selection-end-column="127" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Main/main.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="864">
+          <caret line="78" column="24" lean-forward="false" selection-start-line="78" selection-start-column="24" selection-end-line="78" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/Kernels/scatter_kernel.cl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="528">
+          <caret line="22" column="1" lean-forward="true" selection-start-line="22" selection-start-column="1" selection-end-line="22" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/Kernels/gather_kernel.cl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="456">
+          <caret line="19" column="33" lean-forward="false" selection-start-line="19" selection-start-column="33" selection-end-line="19" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/opencl/src/Impl/scatterImpl.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="687">
+          <caret line="45" column="44" lean-forward="true" selection-start-line="45" selection-start-column="44" selection-end-line="45" selection-end-column="44" />
           <folding />
         </state>
       </provider>
