@@ -14,7 +14,7 @@ COMDIR := $(HOME_PATH)/common
 
 
 CC := g++ 
-CPPFLAGS := -g -O3  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DDATADIR=\"$(DATADIR)\" -DOPENCL_PROJ -DSILENCE -Wno-write-strings
+CPPFLAGS := -g -O3  -DPROJECT_ROOT=\"$(HOME_PATH)\" -DDATADIR=\"$(DATADIR)\" -DOPENCL_PROJ -Wno-write-strings
 
 PRINT ?= 0
 ifeq ($(PRINT), 1)
@@ -34,7 +34,7 @@ SRC :=  $(filter-out ._%,$(notdir $(shell find -L $(SRCDIR) $(COMDIR) -name *.cp
 OBJ := $(SRC:%.cpp=$(OBJDIR)/%.o)
 PROGRAM := executor
 
-vpath %.cpp $(SRCDIR)/Join $(SRCDIR)/Utils $(SRCDIR)/Primitive $(SRCDIR)/Main $(SRCDIR)/Test $(COMDIR)
+vpath %.cpp $(SRCDIR)/Utils $(SRCDIR)/Impl $(SRCDIR)/Main $(SRCDIR)/Test $(COMDIR)
 vpath %.o $(OBJDIR)
 
 

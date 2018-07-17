@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(comparison_gpu)
+project(opencl_study)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -7,50 +7,166 @@ set(SOURCE_FILES
         common/utility.cpp
         common/utility.h
         cuda/bin/cuda_compare
-        cuda/bin/executor
+        cuda/cub/cub/agent/agent_histogram.cuh
+        cuda/cub/cub/agent/agent_radix_sort_downsweep.cuh
+        cuda/cub/cub/agent/agent_radix_sort_upsweep.cuh
+        cuda/cub/cub/agent/agent_reduce.cuh
+        cuda/cub/cub/agent/agent_reduce_by_key.cuh
+        cuda/cub/cub/agent/agent_rle.cuh
+        cuda/cub/cub/agent/agent_scan.cuh
+        cuda/cub/cub/agent/agent_segment_fixup.cuh
+        cuda/cub/cub/agent/agent_select_if.cuh
+        cuda/cub/cub/agent/agent_spmv_orig.cuh
+        cuda/cub/cub/agent/single_pass_scan_operators.cuh
+        cuda/cub/cub/block/specializations/block_histogram_atomic.cuh
+        cuda/cub/cub/block/specializations/block_histogram_sort.cuh
+        cuda/cub/cub/block/specializations/block_reduce_raking.cuh
+        cuda/cub/cub/block/specializations/block_reduce_raking_commutative_only.cuh
+        cuda/cub/cub/block/specializations/block_reduce_warp_reductions.cuh
+        cuda/cub/cub/block/specializations/block_scan_raking.cuh
+        cuda/cub/cub/block/specializations/block_scan_warp_scans.cuh
+        cuda/cub/cub/block/specializations/block_scan_warp_scans2.cuh
+        cuda/cub/cub/block/specializations/block_scan_warp_scans3.cuh
+        cuda/cub/cub/block/block_adjacent_difference.cuh
+        cuda/cub/cub/block/block_discontinuity.cuh
+        cuda/cub/cub/block/block_exchange.cuh
+        cuda/cub/cub/block/block_histogram.cuh
+        cuda/cub/cub/block/block_load.cuh
+        cuda/cub/cub/block/block_radix_rank.cuh
+        cuda/cub/cub/block/block_radix_sort.cuh
+        cuda/cub/cub/block/block_raking_layout.cuh
+        cuda/cub/cub/block/block_reduce.cuh
+        cuda/cub/cub/block/block_scan.cuh
+        cuda/cub/cub/block/block_shuffle.cuh
+        cuda/cub/cub/block/block_store.cuh
+        cuda/cub/cub/device/dispatch/dispatch_histogram.cuh
+        cuda/cub/cub/device/dispatch/dispatch_radix_sort.cuh
+        cuda/cub/cub/device/dispatch/dispatch_reduce.cuh
+        cuda/cub/cub/device/dispatch/dispatch_reduce_by_key.cuh
+        cuda/cub/cub/device/dispatch/dispatch_rle.cuh
+        cuda/cub/cub/device/dispatch/dispatch_scan.cuh
+        cuda/cub/cub/device/dispatch/dispatch_select_if.cuh
+        cuda/cub/cub/device/dispatch/dispatch_spmv_orig.cuh
+        cuda/cub/cub/device/device_histogram.cuh
+        cuda/cub/cub/device/device_partition.cuh
+        cuda/cub/cub/device/device_radix_sort.cuh
+        cuda/cub/cub/device/device_reduce.cuh
+        cuda/cub/cub/device/device_run_length_encode.cuh
+        cuda/cub/cub/device/device_scan.cuh
+        cuda/cub/cub/device/device_segmented_radix_sort.cuh
+        cuda/cub/cub/device/device_segmented_reduce.cuh
+        cuda/cub/cub/device/device_select.cuh
+        cuda/cub/cub/device/device_spmv.cuh
+        cuda/cub/cub/grid/grid_barrier.cuh
+        cuda/cub/cub/grid/grid_even_share.cuh
+        cuda/cub/cub/grid/grid_mapping.cuh
+        cuda/cub/cub/grid/grid_queue.cuh
+        cuda/cub/cub/host/mutex.cuh
+        cuda/cub/cub/iterator/arg_index_input_iterator.cuh
+        cuda/cub/cub/iterator/cache_modified_input_iterator.cuh
+        cuda/cub/cub/iterator/cache_modified_output_iterator.cuh
+        cuda/cub/cub/iterator/constant_input_iterator.cuh
+        cuda/cub/cub/iterator/counting_input_iterator.cuh
+        cuda/cub/cub/iterator/discard_output_iterator.cuh
+        cuda/cub/cub/iterator/tex_obj_input_iterator.cuh
+        cuda/cub/cub/iterator/tex_ref_input_iterator.cuh
+        cuda/cub/cub/iterator/transform_input_iterator.cuh
+        cuda/cub/cub/thread/thread_load.cuh
+        cuda/cub/cub/thread/thread_operators.cuh
+        cuda/cub/cub/thread/thread_reduce.cuh
+        cuda/cub/cub/thread/thread_scan.cuh
+        cuda/cub/cub/thread/thread_search.cuh
+        cuda/cub/cub/thread/thread_store.cuh
+        cuda/cub/cub/warp/specializations/warp_reduce_shfl.cuh
+        cuda/cub/cub/warp/specializations/warp_reduce_smem.cuh
+        cuda/cub/cub/warp/specializations/warp_scan_shfl.cuh
+        cuda/cub/cub/warp/specializations/warp_scan_smem.cuh
+        cuda/cub/cub/warp/warp_reduce.cuh
+        cuda/cub/cub/warp/warp_scan.cuh
+        cuda/cub/cub/cub.cuh
+        cuda/cub/cub/util_allocator.cuh
+        cuda/cub/cub/util_arch.cuh
+        cuda/cub/cub/util_debug.cuh
+        cuda/cub/cub/util_device.cuh
+        cuda/cub/cub/util_macro.cuh
+        cuda/cub/cub/util_namespace.cuh
+        cuda/cub/cub/util_ptx.cuh
+        cuda/cub/cub/util_type.cuh
+        cuda/cub/examples/block/example_block_radix_sort.cu
+        cuda/cub/examples/block/example_block_reduce.cu
+        cuda/cub/examples/block/example_block_scan.cu
+        cuda/cub/examples/block/Makefile
+        cuda/cub/examples/block/reduce_by_key.cu
+        cuda/cub/examples/device/example_device_partition_flagged.cu
+        cuda/cub/examples/device/example_device_partition_if.cu
+        cuda/cub/examples/device/example_device_radix_sort.cu
+        cuda/cub/examples/device/example_device_reduce.cu
+        cuda/cub/examples/device/example_device_scan
+        cuda/cub/examples/device/example_device_scan.cu
+        cuda/cub/examples/device/example_device_select_flagged.cu
+        cuda/cub/examples/device/example_device_select_if.cu
+        cuda/cub/examples/device/example_device_select_unique.cu
+        cuda/cub/examples/device/example_device_sort_find_non_trivial_runs.cu
+        cuda/cub/examples/device/Makefile
+        cuda/cub/experimental/defunct/example_coo_spmv.cu
+        cuda/cub/experimental/defunct/test_device_seg_reduce.cu
+        cuda/cub/experimental/histogram/histogram_cub.h
+        cuda/cub/experimental/histogram/histogram_gmem_atomics.h
+        cuda/cub/experimental/histogram/histogram_smem_atomics.h
+        cuda/cub/experimental/histogram_compare.cu
+        cuda/cub/experimental/Makefile
+        cuda/cub/experimental/sparse_matrix.h
+        cuda/cub/experimental/spmv_compare.cu
+        cuda/cub/experimental/spmv_script.sh
+        cuda/cub/test/half.h
+        cuda/cub/test/link_a.cu
+        cuda/cub/test/link_b.cu
+        cuda/cub/test/link_main.cpp
+        cuda/cub/test/Makefile
+        cuda/cub/test/mersenne.h
+        cuda/cub/test/test_allocator.cu
+        cuda/cub/test/test_block_histogram.cu
+        cuda/cub/test/test_block_load_store.cu
+        cuda/cub/test/test_block_radix_sort.cu
+        cuda/cub/test/test_block_reduce.cu
+        cuda/cub/test/test_block_scan.cu
+        cuda/cub/test/test_device_histogram.cu
+        cuda/cub/test/test_device_radix_sort.cu
+        cuda/cub/test/test_device_reduce.cu
+        cuda/cub/test/test_device_reduce_by_key.cu
+        cuda/cub/test/test_device_run_length_encode.cu
+        cuda/cub/test/test_device_scan.cu
+        cuda/cub/test/test_device_select_if.cu
+        cuda/cub/test/test_device_select_unique.cu
+        cuda/cub/test/test_grid_barrier.cu
+        cuda/cub/test/test_iterator.cu
+        cuda/cub/test/test_util.h
+        cuda/cub/test/test_warp_reduce.cu
+        cuda/cub/test/test_warp_scan.cu
+        cuda/cub/tune/Makefile
+        cuda/cub/tune/tune_device_reduce.cu
+        cuda/cub/CHANGE_LOG.TXT
+        cuda/cub/common.mk
+        "cuda/cub/eclipse code style profile.xml"
+        cuda/cub/LICENSE.TXT
+        cuda/cub/README.md
         cuda/inc/dataDef.h
         cuda/inc/kernels.h
         cuda/inc/test.h
         cuda/kernels/bisort.cu
-        cuda/kernels/gather.cu
         cuda/kernels/map.cu
         cuda/kernels/mem.cu
         cuda/kernels/radixSort.cu
         cuda/kernels/scan.cu
-        cuda/kernels/scather.cu
         cuda/kernels/split.cu
-        cuda/obj/bisort.du
-        cuda/obj/bisort.o
-        cuda/obj/gather.du
-        cuda/obj/gather.o
         cuda/obj/main.d
         cuda/obj/main.o
-        cuda/obj/map.du
-        cuda/obj/map.o
-        cuda/obj/mem.du
-        cuda/obj/mem.o
-        cuda/obj/radixSort.du
-        cuda/obj/radixSort.o
-        cuda/obj/scan.du
-        cuda/obj/scan.o
-        cuda/obj/scather.du
-        cuda/obj/scather.o
-        cuda/obj/split.du
-        cuda/obj/split.o
         cuda/obj/testBasic.d
         cuda/obj/testBasic.o
         cuda/obj/testBisort.d
         cuda/obj/testBisort.o
-        cuda/obj/testGather.d
-        cuda/obj/testGather.o
-        cuda/obj/testMap.d
-        cuda/obj/testMap.o
         cuda/obj/testRadixSort.d
         cuda/obj/testRadixSort.o
-        cuda/obj/testScan.d
-        cuda/obj/testScan.o
-        cuda/obj/testScatter.d
-        cuda/obj/testScatter.o
         cuda/obj/testSplit.d
         cuda/obj/testSplit.o
         cuda/obj/utility.d
@@ -58,115 +174,104 @@ set(SOURCE_FILES
         cuda/src/main.cpp
         cuda/src/testBasic.cpp
         cuda/src/testBisort.cpp
-        cuda/src/testGather.cpp
-        cuda/src/testMap.cpp
         cuda/src/testRadixSort.cpp
-        cuda/src/testScan.cpp
-        cuda/src/testScatter.cpp
+        cuda/src/testScan.cu
         cuda/src/testSplit.cpp
         cuda/common
-        cuda/data
         cuda/Makefile
-        data/loc_1000000.data
-        data/loc_100000000.data
-        data/loc_1000000000.data
-        data/loc_1000000000_equal.data
-        data/loc_100000000_equal.data
-        data/loc_1000000_equal.data
-        data/loc_128000000_equal.data
-        data/loc_16000000.data
-        data/loc_16000000_equal.data
-        data/loc_2000000.data
-        data/loc_200000000.data
-        data/loc_200000000_equal.data
-        data/loc_2000000_equal.data
-        data/loc_256000000_equal.data
-        data/loc_300000000.data
-        data/loc_300000000_equal.data
-        data/loc_32000000.data
-        data/loc_32000000_equal.data
-        data/loc_4000000.data
-        data/loc_400000000.data
-        data/loc_400000000_equal.data
-        data/loc_4000000_equal.data
-        data/loc_500000000.data
-        data/loc_500000000_equal.data
-        data/loc_512000000_equal.data
-        data/loc_600000000.data
-        data/loc_600000000_equal.data
-        data/loc_64000000.data
-        data/loc_64000000_equal.data
-        data/loc_700000000.data
-        data/loc_700000000_equal.data
-        data/loc_768000000_equal.data
-        data/loc_8000000.data
-        data/loc_800000000.data
-        data/loc_800000000_equal.data
-        data/loc_8000000_equal.data
-        data/loc_900000000.data
-        data/loc_900000000_equal.data
-        data_generation/bin/data_generator
-        data_generation/bin/executor
-        data_generation/inc/generation.h
-        data_generation/obj/generation.o
-        data_generation/obj/main.o
-        data_generation/src/generation.cpp
-        data_generation/src/main.cpp
-        data_generation/data
-        data_generation/Makefile
-        data_generation/nohup.out
+        cuda/mem_access
+        cuda/mem_access.cu
+        cuda/radixSortCUB.cu
+        cuda/scanCUB
+        cuda/scanCUB.cu
+        cuda/scanThrust
+        cuda/scanThrust.cu
+        cuda/split_blocks.cu
+        cuda/split_threads
+        cuda/split_threads.cu
+        log/gather_scatter/gather_scatter_CPU.log
+        log/gather_scatter/gather_scatter_GPU.log
+        log/gather_scatter/gather_scatter_MIC.log
+        log/latency/CPU.log
+        log/latency/MIC.log
+        log/mem/access_CPU.log
+        log/mem/access_GPU.log
+        log/mem/access_MIC.log
+        log/mem/mem_CPU_OpenCL.log
+        log/mem/mem_GPU_OpenCL.log
+        log/mem/mem_MIC_OpenCL.log
+        log/mem/wg_access_cpu.log
+        log/mem/wg_access_gpu.log
+        log/mem/wg_access_mic.log
+        log/obsolete/gather/gather_CPU.log
+        log/obsolete/gather/gather_GPU.log
+        log/obsolete/gather/gather_MIC.log
+        log/obsolete/scatter/scatter_CPU.log
+        log/obsolete/scatter/scatter_GPU.log
+        log/obsolete/scatter/scatter_MIC.log
+        log/scan/blelloch_CPU.log
+        log/scan/blelloch_GPU.log
+        log/scan/blelloch_MIC.log
+        log/scan/kogge_CPU.log
+        log/scan/kogge_MIC.log
+        log/scan/scan_global_omp_cpu.log
+        log/scan/scan_global_omp_mic.log
+        log/scan/scan_global_tbb_cpu.log
+        log/scan/scan_global_tbb_mic.log
+        log/scan/serial_CPU.log
+        log/scan/serial_GPU.log
+        log/scan/serial_MIC.log
+        log/scan/sklansky_CPU.log
+        log/scan/sklansky_GPU.log
+        log/scan/sklansky_MIC.log
+        log/split/WG_CPU_keys.out
+        log/split/WG_CPU_kvs.out
+        log/split/WG_MIC_keys.out
+        log/split/WG_MIC_kvs.out
+        log/split/WG_reorder_CPU_keys.out
+        log/split/WG_reorder_CPU_kvs.out
+        log/split/WI_MIC_keys.out
+        log/split/WI_MIC_kvs.out
+        log/vpu/vpu_double_CPU.log
+        log/vpu/vpu_double_GPU.log
+        log/vpu/vpu_double_MIC.log
+        log/vpu/vpu_float_CPU.log
+        log/vpu/vpu_float_GPU.log
+        log/vpu/vpu_float_MIC.log
+        opencl/bin/assembly.ass
         opencl/bin/executor
         opencl/bin/opencl_compare
-        opencl/inc/CSSTree.h
-        opencl/inc/dataDef.h
+        opencl/inc/CL/cl.h
+        opencl/inc/CL/cl_d3d10.h
+        opencl/inc/CL/cl_d3d11.h
+        opencl/inc/CL/cl_dx9_media_sharing.h
+        opencl/inc/CL/cl_egl.h
+        opencl/inc/CL/cl_ext.h
+        opencl/inc/CL/cl_gl.h
+        opencl/inc/CL/cl_gl_ext.h
+        opencl/inc/CL/cl_platform.h
+        opencl/inc/CL/opencl.h
+        opencl/inc/DataDef.h
+        opencl/inc/DataDef_CL.h
         opencl/inc/DataUtil.h
         opencl/inc/Foundation.h
         opencl/inc/KernelProcessor.h
         opencl/inc/PlatInit.h
-        opencl/Kernels/atomicKernel.cl
-        opencl/Kernels/barrierKernel.cl
-        opencl/Kernels/bitonicSortKernel.cl
         opencl/Kernels/gatherKernel.cl
+        opencl/Kernels/hjNonPartitionedKernel.cl
         opencl/Kernels/hjPartitionedKernel.cl
-        opencl/Kernels/inljKernel.cl
-        opencl/Kernels/latencyKernel.cl
-        opencl/Kernels/mapKernel.cl
         opencl/Kernels/memKernel.cl
-        opencl/Kernels/ninljKernel.cl
-        opencl/Kernels/radixSortKernel.cl
+        opencl/Kernels/scan_rss_kernel.cl
+        opencl/Kernels/scan_rss_single_kernel.cl
         opencl/Kernels/scanKernel.cl
         opencl/Kernels/scatterKernel.cl
-        opencl/Kernels/smjKernel.cl
-        opencl/Kernels/splitKernel.cl
-        opencl/Kernels/vpuKernel.cl
-        opencl/log/gather/gather_CPU.log
-        opencl/log/gather/gather_GPU.log
-        opencl/log/gather/gather_MIC.log
-        opencl/log/latency/CPU.log
-        opencl/log/latency/MIC.log
-        opencl/log/mem/access_CPU.log
-        opencl/log/mem/access_GPU.log
-        opencl/log/mem/access_MIC.log
-        opencl/log/mem/mem_CPU_OpenCL.log
-        opencl/log/mem/mem_GPU_OpenCL.log
-        opencl/log/mem/mem_MIC_OpenCL.log
-        opencl/log/scatter/scatter_CPU.log
-        opencl/log/scatter/scatter_GPU.log
-        opencl/log/scatter/scatter_MIC.log
-        opencl/log/vpu/vpu_double_CPU.log
-        opencl/log/vpu/vpu_double_GPU.log
-        opencl/log/vpu/vpu_double_MIC.log
-        opencl/log/vpu/vpu_float_CPU.log
-        opencl/log/vpu/vpu_float_GPU.log
-        opencl/log/vpu/vpu_float_MIC.log
+        opencl/Kernels/split_kernel.cl
         opencl/obj/bisortImpl.d
         opencl/obj/bisortImpl.o
         opencl/obj/CSSTree.d
         opencl/obj/CSSTree.o
         opencl/obj/gatherImpl.d
         opencl/obj/gatherImpl.o
-        opencl/obj/hjImpl.d
-        opencl/obj/hjImpl.o
         opencl/obj/inljImpl.d
         opencl/obj/inljImpl.o
         opencl/obj/KernelProcessor.d
@@ -177,6 +282,10 @@ set(SOURCE_FILES
         opencl/obj/mapImpl.o
         opencl/obj/ninljImpl.d
         opencl/obj/ninljImpl.o
+        opencl/obj/nphjImpl.d
+        opencl/obj/nphjImpl.o
+        opencl/obj/phjImpl.d
+        opencl/obj/phjImpl.o
         opencl/obj/PlatInit.d
         opencl/obj/PlatInit.o
         opencl/obj/radixSortImpl.d
@@ -197,60 +306,21 @@ set(SOURCE_FILES
         opencl/obj/testPrimitives.o
         opencl/obj/utility.d
         opencl/obj/utility.o
-        opencl/src/Join/hjImpl.cpp
-        opencl/src/Join/inljImpl.cpp
-        opencl/src/Join/ninljImpl.cpp
-        opencl/src/Join/smjImpl.cpp
+        opencl/src/Join/nphjImpl.cpp
+        opencl/src/Join/phjImpl.cpp
         opencl/src/Main/main.cpp
-        opencl/src/Primitive/bisortImpl.cpp
         opencl/src/Primitive/gatherImpl.cpp
-        opencl/src/Primitive/mapImpl.cpp
-        opencl/src/Primitive/radixSortImpl.cpp
         opencl/src/Primitive/scanImpl.cpp
         opencl/src/Primitive/scatterImpl.cpp
         opencl/src/Primitive/splitImpl.cpp
         opencl/src/Test/testBasic.cpp
         opencl/src/Test/testJoins.cpp
         opencl/src/Test/testPrimitives.cpp
-        opencl/src/Utils/CSSTree.cpp
         opencl/src/Utils/KernelProcessor.cpp
         opencl/src/Utils/PlatInit.cpp
-        opencl/common
-        opencl/data
         opencl/Makefile
         opencl/README.txt
-        openmp/bin/executor
         openmp/inc/functions.h
-        openmp/obj/gather.d
-        openmp/obj/gather.o
-        openmp/obj/gather.optrpt
-        openmp/obj/latency.d
-        openmp/obj/latency.o
-        openmp/obj/latency.optrpt
-        openmp/obj/main.d
-        openmp/obj/main.o
-        openmp/obj/main.optrpt
-        openmp/obj/map.d
-        openmp/obj/map.o
-        openmp/obj/map.optrpt
-        openmp/obj/mem.d
-        openmp/obj/mem.o
-        openmp/obj/mem.optrpt
-        openmp/obj/radixSort.d
-        openmp/obj/radixSort.o
-        openmp/obj/radixSort.optrpt
-        openmp/obj/scan.d
-        openmp/obj/scan.o
-        openmp/obj/scan.optrpt
-        openmp/obj/scatter.d
-        openmp/obj/scatter.o
-        openmp/obj/scatter.optrpt
-        openmp/obj/utility.d
-        openmp/obj/utility.o
-        openmp/obj/utility.optrpt
-        openmp/obj/vpu.d
-        openmp/obj/vpu.o
-        openmp/obj/vpu.optrpt
         openmp/src/gather.cpp
         openmp/src/latency.cpp
         openmp/src/main.cpp
@@ -261,8 +331,17 @@ set(SOURCE_FILES
         openmp/src/scatter.cpp
         openmp/src/vpu.cpp
         openmp/common
-        openmp/data
         openmp/Makefile
-        Makefile opencl/inc/DataDef_CL.h)
+        openmp/mul_omp.cpp
+        openmp/mul_omp_cpu
+        openmp/nohup.out
+        openmp/scan_omp.cpp
+        openmp/scan_omp_cpu
+        openmp/scan_omp_mic
+        openmp/scan_tbb.cpp
+        openmp/scan_tbb_cpu
+        openmp/scan_tbb_mic
+        openmp/split_omp.cpp
+        Makefile)
 
-add_executable(comparison_gpu ${SOURCE_FILES})
+add_executable(opencl_study ${SOURCE_FILES})

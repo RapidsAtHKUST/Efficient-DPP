@@ -5,7 +5,8 @@
 //  Created by Bryan on 4/13/15.
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
-#include "Foundation.h"
+#include "Plat.h"
+using namespace std;
 
 /*
  *  WI-level partitioning (Each WI owns a private histogram)
@@ -22,14 +23,16 @@
 double WI_split(
         cl_mem d_in, cl_mem d_out, cl_mem d_start,
         int length, int buckets,
-        Data_structure structure, PlatInfo& info,
+        Data_structure structure,
         cl_mem d_in_values, cl_mem d_out_values,
         int local_size, int grid_size)
 {
+    device_param_t param = Plat::get_device_param();
+
     /*check the value setting*/
     if (structure == KVS_SOA) { /*SOA should have both keys and values*/
         if ( (d_in_values == 0) || (d_out_values == 0) ) {
-            std::cerr <<"Wrong parameters: values are not set."<< std::endl;
+            cerr <<"Wrong parameters: values are not set."<< endl;
             return -1;
         }
     }
@@ -41,7 +44,7 @@ double WI_split(
         if ( ( in_mem_size != length * sizeof(tuple_t) )||
              ( out_mem_size != length * sizeof(tuple_t)) )
         {
-            std::cerr <<"Wrong parameters: inputs and outputs are not tuples"<< std::endl;
+            cerr <<"Wrong parameters: inputs and outputs are not tuples"<< endl;
             return -1;
         }
     }
@@ -67,7 +70,7 @@ double WI_split(
 
 /*1.histogram*/
     //kernel reading
-    histogram_kernel = KernelProcessor::getKernel("split_kernel.cl", "WI_histogram", info.context, para_s);
+    histogram_kernel = Plat::get_kernel("split_kernel.cl", "WI_histogram", para_s);
 
     //check whether the histogram can be placed in the global memory (at most 2^32 Bytes)
 //    long limit = 1<<32;
@@ -75,7 +78,7 @@ double WI_split(
 
     /*hostogram allocation*/
     unsigned long his_len = buckets*global_size;
-    d_his = clCreateBuffer(info.context, CL_MEM_READ_WRITE, his_len*sizeof(int), NULL, &status);
+    d_his = clCreateBuffer(param.context, CL_MEM_READ_WRITE, his_len*sizeof(int), NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
     //set kernel arguments
@@ -87,8 +90,8 @@ double WI_split(
     status |= clSetKernelArg(histogram_kernel, argsNum++, local_size*buckets*sizeof(int), NULL);
     checkErr(status, ERR_SET_ARGUMENTS);
 
-    status = clEnqueueNDRangeKernel(info.currentQueue, histogram_kernel, 1, 0, global, local, 0, 0, &event);
-    clFinish(info.currentQueue);
+    status = clEnqueueNDRangeKernel(param.queue, histogram_kernel, 1, 0, global, local, 0, 0, &event);
+    clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
     histogram_time = clEventTime(event);
     total_time += histogram_time;
@@ -100,7 +103,7 @@ double WI_split(
 
 /*2.5 gather the start position (optional)*/
     if (d_start != 0) {
-        gather_his_kernel = KernelProcessor::getKernel("split_kernel.cl", "gatherStartPos", info.context, para_s);
+        gather_his_kernel = Plat::get_kernel("split_kernel.cl", "gatherStartPos", para_s);
         argsNum = 0;
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(cl_mem), &d_his);
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &his_len);
@@ -108,14 +111,14 @@ double WI_split(
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &grid_size);
         checkErr(status, ERR_SET_ARGUMENTS);
 
-        status = clEnqueueNDRangeKernel(info.currentQueue, gather_his_kernel, 1, 0, global, local, 0, 0, &event);
-        status = clFinish(info.currentQueue);
+        status = clEnqueueNDRangeKernel(param.queue, gather_his_kernel, 1, 0, global, local, 0, 0, &event);
+        status = clFinish(param.queue);
         gather_time = clEventTime(event);
         total_time += gather_time;
     }
 
 /*3.scatter*/
-    scatter_kernel = KernelProcessor::getKernel("split_kernel.cl", "WI_scatter", info.context, para_s);
+    scatter_kernel = Plat::get_kernel("split_kernel.cl", "WI_scatter", para_s);
 
     argsNum = 0;
     status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_in);
@@ -133,29 +136,29 @@ double WI_split(
 #ifdef PRINT_KERNEL
     printExecutingKernel(splitWithListKernel);
 #endif
-    status = clEnqueueNDRangeKernel(info.currentQueue, scatter_kernel, 1, 0, global, local, 0, 0, &event);
-    clFinish(info.currentQueue);
+    status = clEnqueueNDRangeKernel(param.queue, scatter_kernel, 1, 0, global, local, 0, 0, &event);
+    clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
     scatter_time = clEventTime(event);
     total_time += scatter_time;
 
     //*2 for keys and values, another *2 for read and write data
-//    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
+//    cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<endl;
 
-    std::cout<<std::endl<<"Algo: WI-level\tData type: ";
-    if (structure == KO)            std::cout<<"key-only"<<std::endl;
-    else if (structure == KVS_AOS)  std::cout<<"key-value (AOS)"<<std::endl;
-    else if (structure == KVS_SOA)  std::cout<<"key-value (SOA)"<<std::endl;
+    cout<<endl<<"Algo: WI-level\tData type: ";
+    if (structure == KO)            cout<<"key-only"<<endl;
+    else if (structure == KVS_AOS)  cout<<"key-value (AOS)"<<endl;
+    else if (structure == KVS_SOA)  cout<<"key-value (SOA)"<<endl;
 
-    std::cout<<"Local size: "<<local_size<<'\t'
-             <<"Grid size: "<<grid_size<<std::endl;
+    cout<<"Local size: "<<local_size<<'\t'
+             <<"Grid size: "<<grid_size<<endl;
 
-    std::cout<<"Total Time: "<<total_time<<" ms"<<std::endl;
-    std::cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<std::endl;
-    std::cout<<"\tScan Time: "<<scan_time<<" ms"<<std::endl;
-    std::cout<<"\tScatter Time: " <<scatter_time<<" ms"<<std::endl;
+    cout<<"Total Time: "<<total_time<<" ms"<<endl;
+    cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<endl;
+    cout<<"\tScan Time: "<<scan_time<<" ms"<<endl;
+    cout<<"\tScatter Time: " <<scatter_time<<" ms"<<endl;
     if (d_start != NULL)
-        std::cout<<"\tGather time: "<<gather_time<<" ms."<<std::endl;
+        cout<<"\tGather time: "<<gather_time<<" ms."<<endl;
 
     clReleaseMemObject(d_his);
     checkErr(status, ERR_EXEC_KERNEL);
@@ -178,14 +181,16 @@ double WI_split(
 double WG_split(
         cl_mem d_in, cl_mem d_out, cl_mem d_start,
         int length, int buckets, bool reorder,
-        Data_structure structure, PlatInfo& info,
+        Data_structure structure,
         cl_mem d_in_values, cl_mem d_out_values,
         int local_size, int grid_size)
 {
+    device_param_t param = Plat::get_device_param();
+
     /*check the value setting*/
     if (structure == KVS_SOA) { /*SOA should have both keys and values*/
         if ( (d_in_values == 0) || (d_out_values == 0) ) {
-            std::cerr <<"Wrong parameters: values are not set."<< std::endl;
+            cerr <<"Wrong parameters: values are not set."<< endl;
             return -1;
         }
     }
@@ -197,7 +202,7 @@ double WG_split(
         if ( ( in_mem_size != length * sizeof(tuple_t) )||
              ( out_mem_size != length * sizeof(tuple_t)) )
         {
-            std::cerr <<"Wrong parameters: inputs and outputs are not tuples"<< std::endl;
+            cerr <<"Wrong parameters: inputs and outputs are not tuples"<< endl;
             return -1;
         }
     }
@@ -212,7 +217,7 @@ double WG_split(
     else if (structure == KVS_SOA)  strcat(para_s, " -DKVS_SOA ");
     else if (structure == KVS_AOS)  strcat(para_s, " -DKVS_AOS ");
 
-    checkLocalMemOverflow(sizeof(int) * buckets);    //this small, because of using atomic add
+//    checkLocalMemOverflow(sizeof(int) * buckets);    //this small, because of using atomic add
 
     cl_kernel histogram_kernel, scatter_kernel, gather_his_kernel;
     cl_mem d_his, d_his_origin;
@@ -225,9 +230,9 @@ double WG_split(
     size_t global[1] = {(size_t) global_size};
 
 /*1.histogram*/
-    histogram_kernel = KernelProcessor::getKernel("split_kernel.cl", "WG_histogram", info.context,para_s);
+    histogram_kernel = Plat::get_kernel("split_kernel.cl", "WG_histogram", para_s);
     int his_len = buckets * grid_size;
-    d_his = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * his_len, NULL, &status);
+    d_his = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * his_len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
     //set kernel arguments
@@ -239,31 +244,31 @@ double WG_split(
     status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(int), &buckets);
     checkErr(status, ERR_SET_ARGUMENTS);
 
-    status = clEnqueueNDRangeKernel(info.currentQueue, histogram_kernel, 1, 0, global, local, 0, 0, &event);
-    clFinish(info.currentQueue);
+    status = clEnqueueNDRangeKernel(param.queue, histogram_kernel, 1, 0, global, local, 0, 0, &event);
+    clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
     histogram_time = clEventTime(event);
     total_time += histogram_time;
 
     //copy the global histogram before scan
     if (reorder) {
-        d_his_origin = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * his_len, NULL, &status);
+        d_his_origin = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * his_len, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
-        status = clEnqueueCopyBuffer(info.currentQueue, d_his, d_his_origin, 0, 0, sizeof(int) * his_len, 0, 0, 0);
+        status = clEnqueueCopyBuffer(param.queue, d_his, d_his_origin, 0, 0, sizeof(int) * his_len, 0, 0, 0);
         checkErr(status, ERR_EXEC_KERNEL);
-        status = clFinish(info.currentQueue);
+        status = clFinish(param.queue);
     }
 
 /*2.scan*/
 //    double scanTime = scan_fast(d_his_in, d_his_out, his_len,  info, 1024, 15, 0, 11);
 //    scan_time = scan_fast(d_his, his_len, info, 64, 39, 112, 0);
-    scan_time = scan_fast(d_his, his_len, info, 64, 240, 33, 0);
+    scan_time = scan_fast(d_his, his_len, 64, 240, 33, 0);
 
     total_time += scan_time;
 
 /*2.5 gather the start position (optional)*/
     if (d_start != NULL) {
-        gather_his_kernel = KernelProcessor::getKernel("split_kernel.cl", "gatherStartPos", info.context,para_s);
+        gather_his_kernel = Plat::get_kernel("split_kernel.cl", "gatherStartPos", para_s);
         argsNum = 0;
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(cl_mem), &d_his);
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &his_len);
@@ -271,8 +276,8 @@ double WG_split(
         status |= clSetKernelArg(gather_his_kernel, argsNum++, sizeof(int), &grid_size);
         checkErr(status, ERR_SET_ARGUMENTS);
 
-        status = clEnqueueNDRangeKernel(info.currentQueue, gather_his_kernel, 1, 0, global, local, 0, 0, &event);
-        status = clFinish(info.currentQueue);
+        status = clEnqueueNDRangeKernel(param.queue, gather_his_kernel, 1, 0, global, local, 0, 0, &event);
+        status = clFinish(param.queue);
         gather_time = clEventTime(event);
         total_time += gather_time;
     }
@@ -292,9 +297,9 @@ double WG_split(
                 strcat(para_s, loop_str);
             }
         }
-        scatter_kernel = KernelProcessor::getKernel("split_kernel.cl", "WG_reorder_scatter",info.context,para_s);
+        scatter_kernel = Plat::get_kernel("split_kernel.cl", "WG_reorder_scatter", para_s);
     }
-    else scatter_kernel = KernelProcessor::getKernel("split_kernel.cl", "WG_scatter", info.context, para_s);
+    else scatter_kernel = Plat::get_kernel("split_kernel.cl", "WG_scatter", para_s);
 
     argsNum = 0;
     status |= clSetKernelArg(scatter_kernel, argsNum++, sizeof(cl_mem), &d_in);
@@ -321,33 +326,33 @@ double WG_split(
     }
     checkErr(status, ERR_SET_ARGUMENTS);
 
-    status = clEnqueueNDRangeKernel(info.currentQueue, scatter_kernel, 1, 0, global, local, 0, 0, &event);
-    clFinish(info.currentQueue);
+    status = clEnqueueNDRangeKernel(param.queue, scatter_kernel, 1, 0, global, local, 0, 0, &event);
+    clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
     scatter_time = clEventTime(event);
     total_time += scatter_time;
 
     //*2 for keys and values, another *2 for read and write data
-//    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
+//    cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<endl;
 
     /*time report*/
-//    std::cout<<std::endl<<"Algo: WG-level\tData type: ";
-//    if (structure == KO)            std::cout<<"key-only\t";
-//    else if (structure == KVS_AOS)  std::cout<<"key-value (AOS)\t";
-//    else if (structure == KVS_SOA)  std::cout<<"key-value (SOA)\t";
-//    std::cout<<"Reorder: ";
-//    if (reorder)   std::cout<<"yes"<<std::endl;
-//    else            std::cout<<"no"<<std::endl;
+//    cout<<endl<<"Algo: WG-level\tData type: ";
+//    if (structure == KO)            cout<<"key-only\t";
+//    else if (structure == KVS_AOS)  cout<<"key-value (AOS)\t";
+//    else if (structure == KVS_SOA)  cout<<"key-value (SOA)\t";
+//    cout<<"Reorder: ";
+//    if (reorder)   cout<<"yes"<<endl;
+//    else            cout<<"no"<<endl;
 //
-//    std::cout<<"Local size: "<<local_size<<'\t'
-//             <<"Grid size: "<<grid_size<<std::endl;
+//    cout<<"Local size: "<<local_size<<'\t'
+//             <<"Grid size: "<<grid_size<<endl;
 //
-//    std::cout<<"Total Time: "<<total_time<<" ms"<<std::endl;
-//    std::cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<std::endl;
-//    std::cout<<"\tScan Time: "<<scan_time<<" ms"<<std::endl;
-//    std::cout<<"\tScatter Time: " <<scatter_time<<" ms"<<std::endl;
+//    cout<<"Total Time: "<<total_time<<" ms"<<endl;
+//    cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<endl;
+//    cout<<"\tScan Time: "<<scan_time<<" ms"<<endl;
+//    cout<<"\tScatter Time: " <<scatter_time<<" ms"<<endl;
 //    if (d_start != NULL)
-//        std::cout<<"\tGather time: "<<gather_time<<" ms."<<std::endl;
+//        cout<<"\tGather time: "<<gather_time<<" ms."<<endl;
 
     clReleaseMemObject(d_his);
     if (reorder)    clReleaseMemObject(d_his_origin);
@@ -369,14 +374,16 @@ double WG_split(
 double single_split(
         cl_mem d_in, cl_mem d_out,
         int length, int buckets, bool reorder,
-        Data_structure structure, PlatInfo& info)
+        Data_structure structure)
 {
+    device_param_t param = Plat::get_device_param();
+
     int local_size = 1, grid_size = 39;
     int len_per_group = (length + grid_size - 1)/grid_size;
 
     /*check the value setting*/
     if (structure == KVS_SOA) { /*SOA should have both keys and values*/
-        std::cerr <<"Wrong parameters: SOA not supported."<< std::endl;
+        cerr <<"Wrong parameters: SOA not supported."<< endl;
         return -1;
     }
     /*check the key setting*/
@@ -387,7 +394,7 @@ double single_split(
         if ( ( in_mem_size != length * sizeof(tuple_t) )||
              ( out_mem_size != length * sizeof(tuple_t)) )
         {
-            std::cerr <<"Wrong parameters: inputs and outputs are not tuples"<< std::endl;
+            cerr <<"Wrong parameters: inputs and outputs are not tuples"<< endl;
             return -1;
         }
     }
@@ -415,9 +422,9 @@ double single_split(
     size_t global[1] = {(size_t) global_size};
 
 /*1.histogram*/
-    histogram_kernel = KernelProcessor::getKernel("split_kernel.cl", "single_histogram", info.context,para_s);
+    histogram_kernel = Plat::get_kernel("split_kernel.cl", "single_histogram", para_s);
     int his_len = buckets * grid_size;
-    d_his = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*his_len, NULL, &status);
+    d_his = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*his_len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
 
     //set kernel arguments
@@ -430,15 +437,15 @@ double single_split(
     status |= clSetKernelArg(histogram_kernel, argsNum++, sizeof(int)*buckets, NULL);
     checkErr(status, ERR_SET_ARGUMENTS);
 
-    status = clEnqueueNDRangeKernel(info.currentQueue, histogram_kernel, 1, 0, global, local, 0, 0, &event);
-    clFinish(info.currentQueue);
+    status = clEnqueueNDRangeKernel(param.queue, histogram_kernel, 1, 0, global, local, 0, 0, &event);
+    clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
     histogram_time = clEventTime(event);
     total_time += histogram_time;
 
 /*2.scan*/
 //    double scanTime = scan_fast(d_his_in, d_his_out, his_len,  info, 1024, 15, 0, 11);
-     scan_time = scan_fast(d_his, his_len, info, 64, 39, 112, 0);
+     scan_time = scan_fast(d_his, his_len, 64, 39, 112, 0);
 //    scan_time = scan_fast(d_his, his_len, info, 64, 240, 33, 0);
 
     total_time += scan_time;
@@ -447,8 +454,8 @@ double single_split(
     //compilation parameters
 
     if (reorder)
-        scatter_kernel = KernelProcessor::getKernel("split_kernel.cl", "single_reorder_scatter",info.context,para_s);
-    else scatter_kernel = KernelProcessor::getKernel("split_kernel.cl", "single_scatter", info.context, para_s);
+        scatter_kernel = Plat::get_kernel("split_kernel.cl", "single_reorder_scatter", para_s);
+    else scatter_kernel = Plat::get_kernel("split_kernel.cl", "single_scatter", para_s);
 
     /*alignment buffers*/
     int cacheline_size = 64;
@@ -456,13 +463,13 @@ double single_split(
     if (structure == KVS_AOS) {
         ele_per_cacheline = cacheline_size / sizeof(tuple_t);
         h_global_buffer_tuple = (tuple_t*)_mm_malloc(sizeof(tuple_t)*ele_per_cacheline*buckets*grid_size, cacheline_size);
-        d_global_buffer = clCreateBuffer(info.context, CL_MEM_USE_HOST_PTR| CL_MEM_READ_WRITE, sizeof(tuple_t)*ele_per_cacheline*buckets*grid_size, h_global_buffer_tuple, &status);
+        d_global_buffer = clCreateBuffer(param.context, CL_MEM_USE_HOST_PTR| CL_MEM_READ_WRITE, sizeof(tuple_t)*ele_per_cacheline*buckets*grid_size, h_global_buffer_tuple, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
     }
     else {
         ele_per_cacheline = cacheline_size / sizeof(int);
         h_global_buffer_int = (int*)_mm_malloc(sizeof(int)*ele_per_cacheline*buckets*grid_size, cacheline_size);
-        d_global_buffer = clCreateBuffer(info.context, CL_MEM_USE_HOST_PTR| CL_MEM_READ_WRITE, sizeof(int)*ele_per_cacheline*buckets*grid_size, h_global_buffer_int, &status);
+        d_global_buffer = clCreateBuffer(param.context, CL_MEM_USE_HOST_PTR| CL_MEM_READ_WRITE, sizeof(int)*ele_per_cacheline*buckets*grid_size, h_global_buffer_int, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
     }
 
@@ -481,29 +488,29 @@ double single_split(
     }
     checkErr(status, ERR_SET_ARGUMENTS);
 
-    status = clEnqueueNDRangeKernel(info.currentQueue, scatter_kernel, 1, 0, global, local, 0, 0, &event);
-    clFinish(info.currentQueue);
+    status = clEnqueueNDRangeKernel(param.queue, scatter_kernel, 1, 0, global, local, 0, 0, &event);
+    clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
     scatter_time = clEventTime(event);
     total_time += scatter_time;
 
     //*2 for keys and values, another *2 for read and write data
-//    std::cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<std::endl;
+//    cout<<"Scatter time: "<<scatterTime<<" ms."<<"("<<length*sizeof(int)*2*2/scatterTime*1000/1e9<<"GB/s)"<<endl;
 
     /*time report*/
-//    std::cout<<std::endl<<"Algo: Single\tData type: ";
-//    if (structure == KO)            std::cout<<"key-only\t";
-//    else if (structure == KVS_AOS)  std::cout<<"key-value (AOS)\t";
-//    std::cout<<"Reorder: ";
-//    if (reorder)   std::cout<<"yes"<<std::endl;
-//    else            std::cout<<"no"<<std::endl;
+//    cout<<endl<<"Algo: Single\tData type: ";
+//    if (structure == KO)            cout<<"key-only\t";
+//    else if (structure == KVS_AOS)  cout<<"key-value (AOS)\t";
+//    cout<<"Reorder: ";
+//    if (reorder)   cout<<"yes"<<endl;
+//    else            cout<<"no"<<endl;
 //
-//    std::cout<<"Local size: "<<local_size<<'\t'
-//             <<"Grid size: "<<grid_size<<std::endl;
-//    std::cout<<"Total Time: "<<total_time<<" ms"<<std::endl;
-//    std::cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<std::endl;
-//    std::cout<<"\tScan Time: "<<scan_time<<" ms"<<std::endl;
-//    std::cout<<"\tScatter Time: " <<scatter_time<<" ms"<<std::endl;
+//    cout<<"Local size: "<<local_size<<'\t'
+//             <<"Grid size: "<<grid_size<<endl;
+//    cout<<"Total Time: "<<total_time<<" ms"<<endl;
+//    cout<<"\tHistogram Time: "<<histogram_time<<" ms"<<endl;
+//    cout<<"\tScan Time: "<<scan_time<<" ms"<<endl;
+//    cout<<"\tScatter Time: " <<scatter_time<<" ms"<<endl;
 
     clReleaseMemObject(d_his);
     clReleaseMemObject(d_global_buffer);

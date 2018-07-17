@@ -6,28 +6,43 @@
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
 
-#include "Foundation.h"
-#include <iomanip>
+#include "Plat.h"
 using namespace std;
 
-void random_generator_int(int *in_keys, int length, int max) {
+void random_generator_int(int *in_keys, uint64_t length, int max) {
     sleep(1); srand((unsigned)time(NULL));
     for(int i = 0; i < length ; i++)    in_keys[i] = rand() % max;
 }
 
-void fixed_generator_int(int *in_keys, int length, int value) {
+void random_generator_int_sole(int *in_keys, uint64_t length) {
+    sleep(1); srand((unsigned)time(NULL));
+    for(int i = 0; i < length ; i++)    in_keys[i] = i;
+
+    int temp;
+    uint64_t from, to, times=length*3;
+
+    for(int i = 0; i < times; i++) {
+        from = rand() % length;
+        to = rand() % length;
+        temp = in_keys[from];
+        in_keys[from] = in_keys[to];
+        in_keys[to] = temp;
+    }
+}
+
+void fixed_generator_int(int *in_keys, uint64_t length, int value) {
     for(int i = 0; i < length ; i++)    in_keys[i] = value;
 }
 
-void random_generator_tuples(tuple_t *in, int length, int max) {
+void random_generator_tuples(tuple_t *in, uint64_t length, int max) {
     sleep(1); srand((unsigned)time(NULL));
-    for(int i = 0; i < length ; i++)    {
+    for(ulong i = 0; i < length ; i++)    {
         in[i].x = rand() % max;
         in[i].y = SPLIT_VALUE_DEFAULT;        /*all values set to 1*/
     }
 }
 
-void valRandom_Partitioned(int *arr, int length, int partitions) {
+void valRandom_Partitioned(int *arr, uint64_t length, int partitions) {
     srand((unsigned)time(NULL));
     sleep(1);
 
@@ -58,365 +73,11 @@ void valRandom_Partitioned(int *arr, int length, int partitions) {
 }
 
 /*
- *  test cases:
- *  1. normal hashing using bit operations
- *  2. branching : # varies from 0 to 2
- *  3. trigonometric functions: float and double
- *  Together: 6 test cases
- */
-bool testMap(PlatInfo& info, int repeat, int repeatTrans, int localSize, int gridSize) {
-    
-    bool res = true;
-    cl_int status = 0;
-    int experTime = 10;
-
-    // timing variables
-    double hash_time = 0 , float_time = 0, double_time = 0, float_blank_time = 0, double_blank_time = 0;
-
-    int category = 35;
-    double bTime[35];       //35 branches
-    double bForTime[35];    //35 branches using for 
-
-    // FUNC_BEGIN;
-    // SHOW_PARALLEL(localSize, gridSize);
-    // SHOW_DATA_NUM(length);
-    
-    //hashing & branching test together
-    int length = localSize * gridSize * repeat;
-//     SHOW_DATA_NUM(length);
-
-    int *h_source_values = new int[length];
-    int *h_dest_values = new int[length];    
-
-    //initilize the input
-    valRandom<int>(h_source_values, length, length);
-
-    //memory allocation
-    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(int)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    cl_mem d_dest_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*length,NULL , &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(int)*length, h_source_values, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);  
-
-//--------------------------------- branching test -------------------------
-    // for(int branch = 1; branch <= category; branch++) {
-    //     // cout<<branch<<endl;
-    //     for(int i = 0; i < experTime; i++) {
-    //         double tempTime = map_branching(d_source_values, d_dest_values, localSize, gridSize, info, repeat, branch);
-    //         if (i != 0) {
-    //             bTime[branch-1] += tempTime;
-    //         }
-    //     }
-
-    //     //checking
-    //     status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
-    //     checkErr(status, ERR_READ_BUFFER);
-
-    //     for(int i = 0; i < length; i++) {
-    //         int key = h_source_values[i] % branch;
-    //         if (h_dest_values[i] != h_source_values[i] + key) {
-    //             res = false;
-    //             cerr<<"Wrong for branch "<<branch<<" in common branch."<<endl;
-    //             cout<<h_dest_values[i]<<' '<<h_source_values[i]<<' '<<key<<' '<<h_source_values[i] + key<<endl;
-    //             exit(1);
-    //         }
-    //     }
-    //     bTime[branch-1] /= (experTime - 1);
-    // }
-
-    // for(int branch = 1; branch <= category; branch++) {
-    //     // cout<<branch<<endl;
-    //     for(int i = 0; i < experTime; i++) {
-    //         double tempTime = map_branching_for(d_source_values, d_dest_values, localSize, gridSize, info, repeat, branch);
-    //         if (i != 0) {
-    //             bForTime[branch-1] += tempTime;
-    //         }
-    //     }
-
-    //     //checking
-    //     status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
-    //     checkErr(status, ERR_READ_BUFFER);
-
-    //     for(int i = 0; i < length; i++) {
-    //         int key = h_source_values[i] % branch;
-    //         if (h_dest_values[i] != h_source_values[i] + key) {
-    //             res = false;
-    //             cerr<<"Wrong for branch "<<branch<<" in for branch."<<endl;
-    //             cout<<h_dest_values[i]<<' '<<h_source_values[i]<<' '<<key<<' '<<h_source_values[i] + key<<endl;
-    //             exit(1);
-    //         }
-    //     }
-    //     bForTime[branch-1] /= (experTime - 1);
-    // }
-
-//--------------------------------- hashing test -------------------------
-    //call map hashing
-    for(int i = 0; i < experTime; i++) {
-        double tempTime = map_hashing(d_source_values, d_dest_values, localSize, gridSize, info, repeat);
-        if (i != 0) hash_time += tempTime;
-    }
-    hash_time /= (experTime - 1);
-
-    //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-
-    status = clFinish(info.currentQueue);
-
-    //check for hash
-    for(int i = 0; i < length; i++) {
-        if ((h_source_values[i] & 0x3) != h_dest_values[i]) {
-            res = false;
-            break;
-        }
-    }
-    FUNC_CHECK(res);
-
-    //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_dest_values, CL_TRUE, 0, sizeof(int)*length, h_dest_values, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-
-    status = clFinish(info.currentQueue);
-
-    status = clReleaseMemObject(d_source_values);
-    checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_dest_values);
-    checkErr(status, ERR_RELEASE_MEM);
-
-    delete [] h_source_values;
-    delete [] h_dest_values;
-
-//--------------------- trigonometric test (float) -------------------------
-
-    length = localSize * gridSize * repeatTrans;
-    float *h_alpha = new float[length]; //varies from 0 to 2pi
-    float *h_beta = new float[length];  //varies from -0.5pi to 0.5pi
-    float *h_x = new float[length];
-    float *h_y = new float[length];
-    float *h_z = new float[length];
-
-    const float r = 6371.004f;
-    
-    //initialize
-    valRandom<float>(h_alpha, length, 2*PI);   // 0 -- 2pi
-    valRandom<float>(h_beta, length, PI);      // 0 -- pi
-
-    for(int i = 0; i < length; i++) {   // -0.5pi - 0.5pi
-        h_beta[i] -= 0.5 * PI;
-    }
-
-    //memory allocation
-    cl_mem d_alpha = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(float)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    cl_mem d_beta = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(float)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    cl_mem d_x = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(float)*length,NULL , &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    cl_mem d_y = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(float)*length,NULL , &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    cl_mem d_z = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(float)*length,NULL , &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    status = clEnqueueWriteBuffer(info.currentQueue, d_alpha, CL_TRUE, 0, sizeof(float)*length, h_alpha, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER); 
-
-    status = clEnqueueWriteBuffer(info.currentQueue, d_beta, CL_TRUE, 0, sizeof(float)*length, h_beta, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER); 
-
-    //testing
-    for(int i = 0; i < experTime; i++) {
-        double tempTime, tempTime_blank;
-        map_transform<float>(d_alpha, d_beta, r, d_x, d_y, d_z, localSize, gridSize, info, repeatTrans, tempTime_blank, tempTime);
-        if (i != 0) {
-            float_time += tempTime;
-            float_blank_time += tempTime_blank;
-        }
-    }
-    float_time /= (experTime - 1);
-    float_blank_time /= (experTime - 1);
-
-    //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_x, CL_TRUE, 0, sizeof(int)*length, h_x, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-
-    status = clEnqueueReadBuffer(info.currentQueue, d_y, CL_TRUE, 0, sizeof(int)*length, h_y, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-
-    status = clEnqueueReadBuffer(info.currentQueue, d_z, CL_TRUE, 0, sizeof(int)*length, h_z, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-
-    // cout<<"single:"<<endl;
-    // for(int i = 0; i < 10; i++) {
-    //     cout<<setprecision(20)<<h_alpha[i]<<' '<<h_beta[i]<<' '<<h_x[i]<<' '<<h_y[i]<<' '<<h_z[i]<<endl;
-    // }
-
-    status = clFinish(info.currentQueue);
-
-    status = clReleaseMemObject(d_alpha);
-    status = clReleaseMemObject(d_beta);
-    status = clReleaseMemObject(d_x);
-    status = clReleaseMemObject(d_y);
-    status = clReleaseMemObject(d_z);
-    checkErr(status, ERR_RELEASE_MEM);
-
-    // delete[] h_alpha;
-    // delete[] h_beta;
-    delete[] h_x;
-    delete[] h_y;
-    delete[] h_z;
-
-
-//--------------------- trigonometric test (double) -------------------------
-
-    length = localSize * gridSize * repeatTrans;
-    double*h_alpha_d = new double[length]; //varies from 0 to 2pi
-    double*h_beta_d = new double[length];  //varies from -0.5pi to 0.5pi
-    double*h_x_d = new double[length];
-    double*h_y_d = new double[length];
-    double*h_z_d = new double[length];
-
-    const double r_d = 6371.004;
-    
-    //initialize
-    // valRandom<double>(h_alpha_d, length, 2*PI);   // 0 -- 2pi
-    // valRandom<double>(h_beta_d, length, PI);      // 0 -- pi
-
-    for(int i = 0; i < length; i++) {   // -0.5pi - 0.5pi
-        // h_beta_d[i] -= 0.5 * PI;
-        h_alpha_d[i] = (double)h_alpha[i];
-        h_beta_d[i] = (double)h_beta[i];
-    }
-
-    //memory allocation
-     d_alpha = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(double)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-     d_beta = clCreateBuffer(info.context, CL_MEM_READ_ONLY , sizeof(double)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-     d_x = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(double)*length,NULL , &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-     d_y = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(double)*length,NULL , &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-     d_z = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(double)*length,NULL , &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-
-    status = clEnqueueWriteBuffer(info.currentQueue, d_alpha, CL_TRUE, 0, sizeof(double)*length, h_alpha_d, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER); 
-
-    status = clEnqueueWriteBuffer(info.currentQueue, d_beta, CL_TRUE, 0, sizeof(double)*length, h_beta_d, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER); 
-
-    //testing
-    for(int i = 0; i < experTime; i++) {
-        double tempTime, tempTime_blank;
-        map_transform<double>(d_alpha, d_beta, r, d_x, d_y, d_z, localSize, gridSize, info, repeatTrans, tempTime_blank, tempTime);
-        if (i != 0) {
-            double_time += tempTime;
-            double_blank_time += tempTime_blank;
-        }
-    }
-    double_time /= (experTime - 1);
-    double_blank_time /= (experTime - 1);
-
-    //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_x, CL_TRUE, 0, sizeof(double)*length, h_x_d, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-
-    status = clEnqueueReadBuffer(info.currentQueue, d_y, CL_TRUE, 0, sizeof(double)*length, h_y_d, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-
-    status = clEnqueueReadBuffer(info.currentQueue, d_z, CL_TRUE, 0, sizeof(double)*length, h_z_d, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-
-    status = clFinish(info.currentQueue);
-
-    // cout<<"double:"<<endl;
-    // for(int i = 0; i < 10; i++) {
-    //     cout<<setprecision(20)<<h_alpha_d[i]<<' '<<h_beta_d[i]<<' '<<h_x_d[i]<<' '<<h_y_d[i]<<' '<<h_z_d[i]<<endl;
-    // }
-
-    // cout<<"formal:";
-    // cout<<r_d * sin(h_beta_d[9])<<endl;
-
-    status = clReleaseMemObject(d_alpha);
-    status = clReleaseMemObject(d_beta);
-    status = clReleaseMemObject(d_x);
-    status = clReleaseMemObject(d_y);
-    status = clReleaseMemObject(d_z);
-    checkErr(status, ERR_RELEASE_MEM);
-
-    delete[] h_alpha;
-    delete[] h_beta;
-    delete[] h_alpha_d;
-    delete[] h_beta_d;
-    delete[] h_x_d;
-    delete[] h_y_d;
-    delete[] h_z_d;
-
-    //summary
-    cout<<setprecision(6)<<"Total hashing time: "<<hash_time<<" ms.\t Tuple num: "<<localSize * gridSize * repeat<<"\t Time per tuple: "<<hash_time / (localSize * gridSize * repeat) * 1e6<<" ns."<<endl;
-
-    for(int i = 1; i <= category; i++) {
-        cout<<"Total branch"<<i<<" time: "<<bTime[i-1]<<" ms.\t Tuple num: "<<localSize * gridSize * repeat<<"\t Time per tuple: "<<bTime[i-1] / (localSize * gridSize * repeat)* 1e6<<" ns."<<endl;
-    }
- 
-    for(int i = 1; i <= category; i++) {
-        cout<<"Total branch using for "<<i<<" time: "<<bForTime[i-1]<<" ms.\t Tuple num: "<<localSize * gridSize * repeat<<"\t Time per tuple: "<<bForTime[i-1] / (localSize * gridSize * repeat)* 1e6<<" ns."<<endl;
-    }
-
-    cout<<"Total trans_float time: "<<float_time<<" ms.\t Tuple num: "<<localSize * gridSize * repeatTrans<<"\t Time per tuple: "<<float_time / (localSize * gridSize * repeatTrans)* 1e6<<" ns."<<endl;
-
-    cout<<"Total trans_float_blank time: "<<float_blank_time<<" ms.\t Tuple num: "<<localSize * gridSize * repeatTrans<<"\t Time per tuple: "<<float_blank_time / (localSize * gridSize * repeatTrans)* 1e6<<" ns."<<endl;
-
-    cout<<"Total trans_double time: "<<double_time<<" ms.\t Tuple num: "<<localSize * gridSize * repeatTrans<<"\t Time per tuple: "<<double_time / (localSize * gridSize * repeatTrans)* 1e6<<" ns."<<endl;
-
-     cout<<"Total trans_double_blank time: "<<double_blank_time<<" ms.\t Tuple num: "<<localSize * gridSize * repeatTrans<<"\t Time per tuple: "<<double_blank_time / (localSize * gridSize * repeatTrans)* 1e6<<" ns."<<endl;
-
-     cout<<"For python:"<<endl;
-     cout<<"mis = ["<<hash_time / (localSize * gridSize * repeat) * 1e6 <<','
-         <<float_time / (localSize * gridSize * repeatTrans)* 1e6<<','
-         <<float_blank_time / (localSize * gridSize * repeatTrans)* 1e6<<','
-         <<double_time / (localSize * gridSize * repeatTrans)* 1e6<<','
-         <<double_blank_time / (localSize * gridSize * repeatTrans)* 1e6<<']'<<endl;
-
-    cout<<"category_common = ["<<bTime[0]/ (localSize * gridSize * repeat)* 1e6;
-    for(int i = 1; i < category; i++) {
-        cout<<','<<bTime[i]/ (localSize * gridSize * repeat)* 1e6;
-    }
-    cout<<"]"<<endl;
-
-    cout<<"category_for = ["<<bForTime[0]/ (localSize * gridSize * repeat)* 1e6;
-    for(int i = 1; i < category; i++) {
-        cout<<','<<bForTime[i]/ (localSize * gridSize * repeat)* 1e6;
-    }
-    cout<<"]"<<endl;
-
-    cout<<"For excel:"<<endl;
-    cout<<"Common:"<<endl;
-    for(int i = 0; i < category; i++) {
-        cout<<bTime[i]/ (localSize * gridSize * repeat)* 1e6<<endl;
-    }
-    cout<<"For:"<<endl;
-    for(int i = 0; i < category; i++) {
-        cout<<bForTime[i]/ (localSize * gridSize * repeat)* 1e6<<endl;
-    }
-
-}
-
-/*
  *  lengthMax:         maximum size
  */
-bool testGather(int len, const PlatInfo info) {
+bool testGather(int len) {
+    device_param_t param = Plat::get_device_param();
+
     bool res = true;
     int exper_time = 10;
     cl_int status;
@@ -430,18 +91,19 @@ bool testGather(int len, const PlatInfo info) {
     int *h_in = new int[len];     //no need to copy data
     int *h_loc = new int[len];
     for(int i = 0; i < len; i++)    h_in[i] = i;
-    valRandom_Only(h_loc, len, len);
+    random_generator_int_sole(h_loc, len);
+
 //    valRandom_Partitioned(h_loc, len, 8192);
 
-    cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+    cl_mem d_in = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*len, h_in, 0, 0, 0);
+    status = clEnqueueWriteBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(int)*len, h_in, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
-    cl_mem d_out = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+    cl_mem d_out = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_loc = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*len, NULL, &status);
+    cl_mem d_loc = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(info.currentQueue, d_loc, CL_TRUE, 0, sizeof(int)*len, h_loc, 0, 0, 0);
+    status = clEnqueueWriteBuffer(param.queue, d_loc, CL_TRUE, 0, sizeof(int)*len, h_loc, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
 
     //loop for multi-pass
@@ -452,7 +114,7 @@ bool testGather(int len, const PlatInfo info) {
             <<"gridSize:"<<grid_size<<'\t';
         double myTime = 0;
         for(int i = 0; i < exper_time; i++)  {
-            double tempTime = gather(d_in, d_out, len, d_loc, local_size, grid_size, info, pass);
+            double tempTime = gather(d_in, d_out, len, d_loc, local_size, grid_size, pass);
             if (i != 0)   myTime += tempTime;
         }
         myTime /= (exper_time-1);
@@ -485,7 +147,9 @@ bool testGather(int len, const PlatInfo info) {
 /*
  *  lengthMax:         maximum size
  */
-bool testScatter(int len, const PlatInfo info) {
+bool testScatter(int len) {
+    device_param_t param = Plat::get_device_param();
+
     bool res = true;
     int exper_time = 10;
     cl_int status;
@@ -499,18 +163,17 @@ bool testScatter(int len, const PlatInfo info) {
     int *h_in = new int[len];     //no need to copy data
     int *h_loc = new int[len];
     for(int i = 0; i < len; i++)    h_in[i] = i;
-    valRandom_Only(h_loc, len, len);
-//    valRandom_Partitioned(h_loc, len, 8192);
+    random_generator_int_sole(h_loc, len);
 
-    cl_mem d_in = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+    cl_mem d_in = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(int)*len, h_in, 0, 0, 0);
+    status = clEnqueueWriteBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(int)*len, h_in, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
-    cl_mem d_out = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+    cl_mem d_out = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_loc = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*len, NULL, &status);
+    cl_mem d_loc = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(info.currentQueue, d_loc, CL_TRUE, 0, sizeof(int)*len, h_loc, 0, 0, 0);
+    status = clEnqueueWriteBuffer(param.queue, d_loc, CL_TRUE, 0, sizeof(int)*len, h_loc, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
 
     //loop for multi-pass
@@ -521,7 +184,7 @@ bool testScatter(int len, const PlatInfo info) {
             <<"gridSize:"<<grid_size<<'\t';
         double myTime = 0;
         for(int i = 0; i < exper_time; i++)  {
-            double tempTime = scatter(d_in, d_out, len, d_loc, local_size, grid_size, info, pass);
+            double tempTime = scatter(d_in, d_out, len, d_loc, local_size, grid_size, pass);
             if (i != 0)   myTime += tempTime;
         }
         myTime /= (exper_time-1);
@@ -551,7 +214,9 @@ bool testScatter(int len, const PlatInfo info) {
 }
 
 //only test exclusive scan
-bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, int L, PlatInfo& info) {
+bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, int L) {
+    device_param_t param = Plat::get_device_param();
+
     cl_int status = 0;
     bool res = true;
 
@@ -568,22 +233,22 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
     double tempTimes[experTime];
     for(int e = 0; e < experTime; e++) {
 
-        cl_mem d_inout = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
+        cl_mem d_inout = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
-        status = clEnqueueWriteBuffer(info.currentQueue, d_inout, CL_TRUE, 0, sizeof(int) * length, h_input, 0, 0, 0);
+        status = clEnqueueWriteBuffer(param.queue, d_inout, CL_TRUE, 0, sizeof(int) * length, h_input, 0, 0, 0);
         checkErr(status, ERR_WRITE_BUFFER);
-        clFinish(info.currentQueue);
+        clFinish(param.queue);
 
-        double tempTime = scan_fast(d_inout, length, info, localSize, gridSize, R, L);
+        double tempTime = scan_fast(d_inout, length, localSize, gridSize, R, L);
         //three-kernel
 //        double tempTime = scan_three_kernel(d_inout, length, info, localSize, gridSize);
 //        double tempTime = scan_three_kernel_single(d_inout, length, info, gridSize);
 
-        status = clEnqueueReadBuffer(info.currentQueue, d_inout, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
+        status = clEnqueueReadBuffer(param.queue, d_inout, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
 
         checkErr(status, ERR_READ_BUFFER);
-        status = clFinish(info.currentQueue);
+        status = clFinish(param.queue);
 
         status = clReleaseMemObject(d_inout);
         checkErr(status, ERR_RELEASE_MEM);
@@ -621,7 +286,9 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
  * 1. GPU: local memory size: 48KB, register size: 64KB
  * 2. CPU: register size: 32KB
  */
-void testScanParameters(int length, int device, PlatInfo& info) {
+void testScanParameters(int length, int device) {
+    device_param_t param = Plat::get_device_param();
+
     int grid_size, size_begin, size_end, R_end, L_end, R_begin = 0, L_begin = 0;
     size_t cpu_reg = 32*1024, gpu_reg = 64*1024, gpu_local = 48*1024, mic_reg = 32*1024;
 
@@ -661,7 +328,7 @@ void testScanParameters(int length, int device, PlatInfo& info) {
                 if (R == 0 && L == 0) continue;
                 if ( (device==1 || device==2) && (R+L>R_end))   continue;
                 double tempTime;
-                bool res = testScan(length,  tempTime, cur_size, grid_size, R, L, info);
+                bool res = testScan(length,  tempTime, cur_size, grid_size, R, L);
 
                 //compuation
                 double throughput = 1.0*length/1024/1024/1024/tempTime*1000;
@@ -700,10 +367,12 @@ void testScanParameters(int length, int device, PlatInfo& info) {
  *
  * */
 bool split_test_specific(
-        int len, PlatInfo& info, int buckets, double& ave_time,
+        int len, int buckets, double& ave_time,
         Algo algo, Data_structure structure,
         int local_size, int grid_size)
 {
+    device_param_t param = Plat::get_device_param();
+
     cl_int status = 0;
     bool res = true;
     int experTime = 100;
@@ -736,36 +405,36 @@ bool split_test_specific(
         }
 
         /*device memory initialization*/
-        d_in = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(tuple_t)*len, NULL, &status);
+        d_in = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(tuple_t)*len, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
-        d_out = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(tuple_t)*len, NULL, &status);
+        d_out = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(tuple_t)*len, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
         /*memory copy*/
-        status = clEnqueueWriteBuffer(info.currentQueue, d_in, CL_TRUE, 0, sizeof(tuple_t)*len, h_in, 0, 0, 0);
+        status = clEnqueueWriteBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(tuple_t)*len, h_in, 0, 0, 0);
         checkErr(status, ERR_WRITE_BUFFER);
     }
     else {      /*KO or KVS_SOA*/
         /*device memory initialization*/
-        d_in_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+        d_in_keys = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
-        d_out_keys = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+        d_out_keys = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
         /*memory copy*/
-        status = clEnqueueWriteBuffer(info.currentQueue, d_in_keys, CL_TRUE, 0, sizeof(int)*len, h_in_keys, 0, 0, 0);
+        status = clEnqueueWriteBuffer(param.queue, d_in_keys, CL_TRUE, 0, sizeof(int)*len, h_in_keys, 0, 0, 0);
         checkErr(status, ERR_WRITE_BUFFER);
 
         /*further initialize the values*/
         if(structure == KVS_SOA) {
             /*device memory initialization*/
-            d_in_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+            d_in_values = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
             checkErr(status, ERR_HOST_ALLOCATION);
-            d_out_values = clCreateBuffer(info.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+            d_out_values = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
             checkErr(status, ERR_HOST_ALLOCATION);
 
             /*memory copy*/
-            status = clEnqueueWriteBuffer(info.currentQueue, d_in_values, CL_TRUE, 0, sizeof(int)*len, h_in_values, 0, 0, 0);
+            status = clEnqueueWriteBuffer(param.queue, d_in_values, CL_TRUE, 0, sizeof(int)*len, h_in_values, 0, 0, 0);
             checkErr(status, ERR_WRITE_BUFFER);
         }
     }
@@ -786,31 +455,31 @@ bool split_test_specific(
             case Single:     /*single split*/
                 tempTime = single_split(
                         d_in_unified, d_out_unified,
-                        len, buckets, false, structure, info);
+                        len, buckets, false, structure);
                 break;
             case Single_reorder:     /*single split, reorder*/
                 tempTime = single_split(
                         d_in_unified, d_out_unified,
-                        len, buckets, true, structure, info);
+                        len, buckets, true, structure);
                 break;
             case WI:     /*WI-level split*/
                 tempTime = WI_split(
                         d_in_unified, d_out_unified, 0,
-                        len, buckets, structure, info,
+                        len, buckets, structure,
                         d_in_values, d_out_values,
                         local_size, grid_size);
                 break;
             case WG:     /*WG-level split*/
                 tempTime = WG_split(
                         d_in_unified, d_out_unified, 0,
-                        len, buckets, false, structure, info,
+                        len, buckets, false, structure,
                         d_in_values, d_out_values,
                         local_size, grid_size);
                 break;
             case WG_reorder:     /*WG-level split, reorder*/
                 tempTime = WG_split(
                         d_in_unified, d_out_unified, 0,
-                        len, buckets, true, structure, info,
+                        len, buckets, true, structure,
                         d_in_values, d_out_values,
                         local_size, grid_size);
                 break;
@@ -820,10 +489,10 @@ bool split_test_specific(
         if (e == 0) {
             if (structure == KVS_AOS) {
                 status = clEnqueueReadBuffer(
-                        info.currentQueue, d_out, CL_TRUE, 0,
+                        param.queue, d_out, CL_TRUE, 0,
                         sizeof(tuple_t)*len, h_out, 0, 0, 0);
                 checkErr(status, ERR_READ_BUFFER);
-                status = clFinish(info.currentQueue);
+                status = clFinish(param.queue);
                 /*initialize only for checking*/
 
                 for(int i = 0; i < len; i++) {
@@ -833,17 +502,17 @@ bool split_test_specific(
             }
             else {
                 status = clEnqueueReadBuffer(
-                        info.currentQueue, d_out_keys, CL_TRUE, 0,
+                        param.queue, d_out_keys, CL_TRUE, 0,
                         sizeof(int) * len, h_out_keys, 0, 0, 0);
                 checkErr(status, ERR_READ_BUFFER);
                 if (structure == KVS_SOA) {
                     status = clEnqueueReadBuffer(
-                            info.currentQueue, d_out_values, CL_TRUE, 0,
+                            param.queue, d_out_values, CL_TRUE, 0,
                             sizeof(int) * len, h_out_values, 0, 0, 0);
                     checkErr(status, ERR_READ_BUFFER);
                 }
             }
-            status = clFinish(info.currentQueue);
+            status = clFinish(param.queue);
 
             /*check the sum*/
             unsigned mask = buckets - 1;
@@ -930,8 +599,10 @@ bool split_test_specific(
 void split_test_parameters(
         int len, int buckets,
         Algo algo, Data_structure structure,
-        int device, PlatInfo& info)
+        int device)
 {
+    device_param_t param = Plat::get_device_param();
+
     cl_int status;
     int local_size_begin, local_size_end, grid_size_begin, grid_size_end, local_mem_limited;
 
@@ -1002,7 +673,7 @@ void split_test_parameters(
             /*invode split_test_specific with the configuration*/
             double temp_time;
             bool res = split_test_specific(
-                    len, info, buckets, temp_time,
+                    len, buckets, temp_time,
                     algo, structure,
                     local_size, grid_size);
 
@@ -1015,175 +686,6 @@ void split_test_parameters(
         }
     }
     cout<<"bLocal="<<local_size_best<<" bGrid="<<grid_size_best<<" Time="<<best_time<<"ms"<<endl;
-}
-
-bool testRadixSort(
-#ifdef RECORDS
-    int *fixedKeys,
-#endif
-    int *fixedValues, 
-    int length, PlatInfo& info, double& totalTime) {
-    
-    bool res = true;
-    FUNC_BEGIN;
-    SHOW_PARALLEL(256, 512);
-    SHOW_DATA_NUM(length);
-
-#ifdef RECORDS
-    int *h_source_keys = new int[length];
-#endif
-    int *h_source_values = new int[length];
-    int *cpu_input = new int[length];
-
-    for(int i = 0; i < length; i++) {
-#ifdef RECORDS
-        h_source_keys[i] = fixedKeys[i];
-#endif
-        h_source_values[i] = fixedValues[i];        
-        cpu_input[i] = fixedValues[i];
-    }
-    
-    
-    struct timeval start, end;
-    gettimeofday(&start,NULL);
-    
-    cl_int status = 0;
-    
-    //memory allocation
-    cl_mem d_source_values = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-#ifdef RECORDS
-    cl_mem d_source_keys = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(int)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-#endif
-    
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(int)*length, h_source_values, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-#ifdef RECORDS
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source_keys, CL_TRUE, 0, sizeof(int)*length, h_source_keys, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-#endif
-
-    //call radix sort
-    totalTime = radixSort(
-#ifdef RECORDS
-    d_source_keys, true,   
-#endif
-    d_source_values, length, info);
-
-    //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_source_values, CL_TRUE, 0, sizeof(int)*length, h_source_values, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-    status = clFinish(info.currentQueue);
-#ifdef RECORDS
-    status = clEnqueueReadBuffer(info.currentQueue, d_source_keys, CL_TRUE, 0, sizeof(int)*length, h_source_keys, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-    status = clFinish(info.currentQueue);
-#endif
-    
-    gettimeofday(&end, NULL);
-    
-    //check
-    SHOW_CHECKING;
-    sort(cpu_input, cpu_input + length);
-    
-    for(int i = 0;i<length;i++)    {
-        if (h_source_values[i] != cpu_input[i]) {
-            res = false;
-            break;
-        }
-    }
-    
-    delete [] h_source_values;
-#ifdef RECORDS
-    delete [] h_source_keys;
-#endif
-    delete [] cpu_input;
-    
-    status = clReleaseMemObject(d_source_values);
-    checkErr(status,ERR_RELEASE_MEM);
-#ifdef RECORDS
-    status = clReleaseMemObject(d_source_keys);
-    checkErr(status,ERR_RELEASE_MEM);
-#endif
-    FUNC_CHECK(res);
-    SHOW_TIME(totalTime);
-    SHOW_TOTAL_TIME(diffTime(end, start));
-    FUNC_END;
-    
-    return res;
-}
-
-bool testBitonitSort(Record *fixedSource, int length, PlatInfo& info, int dir, double& totalTime, int localSize, int gridSize) {
-    
-    bool res = true;
-    FUNC_BEGIN;
-    SHOW_PARALLEL(localSize , gridSize);
-    SHOW_DATA_NUM(length);
-    if (dir == 0)   cout<<"Direction: Descending."<<endl;
-    else            cout<<"Direction: Ascending."<<endl;
-    
-    Record *h_source = new Record[length];
-    Record *cpuInput = new Record[length];
-    
-//    recordRandom(h_source, length);
-    for(int i = 0; i < length; i++) {
-        h_source[i].x = fixedSource[i].x;
-        h_source[i].y = fixedSource[i].y;
-    }
-    
-    for(int i = 0;i<length;i++) cpuInput[i] = h_source[i];
-    
-    struct timeval start, end;
-    gettimeofday(&start,NULL);
-    
-    cl_int status = 0;
-    
-    //memory allocation
-    cl_mem d_source = clCreateBuffer(info.context, CL_MEM_READ_ONLY, sizeof(Record)*length, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    
-    status = clEnqueueWriteBuffer(info.currentQueue, d_source, CL_TRUE, 0, sizeof(Record)*length, h_source, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-    
-    //call gather
-    totalTime = bisort(d_source, length, dir, info, localSize, gridSize);
-    
-    //memory written back
-    status = clEnqueueReadBuffer(info.currentQueue, d_source, CL_TRUE, 0, sizeof(Record)*length, h_source, 0, 0, 0);
-    checkErr(status, ERR_READ_BUFFER);
-    status = clFinish(info.currentQueue);
-    
-    gettimeofday(&end, NULL);
-    
-//    cout<<"Output:"<<endl;
-//    for(int i = 0; i < length; i++) {
-//        cout<<h_source[i].x<<' '<<h_source[i].y<<endl;
-//    }
-    //check
-    SHOW_CHECKING;
-    if (dir == 0) qsort(cpuInput, length, sizeof(Record), compRecordDec);
-    else          qsort(cpuInput, length, sizeof(Record), compRecordAsc);
-    
-    for(int i = 0;i<length;i++)    {
-        if (h_source[i].y != cpuInput[i].y) {
-            res = false;
-            break;
-        }
-    }
-    
-    delete [] h_source;
-    delete [] cpuInput;
-    
-    status = clReleaseMemObject(d_source);
-    checkErr(status,ERR_RELEASE_MEM);
-    
-    FUNC_CHECK(res);
-    SHOW_TIME(totalTime);
-    SHOW_TOTAL_TIME(diffTime(end, start));
-    FUNC_END;
-    
-    return res;
 }
 
 

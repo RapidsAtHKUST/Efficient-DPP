@@ -6,14 +6,16 @@
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
 
-#include "Foundation.h"
+#include "Plat.h"
 
-double build_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_table_keys, cl_mem d_table_values, unsigned hash_bits, PlatInfo info);
-double probe_np(cl_mem d_S_keys, cl_mem d_S_values, int s_len, cl_mem d_table_keys, cl_mem d_table_values, int hash_bits, PlatInfo info, int &res_len);
+double build_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_table_keys, cl_mem d_table_values, unsigned hash_bits);
+double probe_np(cl_mem d_S_keys, cl_mem d_S_values, int s_len, cl_mem d_table_keys, cl_mem d_table_values, int hash_bits, int &res_len);
 
 //testing: only count the number of outputs
-double hashjoin_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len, PlatInfo info)
+double hashjoin_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len)
 {
+    device_param_t param = Plat::get_device_param();
+
     struct timeval start, end;
     double totalTime = 0;
     cl_int status;
@@ -25,27 +27,29 @@ double hashjoin_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys
     unsigned table_len = 1<<hash_bits;
     std::cout<<"Hash table len:"<<table_len<<std::endl;
 
-    cl_mem d_table_keys = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*table_len,NULL,&status);
-    cl_mem d_table_values = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*table_len,NULL,&status);
+    cl_mem d_table_keys = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*table_len,NULL,&status);
+    cl_mem d_table_values = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*table_len,NULL,&status);
 
     std::cout<<"Begin to build hash table."<<std::endl;
-    build_np(d_R_keys, d_R_values, rLen, d_table_keys, d_table_values, hash_bits, info);
+    build_np(d_R_keys, d_R_values, rLen, d_table_keys, d_table_values, hash_bits);
     std::cout<<"Hash table built."<<std::endl;
-    probe_np(d_S_keys, d_S_values, sLen, d_table_keys, d_table_values, hash_bits, info, res_len);
+    probe_np(d_S_keys, d_S_values, sLen, d_table_keys, d_table_values, hash_bits, res_len);
     std::cout<<"Probe finished."<<std::endl;
 
     return totalTime;
 }
 
 //build the shared hash table
-double build_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_table_keys, cl_mem d_table_values, unsigned hash_bits, PlatInfo info)
+double build_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_table_keys, cl_mem d_table_values, unsigned hash_bits)
 {
+    device_param_t param = Plat::get_device_param();
+
     cl_int status;
     int localSize = 1024;
     int gridSize = 1024;
     int globalSize = localSize * gridSize;
 
-    cl_kernel buildKernel = KernelProcessor::getKernel("hjNonPartitionedKernel.cl", "build", info.context);
+    cl_kernel buildKernel = Plat::get_kernel("hjNonPartitionedKernel.cl", "build");
 
     //set work group and NDRange sizes
     size_t local[1] = {(size_t)(localSize)};
@@ -67,8 +71,8 @@ double build_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_table_key
 
     struct timeval start, end;
     gettimeofday(&start, NULL);
-    status = clEnqueueNDRangeKernel(info.currentQueue, buildKernel, 1, 0, global, local, 0, 0, 0 );
-    status = clFinish(info.currentQueue);
+    status = clEnqueueNDRangeKernel(param.queue, buildKernel, 1, 0, global, local, 0, 0, 0 );
+    status = clFinish(param.queue);
     gettimeofday(&end, NULL);
 
     double totalTime = diffTime(end, start);
@@ -77,8 +81,10 @@ double build_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_table_key
     return totalTime;
 }
 
-double probe_np(cl_mem d_S_keys, cl_mem d_S_values, int s_len, cl_mem d_table_keys, cl_mem d_table_values, int hash_bits, PlatInfo info, int &res_len)
+double probe_np(cl_mem d_S_keys, cl_mem d_S_values, int s_len, cl_mem d_table_keys, cl_mem d_table_values, int hash_bits, int &res_len)
 {
+    device_param_t param = Plat::get_device_param();
+
     cl_int status;
     int argsNum = 0;
     double totalTime = 0;
@@ -87,10 +93,10 @@ double probe_np(cl_mem d_S_keys, cl_mem d_S_values, int s_len, cl_mem d_table_ke
     int globalSize = localSize * gridSize;
 
     //kernel reading
-    cl_kernel probeKernel = KernelProcessor::getKernel("hjNonPartitionedKernel.cl", "probe", info.context);
+    cl_kernel probeKernel = Plat::get_kernel("hjNonPartitionedKernel.cl", "probe");
 
     //memory allocation
-//    cl_mem d_out = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int)*globalSize, NULL, &status);
+//    cl_mem d_out = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*globalSize, NULL, &status);
 //    checkErr(status, ERR_HOST_ALLOCATION);
 
     //set work group and NDRange sizes
@@ -100,10 +106,10 @@ double probe_np(cl_mem d_S_keys, cl_mem d_S_values, int s_len, cl_mem d_table_ke
     struct timeval start, end;
 
     //testing: only counting the number of output elements
-    cl_mem d_out_num = clCreateBuffer(info.context, CL_MEM_READ_WRITE, sizeof(int), NULL, &status);
+    cl_mem d_out_num = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int), NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
     int h_out_num = 0;
-    status = clEnqueueWriteBuffer(info.currentQueue, d_out_num, CL_TRUE, 0, sizeof(int), &h_out_num, 0, 0, 0);
+    status = clEnqueueWriteBuffer(param.queue, d_out_num, CL_TRUE, 0, sizeof(int), &h_out_num, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
 //
     argsNum = 0;
@@ -121,14 +127,14 @@ double probe_np(cl_mem d_S_keys, cl_mem d_S_values, int s_len, cl_mem d_table_ke
     printExecutingKernel(matchCountKernel);
 #endif
     gettimeofday(&start, NULL);
-    status = clEnqueueNDRangeKernel(info.currentQueue, probeKernel, 1, 0, global, mylocal, 0, 0, 0 );
-    status = clFinish(info.currentQueue);
+    status = clEnqueueNDRangeKernel(param.queue, probeKernel, 1, 0, global, mylocal, 0, 0, 0 );
+    status = clFinish(param.queue);
     gettimeofday(&end, NULL);
 
     totalTime += diffTime(end, start);
     checkErr(status, ERR_EXEC_KERNEL);
 
-    status = clEnqueueReadBuffer(info.currentQueue, d_out_num, CL_TRUE, 0, sizeof(int), &h_out_num, 0, 0, 0);
+    status = clEnqueueReadBuffer(param.queue, d_out_num, CL_TRUE, 0, sizeof(int), &h_out_num, 0, 0, 0);
     checkErr(status, ERR_WRITE_BUFFER);
 
     res_len = h_out_num;

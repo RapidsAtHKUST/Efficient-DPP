@@ -6,16 +6,18 @@
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
 
-#include "Foundation.h"
+#include "Plat.h"
 
-double gather(cl_mem d_in, cl_mem& d_out, int length, cl_mem d_loc, int localSize, int gridSize, const PlatInfo info, int pass) {
+double gather(cl_mem d_in, cl_mem& d_out, int length, cl_mem d_loc, int localSize, int gridSize, int pass) {
+    device_param_t param = Plat::get_device_param();
+
     cl_event event;
     double totalTime = 0;
     cl_int status = 0;
     int argsNum = 0;
     
     //kernel reading
-    cl_kernel gatherKernel = KernelProcessor::getKernel("gatherKernel.cl", "gatherKernel", info.context);
+    cl_kernel gatherKernel = Plat::get_kernel("gatherKernel.cl", "gatherKernel");
 
     //set kernel arguments
     int globalSize = gridSize * localSize;
@@ -42,10 +44,10 @@ double gather(cl_mem d_in, cl_mem& d_out, int length, cl_mem d_loc, int localSiz
         status |= clSetKernelArg(gatherKernel, 6, sizeof(int), &to);
         checkErr(status, ERR_SET_ARGUMENTS);
 
-        status = clFinish(info.currentQueue);
-        status = clEnqueueNDRangeKernel(info.currentQueue, gatherKernel, 1, 0, global, local, 0, 0, &event);
-        clFlush(info.currentQueue);
-        status = clFinish(info.currentQueue);
+        status = clFinish(param.queue);
+        status = clEnqueueNDRangeKernel(param.queue, gatherKernel, 1, 0, global, local, 0, 0, &event);
+        clFlush(param.queue);
+        status = clFinish(param.queue);
         checkErr(status, ERR_EXEC_KERNEL);
 
         totalTime += clEventTime(event);

@@ -5,29 +5,15 @@
 //  Created by Bryan on 4/7/15.
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
-#include "Foundation.h"
+#include "Plat.h"
 using namespace std;
 
-PlatInfo info;          //platform configuration structure
-
 int main(int argc, const char *argv[]) {
+    Plat::plat_init();
 
-    //platform initialization
-    Plat*myPlatform = Plat::getInstance(0);
-    cl_device_id device = myPlatform->getDevice();
-    cl_context context = myPlatform->getContext();
-    cl_command_queue currentQueue = myPlatform->getQueue();
-
-    info.device = device;
-    info.context = context;
-    info.currentQueue = currentQueue;
-
-    if (argc != 2) {
-        cerr<<"Wrong number of parameters."<<endl;
-        exit(1);
-    }
-
-    double totalTime;
+    device_param_t param = Plat::get_device_param();
+    cout<<"gmem size:"<<param.gmem_size<<endl;
+    cout<<"Cache line size:"<<param.cacheline_size<<endl;
 
 //      testMem(info);
 //      testAccess(info);
@@ -83,10 +69,10 @@ int main(int argc, const char *argv[]) {
 //     cout<<"Time:"<<totalTime<<" ms.\t";
 //     cout<<"Throughput:"<<length*1.0/1024/1024/1024/totalTime*1000<<" GKeys/s"<<endl;
 
-    int length = 1<<25;
-    for (int buckets = 2; buckets <= 4096; buckets <<= 1) {
-        split_test_parameters(length, buckets, WG_reorder, KVS_AOS, 2, info);
-    }
+//    int length = 1<<25;
+//    for (int buckets = 2; buckets <= 4096; buckets <<= 1) {
+//        split_test_parameters(length, buckets, WG_reorder, KVS_AOS, 2, info);
+//    }
 
 //    cout<<"Key-only:"<<endl;
 //    for(int buckets = 2; buckets <= 4096; buckets<<=1) {
