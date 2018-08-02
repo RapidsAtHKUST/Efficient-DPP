@@ -1,0 +1,35 @@
+
+Starting to launch opencl_compare...
+Fast run...
+Data size: 1000
+
+Device type: All
+------ Start hardware checking ------
+Platform: Intel(R) OpenCL
+Number of devices: 2
+	Computing device 0 : Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz
+	Computing device 1 : Intel(R) Many Integrated Core Acceleration Card
+Please enter the index of the device to use (0,1,2...) : Selected device: Intel(R) Many Integrated Core Acceleration Card
+	Version: OpenCL 1.2 (Build 8)
+	Global memory size: 11.3622 GB
+	Local memory size: 32 KB
+	Compute units: 240
+	Maximal local_size: 8192
+	Maximal memory object size: 3.78739 GB
+	Global memory cache line size: 64 Byte
+	Wavefront size: 16
+------ End of hardware checking ------
+
+Key-only:
+Length=33554432 Algo=2 Buckets=2 bLocal=16 bGrid=8192 Time=16.5365ms
+Length=33554432 Algo=2 Buckets=4 bLocal=16 bGrid=8192 Time=16.7972ms
+Length=33554432 Algo=2 Buckets=8 bLocal=16 bGrid=8192 Time=17.3853ms
+Length=33554432 Algo=2 Buckets=16 bLocal=16 bGrid=8192 Time=18.2098ms
+Length=33554432 Algo=2 Buckets=32 bLocal=16 bGrid=8192 Time=19.2926ms
+Length=33554432 Algo=2 Buckets=64 bLocal=16 bGrid=8192 Time=21.3984ms
+Length=33554432 Algo=2 Buckets=128 bLocal=16 bGrid=8192 Time=25.2667ms
+Length=33554432 Algo=2 Buckets=256 bLocal=16 bGrid=8192 Time=32.2036ms
+Length=33554432 Algo=2 Buckets=512 bLocal=16 bGrid=8192 Time=45.1506ms
+Length=33554432 Algo=2 Buckets=1024 bLocal=16 bGrid=8192 Time=74.0848ms
+Length=33554432 Algo=2 Buckets=2048 bLocal=16 bGrid=8192 Time=123.893ms
+Length=33554432 Algo=2 Buckets=4096 bLocal=32 bGrid=16384 Time=376.477ms

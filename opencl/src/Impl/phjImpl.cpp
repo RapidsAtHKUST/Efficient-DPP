@@ -39,12 +39,12 @@ double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, c
     checkErr(status, ERR_HOST_ALLOCATION);
 
 //    gettimeofday(&start, NULL);
-    double r_time = WG_split(d_R_keys, d_R_partitioned_keys, r_start, rLen, buckets, false, structure, d_R_values, d_R_partitioned_values);
+    double r_time = WG_split(d_R_keys, d_R_partitioned_keys, r_start, rLen, buckets, NO_REORDER, structure, d_R_values, d_R_partitioned_values);
 //    gettimeofday(&end, NULL);
 //    double r_time = diffTime(end, start);
 
 //    gettimeofday(&start, NULL);
-    double s_time = WG_split(d_S_keys, d_S_partitioned_keys , s_start, sLen, buckets, false, structure, d_S_values, d_S_partitioned_values);
+    double s_time = WG_split(d_S_keys, d_S_partitioned_keys , s_start, sLen, buckets, NO_REORDER, structure, d_S_values, d_S_partitioned_values);
 //    gettimeofday(&end, NULL);
 //    double s_time = diffTime(end, start);
 
@@ -105,7 +105,7 @@ double probe(cl_mem d_R_keys, cl_mem d_R_values, cl_mem d_S_keys, cl_mem d_S_val
     status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &start_S);
     status |= clSetKernelArg(probeKernel, argsNum++, sizeof(cl_mem), &d_out_num);
     status |= clSetKernelArg(probeKernel, argsNum++, 8*1024, NULL);    //15.5KB for R partition  (keys)
-     status |= clSetKernelArg(probeKernel, argsNum++, 8*1024, NULL);    //15.5KB for R partition (values)
+    status |= clSetKernelArg(probeKernel, argsNum++, 8*1024, NULL);    //15.5KB for R partition (values)
     status |= clSetKernelArg(probeKernel, argsNum++, 15.5*1024, NULL);    //15.5KB for S partition hash table (keys)
     status |= clSetKernelArg(probeKernel, argsNum++, 15.5*1024, NULL);    //15.5KB for S partition hash table (values)
 

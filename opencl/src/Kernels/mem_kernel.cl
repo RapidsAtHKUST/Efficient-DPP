@@ -62,73 +62,23 @@ kernel void mul_mixed (
 
 kernel void wg_access(
     global int *data,
-    const int length,
-    global int *atom,       //for atomic updates
-    global int *idx_arr)     //filled with wg index orders
+    const int len,              //len for each wg
+    global int *atom,           //for atomic updates
+    global int *idx_arr)        //filled with wg index orders
 {
-    int local_id = get_local_id(0);
-    int local_size = get_local_size(0);
-    const int global_id = get_global_id(0);
-    int global_size = get_global_size(0);
-    int local_warp_id = local_id >> WARP_BITS;
-    int lane = local_id & MASK;
-    int ele_per_wi = (length + global_size - 1) / global_size;
+    int w, w_idx;
+    w_idx = atomic_inc(atom);
+    w = idx_arr[w_idx];
 
-    local int w;
-    local int w_idx;
-    if (local_id == 0)  {
-        w_idx = atomic_inc(atom);
-        w = idx_arr[w_idx];
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
+    int begin = w * len;
+    int end = (w+1) * len;
 
-    int global_begin = local_size * ele_per_wi * w;
-    int begin = local_warp_id * WARP_SIZE * ele_per_wi;
-    int end = (local_warp_id + 1) * WARP_SIZE * ele_per_wi;
-    if (global_begin + end >= length) end = length - global_begin;
-
-    //for read-only
     long acc = 0;
-    int c = begin + lane;
-    while (c < end) {
-        acc += (data[global_begin+c] & 0b1);
-        c += WARP_SIZE;
+    for(int c = begin; c < end; c++) {
+        acc += (data[c] & 0b1);
     }
-    if(global_id == 0)  data[0] = acc;
+    data[0] = acc;
 }
-
-kernel void wg_access_no_atomic(
-    global int *data,
-    const int length,
-    int num_of_groups)     //filled with wg index orders
-{
-    int local_id = get_local_id(0);
-    int local_size = get_local_size(0);
-    const int global_id = get_global_id(0);
-    int global_size = get_global_size(0);
-    int local_warp_id = local_id >> WARP_BITS;
-    int lane = local_id & MASK;
-    int ele_per_wi = (length + num_of_groups - 1) / num_of_groups / local_size;
-
-    int group_id = get_group_id(0);
-    int group_size = get_num_groups(0);
-    for(int w = group_id; w < num_of_groups; w += group_size) {
-        int global_begin = local_size * ele_per_wi * w;
-        int begin = local_warp_id * WARP_SIZE * ele_per_wi;
-        int end = (local_warp_id + 1) * WARP_SIZE * ele_per_wi;
-        if (global_begin + end >= length) end = length - global_begin;
-
-        //for read-only
-        long acc = 0;
-        int c = begin + lane;
-        while (c < end) {
-            acc += (data[global_begin+c] & 0b1);
-            c += WARP_SIZE;
-        }
-        if(global_id == 0)  data[0] = acc;
-    }
-}
-
 
 
 kernel void cache_heat(

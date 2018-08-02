@@ -9,7 +9,7 @@
 #include "Plat.h"
 using namespace std;
 
-double scatter(cl_mem d_in, cl_mem& d_out, int length, cl_mem d_loc, int localSize, int gridSize, int pass) {
+double scatter(cl_mem d_in, cl_mem d_out, int length, cl_mem d_loc, int localSize, int gridSize, int pass) {
     device_param_t param = Plat::get_device_param();
 
     cl_event event;

@@ -22,14 +22,26 @@
 #include "utility.h"
 #include "params.h"
 
-/*  define the structure of data
+/*
+ *  define the structure of data
  *  KO: key-only
  *  KVS_AOS: key-value store using Array of Structures (AOS)
  *  KVS_SOA: key-value store using Structure of Arrays (SOA)
  */
 enum Data_structure {KO, KVS_AOS, KVS_SOA};
-enum Algo {WI, WG, WG_reorder, Single, Single_reorder};
+
+/*
+ * WI: work-item level split
+ * WG: work-group level split
+ * WG_reorder_fixed: work-group level split with fixed-length reorder buffers
+ * WG_reorder_varied: work-group level split with varied-length reorder buffers
+ *
+ * */
+enum Algo {WI, WG, WG_reorder, WG_reorder_fixed, WG_reorder_varied, Single, Single_reorder};
+enum ReorderType {NO_REORDER, FIXED_REORDER, VARIED_REORDER};
+
 typedef cl_int2 tuple_t;    /*for AOS*/
+
 
 void checkErr(cl_int status, const char* name, int tag=-1);
 void cl_mem_free(cl_mem object);
@@ -40,12 +52,14 @@ cl_kernel get_kernel(
         cl_device_id device, cl_context context,
         char *file_name, char *func_name, char *params=NULL);
 
-double gather(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, int pass);
-double scatter(cl_mem d_source_values, cl_mem& d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, int pass);
+double gather(cl_mem d_source_values, cl_mem d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, int pass);
+double scatter(cl_mem d_source_values, cl_mem d_dest_values, int length, cl_mem d_loc, int localSize, int gridSize, int pass);
 
-double scan_fast(cl_mem &d_inout, int length, int localSize, int gridSize, int R, int L);
-double scan_three_kernel(cl_mem &d_inout, unsigned length, int local_size, int grid_size);
-double scan_three_kernel_single(cl_mem &d_inout, unsigned length, int grid_size);
+double scan_fast_out_of_place(cl_mem d_in, cl_mem d_out, int length, int local_size, int grid_size, int R, int L);
+
+double scan_chained(cl_mem d_in, cl_mem d_out, int length, int localSize, int gridSize, int R, int L);
+double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int grid_size);
+double scan_rss_single(cl_mem d_in, cl_mem d_out, unsigned length);
 
 /*split algorithms*/
 double WI_split(
@@ -57,7 +71,7 @@ double WI_split(
 
 double WG_split(
         cl_mem d_in, cl_mem d_out, cl_mem d_start,
-        int length, int buckets, bool reorder,
+        int length, int buckets, ReorderType reorder,
         Data_structure structure,
         cl_mem d_in_values=0, cl_mem d_out_values=0,
         int local_size=256, int grid_size=32768);
@@ -65,9 +79,10 @@ double WG_split(
 double single_split(
         cl_mem d_in, cl_mem d_out,
         int length, int buckets, bool reorder,
-        Data_structure structure);
+        cl_mem d_in_values=0, cl_mem d_out_values=0,
+        Data_structure structure=KO);
 
-double partitionHJ(cl_mem& d_R, int rLen,int totalCountBits, int localSize, int gridSize) ;
+double partitionHJ(cl_mem d_R, int rLen,int totalCountBits, int localSize, int gridSize) ;
 double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len);
 double hashjoin_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len);
 
@@ -78,7 +93,7 @@ void test_wg_sequence(unsigned long len);
 void testAccess();
 bool testGather(int len);
 bool testScatter(int len);
-bool testScan(int length, double &totalTime, int localSize, int gridSize, int R, int L);
+bool testScan(int length, double &totalTime, int localSize, int gridSize, int R, int L, bool oop=true);
 
 /*
  *  Split test function, to test specific kernel configurations
@@ -93,8 +108,8 @@ bool testScan(int length, double &totalTime, int localSize, int gridSize, int R,
  *  @param grid_size    number of WGs in the kernel
  *
  * */
-bool split_test_specific(
-        int len, int buckets, double& aveTime,
+void split_test_specific(
+        int len, int buckets,
         Algo algo, Data_structure structure,
         int local_size, int grid_size);
 

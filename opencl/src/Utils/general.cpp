@@ -41,9 +41,9 @@ cl_kernel get_kernel(
 
 /*read the raw kernel file*/
     char *addr = new char[1000];
-    for(int i = 0; i < 1000; i++)   addr[i] = '\0';
+    memset(addr, '\0', sizeof(char)*1000);
     strcat(addr, PROJECT_ROOT);
-    strcat(addr, "/Kernels/");
+    strcat(addr, "src/Kernels/");
     strcat(addr, file_name);
 
     ifstream in(addr,std::fstream::in| std::fstream::binary);
@@ -68,7 +68,7 @@ cl_kernel get_kernel(
     checkErr(status, "Failed to creat program.");
 
     char *args = new char[1000];
-    for(int i = 0; i < 1000; i++)   args[i] = '\0';
+    memset(args, '\0', sizeof(char)*1000);
     strcat(args, "-I");
     strcat(args, PROJECT_ROOT);
     strcat(args, "/inc ");
@@ -76,9 +76,10 @@ cl_kernel get_kernel(
     strcat(args," -DKERNEL ");
     if (params != NULL) strcat(args, params);
 
-    // strcat(args, " -auto-prefetch-level=0 ");
+//    strcat(args, " -auto-prefetch-level=0 ");
     status = clBuildProgram(program, 1, &device, args, 0, 0);
     if (status == CL_BUILD_PROGRAM_FAILURE) {
+        cerr<<"\tCompilation error."<<endl;
         display_compilation_log(device, program);
         exit(EXIT_FAILURE);
     }
@@ -91,5 +92,6 @@ cl_kernel get_kernel(
     if(addr)    delete[] addr;
     if(args)    delete[] args;
 
+    in.close();
     return kernel;
 }

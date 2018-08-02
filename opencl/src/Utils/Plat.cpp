@@ -88,8 +88,8 @@ void Plat::init_properties() {
 
     cout<<"Please enter the index of the device to use (0,1,2...) : ";
 
-    cin >> this->chosen_device_id;
-//    this->chosen_device_id = 1;
+//    cin >> this->chosen_device_id;
+    this->chosen_device_id = 0;
     if (this->chosen_device_id < 0 || this->chosen_device_id >= num_devices)   {
         cerr<<"Wrong parameter."<<endl;
         exit(1);

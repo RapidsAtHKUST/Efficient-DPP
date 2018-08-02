@@ -214,44 +214,53 @@ bool testScatter(int len) {
 }
 
 //only test exclusive scan
-bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, int L) {
+bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, int L, bool oop) {
     device_param_t param = Plat::get_device_param();
 
     cl_int status = 0;
     bool res = true;
-
-    float sizeMB = 1.0*length*sizeof(int)/1024/1024;
     cout<<"length:"<<length<<' ';
 
     int *h_input = new int[length];
     int *h_output = new int[length];
+    cl_mem d_in, d_out;
+
     srand(time(NULL));
-//    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;
-    for(int i = 0; i < length; i++) h_input[i] = 1;
+    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;
 
-    int experTime = 20;
-    double tempTimes[experTime];
-    for(int e = 0; e < experTime; e++) {
-
-        cl_mem d_inout = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
+    double tempTimes[EXPERIMENT_TIMES];
+    for(int e = 0; e < EXPERIMENT_TIMES; e++) {
+        d_in = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
-        status = clEnqueueWriteBuffer(param.queue, d_inout, CL_TRUE, 0, sizeof(int) * length, h_input, 0, 0, 0);
+        if (oop) {
+            d_out = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
+            checkErr(status, ERR_HOST_ALLOCATION);
+        }
+        else d_out = d_in;
+
+        status = clEnqueueWriteBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(int) * length, h_input, 0, 0, 0);
         checkErr(status, ERR_WRITE_BUFFER);
         clFinish(param.queue);
 
-        double tempTime = scan_fast(d_inout, length, localSize, gridSize, R, L);
-        //three-kernel
-//        double tempTime = scan_three_kernel(d_inout, length, info, localSize, gridSize);
-//        double tempTime = scan_three_kernel_single(d_inout, length, info, gridSize);
+        double tempTime = scan_chained(d_in, d_out, length, localSize, gridSize, R, L);
 
-        status = clEnqueueReadBuffer(param.queue, d_inout, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
+        //three-kernel
+//        double tempTime = scan_rss(d_inout, length, info, localSize, gridSize);
+//        double tempTime = scan_rss_single(d_in, d_out, length);
+
+        status = clEnqueueReadBuffer(param.queue, d_out, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
 
         checkErr(status, ERR_READ_BUFFER);
         status = clFinish(param.queue);
 
-        status = clReleaseMemObject(d_inout);
+        status = clReleaseMemObject(d_in);
         checkErr(status, ERR_RELEASE_MEM);
+
+        if (oop) {
+            status = clReleaseMemObject(d_out);
+            checkErr(status, ERR_RELEASE_MEM);
+        }
 
         //check
         if (e == 0) {
@@ -262,19 +271,16 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
                     break;
                 }
                 acc += h_input[i];
-//                cout<<h_output[i]<<' ';
             }
         }
         tempTimes[e] = tempTime;
 
     }
-    aveTime = averageHampel(tempTimes, experTime);
+    aveTime = averageHampel(tempTimes, EXPERIMENT_TIMES);
 
     if(h_input) delete[] h_input;
     if(h_output) delete[] h_output;
 
-//     cout<<"Time:"<<aveTime<<" ms.\t";
-//     cout<<"Throughput:"<<sizeMB*1.0/1024/aveTime*1000<<" GB/s"<<endl;
     return res;
 }
 
@@ -359,14 +365,14 @@ void testScanParameters(int length, int device) {
 }
 
 /*
- * Split test function, to test specific kernel configurations
+ * Split test inner function, to test specific kernel configurations
  *
  *  len:            length of the dataset
  *  algo:           WI_split, WG_split, WG_reorder_split, Single_split, Single_reorder_split
  *  structure:      KO, AOS or SOA
  *
  * */
-bool split_test_specific(
+bool split_test(
         int len, int buckets, double& ave_time,
         Algo algo, Data_structure structure,
         int local_size, int grid_size)
@@ -375,11 +381,11 @@ bool split_test_specific(
 
     cl_int status = 0;
     bool res = true;
-    int experTime = 100;
+    int experTime = 30;
     double tempTime, *time_recorder = new double[experTime];
 
-    cout<<"Length: "<<len<<'\t';
-    cout<<"Buckets: "<<buckets<<"\t";
+//    cout<<"Length: "<<len<<'\t';
+//    cout<<"Buckets: "<<buckets<<"\t";
 
     int *h_in_keys=NULL, *h_in_values=NULL, *h_out_keys=NULL, *h_out_values=NULL;/*for SOA*/
     tuple_t *h_in=NULL, *h_out=NULL;      /*for AOS*/
@@ -455,12 +461,12 @@ bool split_test_specific(
             case Single:     /*single split*/
                 tempTime = single_split(
                         d_in_unified, d_out_unified,
-                        len, buckets, false, structure);
+                        len, buckets, false);
                 break;
             case Single_reorder:     /*single split, reorder*/
                 tempTime = single_split(
                         d_in_unified, d_out_unified,
-                        len, buckets, true, structure);
+                        len, buckets, true);
                 break;
             case WI:     /*WI-level split*/
                 tempTime = WI_split(
@@ -472,14 +478,14 @@ bool split_test_specific(
             case WG:     /*WG-level split*/
                 tempTime = WG_split(
                         d_in_unified, d_out_unified, 0,
-                        len, buckets, false, structure,
+                        len, buckets, NO_REORDER, structure,
                         d_in_values, d_out_values,
                         local_size, grid_size);
                 break;
             case WG_reorder:     /*WG-level split, reorder*/
                 tempTime = WG_split(
                         d_in_unified, d_out_unified, 0,
-                        len, buckets, true, structure,
+                        len, buckets, VARIED_REORDER, structure,
                         d_in_values, d_out_values,
                         local_size, grid_size);
                 break;
@@ -576,10 +582,28 @@ bool split_test_specific(
     if(h_out)           delete[] h_out;
     if(time_recorder)   delete[] time_recorder;
 
-    /*report the results*/
-    std::cout<<"Time: "<<ave_time<<" ms."<<"("<<len* sizeof(int)*2/ave_time*1000/1e9<<"GB/s)"<<std::endl;
-
     return res;
+}
+
+void split_test_specific(
+        int len, int buckets,
+        Algo algo, Data_structure structure,
+        int local_size, int grid_size)
+{
+    cout<<"Length: "<<len<<'\t'
+        <<"Buckets: "<<buckets<<"\t";
+
+    double my_time;
+    bool res = split_test(len, buckets, my_time, algo, structure, local_size, grid_size);
+
+    /*report the results*/
+    if (res) {
+        double throughput = computeMem(len, sizeof(int), my_time);
+        cout << "Time: " << my_time << " ms." << "(" << throughput << "GB/s)" << endl;
+    }
+    else {
+        cerr<<"Wrong answer."<<endl;
+    }
 }
 
 //search the most suitable (localSize, gridSize, sharedMem size) parameters for a split scheme
@@ -670,9 +694,10 @@ void split_test_parameters(
                 if (his_len > limit) continue;
             }
 
-            /*invode split_test_specific with the configuration*/
+            /*invode split_test
+             *with the configuration*/
             double temp_time;
-            bool res = split_test_specific(
+            bool res = split_test(
                     len, buckets, temp_time,
                     algo, structure,
                     local_size, grid_size);

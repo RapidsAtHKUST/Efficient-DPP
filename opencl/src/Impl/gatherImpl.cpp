@@ -8,7 +8,7 @@
 
 #include "Plat.h"
 
-double gather(cl_mem d_in, cl_mem& d_out, int length, cl_mem d_loc, int localSize, int gridSize, int pass) {
+double gather(cl_mem d_in, cl_mem d_out, int length, cl_mem d_loc, int localSize, int gridSize, int pass) {
     device_param_t param = Plat::get_device_param();
 
     cl_event event;

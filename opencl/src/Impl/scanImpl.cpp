@@ -14,7 +14,7 @@ using namespace std;
  *  R: number of elements in registers in each work-item
  *  L: number of elememts in local memory
  */
-double scan_fast(cl_mem &d_inout, int length, int local_size, int grid_size, int R, int L)
+double scan_chained(cl_mem d_in, cl_mem d_out, int length, int local_size, int grid_size, int R, int L)
 {
     device_param_t param = Plat::get_device_param();
 
@@ -26,7 +26,6 @@ double scan_fast(cl_mem &d_inout, int length, int local_size, int grid_size, int
     int local_size_log = log2(local_size);
     int tile_size = local_size * (R + L);
     int num_of_blocks = (length + tile_size - 1) / tile_size;
-
 
     //kernel reading
     char extra[500];        
@@ -54,7 +53,7 @@ double scan_fast(cl_mem &d_inout, int length, int local_size, int grid_size, int
     my_itoa(DR, R_li, 10);       //transfer R to string
     strcat(extra, R_li);
 
-    cl_kernel scanBlockKernel = get_kernel(param.device, param.context, "scan_kernel.cl", "scan_fast", extra);
+    cl_kernel kernel = get_kernel(param.device, param.context, "scan_kernel.cl", "scan", extra);
 
     //initialize the intermediate array
     int *h_inter = new int[num_of_blocks];
@@ -67,39 +66,23 @@ double scan_fast(cl_mem &d_inout, int length, int local_size, int grid_size, int
     size_t local[1] = {(size_t)local_size};
     size_t global[1] = {(size_t)(local_size * grid_size)};
 
-    //help, for debug
-//    cl_mem d_help = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*local_size, NULL, &status);
-
     argsNum = 0;
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_inout);
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &length);
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int)*local_mem_size, NULL);    //local memory lo
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &lo_size);           //local mem size
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &num_of_blocks);
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &R);
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(int), &L);
-    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_inter);
-
-//    status |= clSetKernelArg(scanBlockKernel, argsNum++, sizeof(cl_mem), &d_help);
-
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_out);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(int), &length);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(int)*local_mem_size, NULL);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(int), &lo_size);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(int), &num_of_blocks);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(int), &R);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(int), &L);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_inter);
     checkErr(status, ERR_SET_ARGUMENTS);
-    
-#ifdef PRINT_KERNEL
-    printExecutingKernel(scanBlockKernel);
-#endif
+
     status = clFinish(param.queue);
-    status = clEnqueueNDRangeKernel(param.queue, scanBlockKernel, 1, 0, global, local, 0, NULL, &event);
+    status = clEnqueueNDRangeKernel(param.queue, kernel, 1, 0, global, local, 0, NULL, &event);
     status = clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
     totalTime = clEventTime(event);
-
-//    int *h_help = new int[local_size];
-//    status = clEnqueueReadBuffer(param.queue, d_help, CL_TRUE, 0, sizeof(int)*local_size, h_help, 0, 0, 0);
-//    cout<<endl;
-//    for(int i = 0; i < local_size; i++) cout<<i<<' '<<h_help[i]<<endl;
-//    cout<<endl;
-//    delete[] h_help;
-//    clReleaseMemObject(d_help);
 
     clReleaseMemObject(d_inter);
     if(h_inter) delete[] h_inter;
@@ -107,7 +90,7 @@ double scan_fast(cl_mem &d_inout, int length, int local_size, int grid_size, int
     return totalTime;
 }
 
-double scan_three_kernel(cl_mem &d_inout, unsigned length, int local_size, int grid_size)
+double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int grid_size)
 {
     device_param_t param = Plat::get_device_param();
 
@@ -141,7 +124,7 @@ double scan_three_kernel(cl_mem &d_inout, unsigned length, int local_size, int g
 //    cl_mem d_help = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*grid_size, NULL, &status);
 
     argsNum = 0;
-    status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(cl_mem), &d_inout);
+    status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(cl_mem), &d_in);
     status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(cl_mem), &d_reduction);
     status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(int)*grid_size, NULL);
@@ -182,7 +165,8 @@ double scan_three_kernel(cl_mem &d_inout, unsigned length, int local_size, int g
     size_t scan_global[1] = {(size_t)(local_size*grid_size)};
 
     argsNum = 0;
-    status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_inout);
+    status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_out);
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_reduction);
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(int), &scan_len_per_wg);
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(int), &length);
@@ -199,21 +183,6 @@ double scan_three_kernel(cl_mem &d_inout, unsigned length, int local_size, int g
     double scan_time = clEventTime(event);
     totalTime += scan_time;
 
-//    std::cout<<"local_size:"<<local_size<<'\t'<<"grid_size:"<<grid_size<<'\t'<<"ele_per_wg:"<<length/grid_size<<std::endl;
-//    int *h_help = new int[grid_size];
-//    status = clEnqueueReadBuffer(param.queue, d_reduction, CL_TRUE, 0, sizeof(int)*grid_size, h_help, 0, 0, 0);
-//    cout<<endl;
-//    for(int i = 0; i < grid_size; i++) {
-//        cout<<h_help[i]<<' ';
-//    }
-//    cout<<endl;
-//    for(int i = 1; i < grid_size; i++) {
-//        if (h_help[i] - h_help[i-1]!= 1024) {
-//            cout<<i<<' '<<h_help[i]<<' '<<h_help[i-1]<<endl;
-//        }
-//    }
-//    cout<<endl;
-//    delete[] h_help;
     clReleaseMemObject(d_reduction);
 
     cout<<endl;
@@ -225,18 +194,17 @@ double scan_three_kernel(cl_mem &d_inout, unsigned length, int local_size, int g
 }
 
 //single-threaded
-double scan_three_kernel_single(cl_mem &d_inout, unsigned length, int grid_size)
+double scan_rss_single(cl_mem d_in, cl_mem d_out, unsigned length)
 {
     device_param_t param = Plat::get_device_param();
+    int grid_size = param.cus-1;
+    int local_size = 1;             /*single-work-item*/
+    int len_per_wg = (length + grid_size - 1) / grid_size;
 
     double totalTime = 0.0f;
     cl_event event;
     cl_int status = 0;
     int argsNum = 0;
-
-    //single-threaded
-    int local_size = 1;
-    int len_per_wg = (length + grid_size - 1) / grid_size;
 
 //-------------------------- Step 1: reduce -----------------------------
     cl_kernel reduce_kernel = get_kernel(param.device, param.context, "scan_rss_single_kernel.cl", "reduce_single");
@@ -247,7 +215,7 @@ double scan_three_kernel_single(cl_mem &d_inout, unsigned length, int grid_size)
     cl_mem d_reduction = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*grid_size, NULL, &status);
 
     argsNum = 0;
-    status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(cl_mem), &d_inout);
+    status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(cl_mem), &d_in);
     status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(cl_mem), &d_reduction);
     status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(int), &len_per_wg);
     status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(int), &length);
@@ -283,7 +251,8 @@ double scan_three_kernel_single(cl_mem &d_inout, unsigned length, int grid_size)
     cl_kernel scan_kernel = get_kernel(param.device, param.context, "scan_rss_single_kernel.cl", "scan_with_offset_single");
 
     argsNum = 0;
-    status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_inout);
+    status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_out);
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_reduction);
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(int), &len_per_wg);
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(int), &length);
@@ -295,16 +264,6 @@ double scan_three_kernel_single(cl_mem &d_inout, unsigned length, int grid_size)
     checkErr(status, ERR_EXEC_KERNEL);
     double scan_time = clEventTime(event);
     totalTime += scan_time;
-
-//    std::cout<<"local_size:"<<local_size<<'\t'<<"grid_size:"<<grid_size<<'\t'<<"ele_per_wg:"<<length/grid_size<<std::endl;
-//    int *h_help = new int[grid_size];
-//    status = clEnqueueReadBuffer(param.queue, d_reduction, CL_TRUE, 0, sizeof(int)*grid_size, h_help, 0, 0, 0);
-//    cout<<endl;
-//    for(int i = 0; i < grid_size; i++) {
-//        cout<<h_help[i]<<' ';
-//    }
-//    cout<<endl;
-//    delete[] h_help;
 
     clReleaseMemObject(d_reduction);
     return totalTime;

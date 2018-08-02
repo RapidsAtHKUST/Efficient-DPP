@@ -47,9 +47,9 @@ int main(int argc, const char *argv[]) {
 //        int num = 1<<scale;
 //        double aveTime;
 //        cout<<scale<<'\t';
-//        bool res = testScan(num, aveTime, 64, 39, 112, 0, info);    //CPU testing
-//        bool res = testScan(num, aveTime, 64, 240, 67, 0, info);    //MIC testing
-//        bool res = testScan(num, aveTime, 1024, 15, 0, 11, info);    //GPU testing
+////        bool res = testScan(num, aveTime, 64, 39, 112, 0);    //CPU testing
+////        bool res = testScan(num, aveTime, 64, 240, 67, 0);    //MIC testing
+//        bool res = testScan(num, aveTime, 1024, 15, 0, 11, false);    //GPU testing
 //        if (!res) {
 //            cerr<<"Wrong result!"<<endl;
 //            exit(1);
@@ -58,37 +58,37 @@ int main(int argc, const char *argv[]) {
 //        cout<<"Throughput:"<<num*1.0 /1024/1024/1024/aveTime*1000<<" GKeys/s"<<endl;
 //    }
 
-//    unsigned long length = 1<<30; //4GB
-//    test_wg_sequence(length, info);
+//    uint64_t length = 1<<29; //2GB
+//    test_wg_sequence(length);
+
 
 
 //     testScanParameters(length, 1, info);
+//    double totalTime;
 //    int length = 1<<25;
-//    bool res = testScan(length, totalTime, 1024, 15, 0, 11, info);    //gpu
-//    bool res = testScan(length, totalTime, 64, 4682, 0, 112, info);    //cpu
+//    bool res = testScan(length, totalTime, 1024, 15, 0, 11, false);    //gpu
+//    bool res = testScan(length, totalTime, 64, 39, 112, 0, false);    //cpu
 //    bool res = testScan(length, totalTime, 64, 240, 33, 1, info);    //mic
 
 //     if (res)   cout<<"right ";
 //     else       cout<<"wrong ";
-
+//
 //     cout<<"Time:"<<totalTime<<" ms.\t";
 //     cout<<"Throughput:"<<length*1.0/1024/1024/1024/totalTime*1000<<" GKeys/s"<<endl;
 
-    int length = 1<<25;
-    testScatter(length);
+
 //    for (int buckets = 2; buckets <= 4096; buckets <<= 1) {
 //        split_test_parameters(length, buckets, WG_reorder, KVS_AOS, 2, info);
 //    }
-//    double ave_time;
-//    split_test_specific(
-//            length, 32, ave_time,
-//            WI, KVS_AOS,
-//            16, 16);
 
-//    cout<<"Key-only:"<<endl;
-//    for(int buckets = 2; buckets <= 4096; buckets<<=1) {
-//        testSplitParameters(length, buckets, 1, 3, info);
-//    }
+    int length = 1<<25;
+    cout<<"Key-values:"<<endl;
+    for(int buckets = 512; buckets <= 512; buckets<<=1) {
+        split_test_specific(
+                length, buckets,
+                Single_reorder, KO,
+                1, 39);
+    }
 
 //------- finished operations ---------------
 

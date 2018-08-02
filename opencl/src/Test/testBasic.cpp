@@ -272,15 +272,15 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
     int h_atom = 0;
     int args_num;
 
-    cl_kernel kernel = get_kernel(param.device, param.context, "memKernel.cl", "wg_access");
+    cl_kernel kernel = get_kernel(param.device, param.context, "mem_kernel.cl", "wg_access");
 
     //set work group and NDRange sizes
     size_t local[1] = {(size_t)(local_size)};
     size_t global[1] = {(size_t)(local_size * grid_size)};
+    int len_per_wg = len / grid_size;
 
-    int experTime = 10;
-    double tempTimes[experTime];
-    for(int e = 0; e < experTime; e++) {
+    double tempTimes[EXPERIMENT_TIMES];
+    for(int e = 0; e < EXPERIMENT_TIMES; e++) {
         cl_mem d_in = clCreateBuffer(param.context, CL_MEM_READ_WRITE , sizeof(int)*len, NULL, &status);
         cl_mem d_idx_arr = clCreateBuffer(param.context, CL_MEM_READ_WRITE , sizeof(int)*grid_size, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
@@ -294,7 +294,7 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
 
         //flush the cache
         if(loaded) {
-            cl_kernel heat_kernel = get_kernel(param.device, param.context, "memKernel.cl", "cache_heat");
+            cl_kernel heat_kernel = get_kernel(param.device, param.context, "mem_kernel.cl", "cache_heat");
             args_num = 0;
             status |= clSetKernelArg(heat_kernel, args_num++, sizeof(cl_mem), &d_in);
             status |= clSetKernelArg(heat_kernel, args_num++, sizeof(int), &len);
@@ -306,7 +306,7 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
         }
         args_num = 0;
         status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_in);
-        status |= clSetKernelArg(kernel, args_num++, sizeof(int), &len);
+        status |= clSetKernelArg(kernel, args_num++, sizeof(int), &len_per_wg);
         status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_atom);
         status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_idx_arr);
         checkErr(status, ERR_SET_ARGUMENTS);
@@ -339,84 +339,19 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
         // tempTimes[e] = clEventTime(event);
         tempTimes[e] = diffTime(end, start);
     }
-    return averageHampel(tempTimes, experTime);
-}
-
-double wg_sequence_no_atomic(int *h_data, int len, int local_size, int num_of_groups, bool loaded) {
-
-    device_param_t param = Plat::get_device_param();
-
-    cl_event event;
-    cl_int status;
-    int args_num;
-
-    cl_kernel kernel = get_kernel(param.device, param.context, "memKernel.cl", "wg_access_no_atomic");
-
-    //set work group and NDRange sizes
-    int grid_size = 40;
-    size_t local[1] = {(size_t)(local_size)};
-    size_t global[1] = {(size_t)(local_size * grid_size)};
-
-    int experTime = 10;
-    double tempTimes[experTime];
-    for(int e = 0; e < experTime; e++) {
-        cl_mem d_in = clCreateBuffer(param.context, CL_MEM_READ_WRITE , sizeof(int)*len, NULL, &status);
-
-        //flush the cache
-        if(loaded) {
-            cl_kernel heat_kernel = get_kernel(param.device, param.context, "memKernel.cl", "cache_heat");
-            args_num = 0;
-            status |= clSetKernelArg(heat_kernel, args_num++, sizeof(cl_mem), &d_in);
-            status |= clSetKernelArg(heat_kernel, args_num++, sizeof(int), &len);
-            checkErr(status, ERR_SET_ARGUMENTS);
-
-            status = clEnqueueNDRangeKernel(param.queue, heat_kernel, 1, 0, global, local, 0, 0, 0);
-            status = clFinish(param.queue);
-            checkErr(status, ERR_EXEC_KERNEL,1);
-        }
-        args_num = 0;
-        status |= clSetKernelArg(kernel, args_num++, sizeof(cl_mem), &d_in);
-        status |= clSetKernelArg(kernel, args_num++, sizeof(int), &len);
-        status |= clSetKernelArg(kernel, args_num++, sizeof(int), &num_of_groups);
-        checkErr(status, ERR_SET_ARGUMENTS);
-
-        //kernel execution
-        status = clFinish(param.queue);
-
-        //kernel execution
-        status = clEnqueueNDRangeKernel(param.queue, kernel, 1, 0, global, local, 0, 0, &event);
-        status = clFinish(param.queue);
-        checkErr(status, ERR_EXEC_KERNEL,2);
-
-        // status = clEnqueueReadBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(int)*len, h_data, 0, 0, 0);
-        // for(int i = 0; i < 1048576; i++) {
-        //     cout<<h_data[i]<<' ';
-        // }
-        // cout<<endl;
-
-        //free the memory
-        status = clReleaseMemObject(d_in);
-        checkErr(status, ERR_RELEASE_MEM);
-
-        tempTimes[e] = clEventTime(event);
-    }
-    return averageHampel(tempTimes, experTime);
+    return averageHampel(tempTimes, EXPERIMENT_TIMES);
 }
 
 void test_wg_sequence(unsigned long len) {
     device_param_t param = Plat::get_device_param();
 
-    len = 1<<29;    //2GB dataset
     std::cout<<"Data size : "<<len<<" ("<<len*sizeof(int)*1.0/1024/1024<<"MB)"<<std::endl;
 
-    int num_CUs, local_size = 512;
+    int local_size = 1;
     double aveTime, throughput;
 
     //size of the partition each work-group processes
     int ds_wg_kb, ds_wg_kb_begin = 8, ds_wg_kb_end=8192;
-
-    //get the number of CUs on the device
-    clGetDeviceInfo(param.device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(num_CUs), &num_CUs, NULL);
 
     int *h_data = new int[len];
     for(int i = 0; i < len; i++) h_data[i] = 1;
@@ -425,10 +360,11 @@ void test_wg_sequence(unsigned long len) {
    cout<<"Case: Interleaved, unloaded."<<endl;
    for(ds_wg_kb = ds_wg_kb_end; ds_wg_kb >= ds_wg_kb_begin; ds_wg_kb >>= 1) {
        int grid_size = len/1024/ ds_wg_kb * sizeof(int);
+       cout<<"ele_per_wi:"<<len/grid_size/local_size<<endl;
        int *h_idx_array = new int[grid_size];
        for(int i = 0; i < grid_size; i++) h_idx_array[i] = i;
 
-       aveTime = wg_sequence(h_data, len, h_idx_array, local_size, grid_size, true);
+       aveTime = wg_sequence(h_data, len, h_idx_array, local_size, grid_size, false);
         // aveTime = wg_sequence_no_atomic(h_data,len,local_size,grid_size,info,false);
 
        throughput = computeMem(len, sizeof(int), aveTime);
