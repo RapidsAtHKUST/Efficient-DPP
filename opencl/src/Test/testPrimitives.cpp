@@ -384,9 +384,6 @@ bool split_test(
     int experTime = 30;
     double tempTime, *time_recorder = new double[experTime];
 
-//    cout<<"Length: "<<len<<'\t';
-//    cout<<"Buckets: "<<buckets<<"\t";
-
     int *h_in_keys=NULL, *h_in_values=NULL, *h_out_keys=NULL, *h_out_values=NULL;/*for SOA*/
     tuple_t *h_in=NULL, *h_out=NULL;      /*for AOS*/
 
@@ -458,16 +455,6 @@ bool split_test(
     for(int e = 0; e < experTime; e++) {
         if (res == false)   break;
         switch (algo) {
-            case Single:     /*single split*/
-                tempTime = single_split(
-                        d_in_unified, d_out_unified,
-                        len, buckets, false);
-                break;
-            case Single_reorder:     /*single split, reorder*/
-                tempTime = single_split(
-                        d_in_unified, d_out_unified,
-                        len, buckets, true);
-                break;
             case WI:     /*WI-level split*/
                 tempTime = WI_split(
                         d_in_unified, d_out_unified, 0,
@@ -482,10 +469,17 @@ bool split_test(
                         d_in_values, d_out_values,
                         local_size, grid_size);
                 break;
-            case WG_reorder:     /*WG-level split, reorder*/
+            case WG_varied_reorder:     /*WG-level split, reorder*/
                 tempTime = WG_split(
                         d_in_unified, d_out_unified, 0,
                         len, buckets, VARIED_REORDER, structure,
+                        d_in_values, d_out_values,
+                        local_size, grid_size);
+                break;
+            case WG_fixed_reorder:     /*WG-level split, reorder*/
+                tempTime = WG_split(
+                        d_in_unified, d_out_unified, 0,
+                        len, buckets, FIXED_REORDER, structure,
                         d_in_values, d_out_values,
                         local_size, grid_size);
                 break;
@@ -574,10 +568,10 @@ bool split_test(
     cl_mem_free(d_in);
     cl_mem_free(d_out);
 
-    if(h_in_keys)       delete [] h_in_keys;
-    if(h_out_keys)      delete [] h_out_keys;
-    if(h_in_values)     delete [] h_in_values;
-    if(h_out_values)    delete [] h_out_values;
+    if(h_in_keys)       delete[] h_in_keys;
+    if(h_out_keys)      delete[] h_out_keys;
+    if(h_in_values)     delete[] h_in_values;
+    if(h_out_values)    delete[] h_out_values;
     if(h_in)            delete[] h_in;
     if(h_out)           delete[] h_out;
     if(time_recorder)   delete[] time_recorder;
@@ -631,7 +625,7 @@ void split_test_parameters(
     int local_size_begin, local_size_end, grid_size_begin, grid_size_end, local_mem_limited;
 
     /*Single split has fixed parameters*/
-    if (algo == Single || algo == Single_reorder) {
+    if (algo == WG_fixed_reorder) {
         std::cout<<"Single split has fixed parameter: "
                  <<"local_size=1, grid_size=#CUs. "
                  <<"No need to probe."<<std::endl;
@@ -674,7 +668,7 @@ void split_test_parameters(
             //check the shared memory size
             if (local_buffer_len < local_size) continue;
 
-            if (algo == WG_reorder) {
+            if (algo == WG_varied_reorder) {
                 int scale = 0;
                 if (structure == KO)    scale = 1;
                 else                    scale = 2;

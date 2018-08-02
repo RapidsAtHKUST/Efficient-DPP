@@ -86,7 +86,7 @@ int main(int argc, const char *argv[]) {
     for(int buckets = 512; buckets <= 512; buckets<<=1) {
         split_test_specific(
                 length, buckets,
-                Single_reorder, KO,
+                WG_fixed_reorder, KO,
                 1, 39);
     }
 

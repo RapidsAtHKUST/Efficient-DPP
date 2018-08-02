@@ -500,7 +500,7 @@ kernel void WG_shuffle(
 }
 
 /*block-level split on key-value data with data reordering*/
-kernel void WG_shuffle_vaired(
+kernel void WG_shuffle_varied(
     global const Tuple *d_in,
     global Tuple *d_out,
 #ifdef KVS_SOA
@@ -582,9 +582,7 @@ kernel void WG_shuffle_vaired(
 #define CACHELINE_SIZE (64)     /*in bytes*/
 #endif
 
-#ifndef ELE_PER_CACHELINE
 #define ELE_PER_CACHELINE   (CACHELINE_SIZE/sizeof(Tuple))
-#endif
 
 kernel  __attribute__((work_group_size_hint(1, 1, 1)))
 void WG_shuffle_fixed(

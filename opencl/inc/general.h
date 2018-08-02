@@ -37,7 +37,7 @@ enum Data_structure {KO, KVS_AOS, KVS_SOA};
  * WG_reorder_varied: work-group level split with varied-length reorder buffers
  *
  * */
-enum Algo {WI, WG, WG_reorder, WG_reorder_fixed, WG_reorder_varied, Single, Single_reorder};
+enum Algo {WI, WG, WG_fixed_reorder, WG_varied_reorder};
 enum ReorderType {NO_REORDER, FIXED_REORDER, VARIED_REORDER};
 
 typedef cl_int2 tuple_t;    /*for AOS*/
@@ -71,16 +71,10 @@ double WI_split(
 
 double WG_split(
         cl_mem d_in, cl_mem d_out, cl_mem d_start,
-        int length, int buckets, ReorderType reorder,
+        int length, int buckets, ReorderType reorder_type,
         Data_structure structure,
         cl_mem d_in_values=0, cl_mem d_out_values=0,
         int local_size=256, int grid_size=32768);
-
-double single_split(
-        cl_mem d_in, cl_mem d_out,
-        int length, int buckets, bool reorder,
-        cl_mem d_in_values=0, cl_mem d_out_values=0,
-        Data_structure structure=KO);
 
 double partitionHJ(cl_mem d_R, int rLen,int totalCountBits, int localSize, int gridSize) ;
 double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len);
