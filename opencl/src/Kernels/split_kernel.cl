@@ -370,7 +370,7 @@ kernel void WI_histogram(
         his[i*global_size+global_id] = local_buckets[i*local_size+local_id];
 }
 
-kernel void WI_scatter(
+kernel void WI_shuffle(
     global const Tuple *d_in,
     global Tuple *d_out,
 #ifdef KVS_SOA
@@ -428,17 +428,14 @@ kernel void WG_histogram(
 
     unsigned step = (local_size < WARP_SIZE) ? local_size : WARP_SIZE;
     unsigned mask = buckets - 1;
-    unsigned offset, begin_global, end_global, begin_local, end_local;
+    unsigned offset, begin_global, end_global;
 
-    compute_mixed_access(
-            step, local_id, local_size, buckets,
-            &begin_local, &end_local);
     compute_mixed_access(
             step, global_id, global_size, len_total,
             &begin_global, &end_global);
 
     /*local histogram initialization*/
-    for(int i = begin_local; i < end_local; i += step)
+    for(int i = local_id; i < buckets; i += local_size)
         local_buc[i] = 0;
     barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -450,7 +447,7 @@ kernel void WG_histogram(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     /*histogram write*/
-    for(int i = begin_local; i < end_local; i += step)
+    for(int i = local_id; i < buckets; i += local_size)
         his[i*num_groups+group_id] = local_buc[i];
 }
 
@@ -475,16 +472,13 @@ kernel void WG_shuffle(
 
     unsigned step = (local_size < WARP_SIZE) ? local_size : WARP_SIZE;
     unsigned mask = buckets - 1;
-    unsigned offset, begin_global, end_global, begin_local, end_local;
+    unsigned offset, begin_global, end_global;
 
-    compute_mixed_access(
-            step, local_id, local_size, buckets,
-            &begin_local, &end_local);
     compute_mixed_access(
             step, global_id, global_size, len_total,
             &begin_global, &end_global);
 
-    for(int i = begin_local; i < end_local; i += step)
+    for(int i = local_id; i < buckets; i += local_size)
         local_buc[i] = his[i*num_groups+group_id];
     barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -527,18 +521,15 @@ kernel void WG_shuffle_varied(
 
     unsigned step = (local_size < WARP_SIZE) ? local_size : WARP_SIZE;
     unsigned mask = buckets - 1;
-    unsigned offset, begin_global, end_global, begin_local, end_local;
+    unsigned offset, begin_global, end_global;
 
-    compute_mixed_access(
-            step, local_id, local_size, buckets,
-            &begin_local, &end_local);
     compute_mixed_access(
             step, global_id, global_size, len_total,
             &begin_global, &end_global);
 
     /*load the scanned histogram*/
     local_start_ptrs[0] = 0;
-    for(int i = begin_local; i < end_local; i += step)
+    for(int i = local_id; i < buckets; i += local_size)
         local_start_ptrs[i+1] = his_origin[i*num_groups+group_id];
     barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -559,17 +550,13 @@ kernel void WG_shuffle_varied(
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    for(int i = begin_local; i < end_local; i += step)
+    for(int i = local_id; i < buckets; i += local_size)
         local_start_ptrs[i] = his_scanned[i*num_groups+group_id] - local_start_ptrs[i];
     barrier(CLK_LOCAL_MEM_FENCE);
 
     //write the data from the local mem to global mem (coalesced)
     int local_sum = local_start_ptrs[buckets];
-
-    compute_mixed_access(
-            step, local_id, local_size, local_sum,
-            &begin_local, &end_local);
-    for(int i = begin_local; i < end_local; i += step) {
+    for(int i = local_id; i < local_sum; i += local_size) {
         offset = GET_X_VALUE(reorder_buffer, i) & mask;
         d_out[i+local_start_ptrs[offset]] = reorder_buffer[i];
 #ifdef KVS_SOA
@@ -673,6 +660,139 @@ void WG_shuffle_fixed(
 #ifdef KVS_SOA
             d_out_values[local_buc_ptr[i]+c] = local_buffer_values[i*ELE_PER_CACHELINE+c];
 #endif
+        }
+    }
+}
+
+/*---------------------- dedicated single-threaded kernels for CPUs and MICs --------------------------*/
+/*
+ * All the kernels are invoked with local_size=1
+ * Only support KO and AOS
+ */
+kernel  __attribute__((work_group_size_hint(1, 1, 1)))
+void single_histogram(
+        global const Tuple *d_in,   /*input keys*/
+        const int len_per_group,        /*elements processed by each WG*/
+        const int len_total,            /*len of the whole array*/
+        const int buckets,              /*number of buckets*/
+        global int *his,                /*histogram output*/
+        local int *local_buc)           /*local buckets: buckets*sizeof(int)*/
+{
+    int group_id = get_group_id(0);
+    int num_groups = get_num_groups(0);
+
+    unsigned mask = buckets - 1;
+    unsigned offset;
+    unsigned start = len_per_group * group_id;
+    unsigned end = len_per_group * (group_id+1);
+    if (end > len_total)    end = len_total;
+
+    /*local histogram initialization*/
+    for(int i = 0; i < buckets; i++)    local_buc[i] = 0;
+
+    /*iterate the data partition*/
+    for(int i = start; i <end; i++) {
+        offset = GET_X_VALUE(d_in, i) & mask;
+        local_buc[offset]++;
+    }
+
+    /*output to the global histogram*/
+    for(int i = 0; i < buckets; i++)
+        his[i*num_groups+group_id] = local_buc[i];
+}
+
+kernel  __attribute__((work_group_size_hint(1, 1, 1)))
+void single_shuffle(
+        global const Tuple *d_in,
+        global Tuple *d_out,
+const int len_per_group,        /*elements processed by each WG*/
+const int len_total,            /*len of the whole array*/
+const int buckets,
+        global int *his,                /*scanned histogram*/
+        local int *local_buc)            /*scanned local buckets: buckets*sizeof(int)*/
+{
+    int group_id = get_group_id(0);
+    int num_groups = get_num_groups(0);
+
+    unsigned mask = buckets - 1;
+    unsigned offset;
+    unsigned start = len_per_group * group_id;
+    unsigned end = len_per_group * (group_id+1);
+    if (end > len_total)    end = len_total;
+
+    /*load the scanned histogram*/
+    for(int i = 0; i < buckets; i++)
+        local_buc[i] = his[i*num_groups+group_id];
+
+    /*iterate the data partition*/
+    for(int i = start; i <end; i++) {
+        offset = GET_X_VALUE(d_in, i) & mask;
+        unsigned addr = local_buc[offset]++;
+        d_out[addr] = d_in[i];
+    }
+}
+
+kernel  __attribute__((work_group_size_hint(1, 1, 1)))
+void single_fixed_shuffle(
+        global const Tuple *d_in,
+        global Tuple *d_out,
+        const int len_per_group,            /*elements processed by each WG*/
+        const int len_total,                /*len of the whole array*/
+        int buckets,                        /*number of buckets*/
+        global int *his,                    /*scanned histogram*/
+        local int *local_buc_ptr,           /*scanned local buckets ptrs: buckets*sizeof(int)*/
+        global Tuple *reorder_buffer_all)    /*tuple buffer for AOS*/
+{
+    int group_id = get_group_id(0);
+    int num_groups = get_num_groups(0);
+
+    unsigned mask = buckets - 1;
+    unsigned offset, buffer_len;
+    unsigned start = len_per_group * group_id;
+    unsigned end = len_per_group * (group_id+1);
+    if (end > len_total)    end = len_total;
+
+    /*local buffer size*/
+    global Tuple *local_buffer;
+    local_buffer = (global Tuple*)(reorder_buffer_all+ group_id*ELE_PER_CACHELINE*buckets);
+
+    /*load the scanned histogram and initialize the local buffer*/
+    for(int i = 0; i < buckets; i++) {
+        local_buc_ptr[i] = his[i * num_groups + group_id];
+
+        /*last element in the cacheline records the len*/
+        GET_X_VALUE(local_buffer, (i+1)*ELE_PER_CACHELINE-1) = 0;
+    }
+
+    /*iterate the data partition*/
+    for(int i = start; i <end; i++) {
+        offset = GET_X_VALUE(d_in, i) & mask;
+        unsigned buffer_len_idx = (offset+1)*ELE_PER_CACHELINE-1;
+
+        /*write to the cache buffer*/
+        buffer_len = GET_X_VALUE(local_buffer,buffer_len_idx);
+        local_buffer[offset*ELE_PER_CACHELINE+buffer_len] = d_in[i];
+
+        /*update the counter*/
+        GET_X_VALUE(local_buffer,buffer_len_idx)++;
+        buffer_len = GET_X_VALUE(local_buffer,buffer_len_idx);
+
+        if (buffer_len == (ELE_PER_CACHELINE-1)) {
+            /*write the buffer to the global array*/
+            for(int c = 0; c < ELE_PER_CACHELINE-1; c++) {
+                d_out[local_buc_ptr[offset] + c] = local_buffer[offset * ELE_PER_CACHELINE + c];
+            }
+            local_buc_ptr[offset] += (ELE_PER_CACHELINE-1);
+            GET_X_VALUE(local_buffer,buffer_len_idx) = 0;
+        }
+    }
+
+    /*write the rest elements to the global array*/
+    for(int i = 0; i < buckets; i++) {
+        unsigned buffer_len_idx = (i+1)*ELE_PER_CACHELINE-1;
+        buffer_len = GET_X_VALUE(local_buffer,buffer_len_idx);
+        for(int c = 0; c < buffer_len; c++) {
+            d_out[local_buc_ptr[i]+c] = local_buffer[i*ELE_PER_CACHELINE+c];
         }
     }
 }

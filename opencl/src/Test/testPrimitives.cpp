@@ -381,7 +381,7 @@ bool split_test(
 
     cl_int status = 0;
     bool res = true;
-    int experTime = 30;
+    int experTime = 10;
     double tempTime, *time_recorder = new double[experTime];
 
     int *h_in_keys=NULL, *h_in_values=NULL, *h_out_keys=NULL, *h_out_values=NULL;/*for SOA*/
@@ -482,6 +482,16 @@ bool split_test(
                         len, buckets, FIXED_REORDER, structure,
                         d_in_values, d_out_values,
                         local_size, grid_size);
+                break;
+            case Single:     /*WG-level split, reorder*/
+                tempTime = single_split(
+                        d_in_unified, d_out_unified,
+                        len, buckets, false, structure);
+                break;
+            case Single_reorder:     /*WG-level split, reorder*/
+                tempTime = single_split(
+                        d_in_unified, d_out_unified,
+                        len, buckets, true, structure);
                 break;
         }
 
@@ -641,16 +651,16 @@ void split_test_parameters(
         local_mem_limited = 47*1024;      //47KB
     }
     else if (device==1) {       //on CPU
-        local_size_begin = 64;
-        local_size_end = 512;
-        grid_size_begin = 128;
-        grid_size_end = 131072;
+        local_size_begin = 1;
+        local_size_end = 1;
+        grid_size_begin = 4096;
+        grid_size_end = 4096;
         local_mem_limited = 32*1024;    //CPU also has limited local mem size
     }
     else if (device==2) {       //on MIC
         local_size_begin = 1;
-        local_size_end = 2048;
-        grid_size_begin = 128;
+        local_size_end = 1;
+        grid_size_begin = 256;
         grid_size_end = 32768;
         local_mem_limited = 32*1024;    //MIC also has limited local mem size
     }
@@ -696,11 +706,14 @@ void split_test_parameters(
                     algo, structure,
                     local_size, grid_size);
 
+//            cout<<"Time:"<<temp_time<<" lsize:"<<local_size<<" gsize:"<<grid_size<<endl;
+
             if (temp_time < best_time) {
                 best_time = temp_time;
                 local_size_best = local_size;
                 grid_size_best = grid_size;
                 local_mem_size_best = local_buffer_len;
+
             }
         }
     }
