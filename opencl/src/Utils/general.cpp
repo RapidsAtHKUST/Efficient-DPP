@@ -73,6 +73,10 @@ cl_kernel get_kernel(
     strcat(args, PROJECT_ROOT);
     strcat(args, "/inc ");
 
+    strcat(args, "-I");
+    strcat(args, PROJECT_ROOT);
+    strcat(args, "/src/Kernels ");
+
     strcat(args," -DKERNEL ");
     if (params != NULL) strcat(args, params);
 

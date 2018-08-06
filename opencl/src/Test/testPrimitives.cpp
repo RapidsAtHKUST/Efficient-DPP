@@ -226,10 +226,11 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
     cl_mem d_in, d_out;
 
     srand(time(NULL));
-    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;
+//    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;
+    for(int i = 0; i < length; i++) h_input[i] = 1;
 
     double tempTimes[EXPERIMENT_TIMES];
-    for(int e = 0; e < EXPERIMENT_TIMES; e++) {
+    for(int e = 0; e < 5; e++) {
         d_in = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
@@ -243,11 +244,11 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
         checkErr(status, ERR_WRITE_BUFFER);
         clFinish(param.queue);
 
-        double tempTime = scan_chained(d_in, d_out, length, localSize, gridSize, R, L);
+//        double tempTime = scan_chained(d_in, d_out, length, localSize, gridSize, R, L);
 
         //three-kernel
-//        double tempTime = scan_rss(d_inout, length, info, localSize, gridSize);
-//        double tempTime = scan_rss_single(d_in, d_out, length);
+//        double tempTime = scan_rss(d_in, d_out, length, localSize, gridSize);
+        double tempTime = scan_rss_single(d_in, d_out, length);
 
         status = clEnqueueReadBuffer(param.queue, d_out, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
 
@@ -266,6 +267,8 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
         if (e == 0) {
             int acc = 0;
             for (int i = 0; i < length; i++) {
+//                cout<<h_output[i]<<' ';
+
                 if (h_output[i] != acc) {
                     res = false;
                     break;
@@ -276,7 +279,7 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
         tempTimes[e] = tempTime;
 
     }
-    aveTime = averageHampel(tempTimes, EXPERIMENT_TIMES);
+    aveTime = averageHampel(tempTimes, 5);
 
     if(h_input) delete[] h_input;
     if(h_output) delete[] h_output;

@@ -100,15 +100,15 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
     int argsNum = 0;
     int global_size = local_size * grid_size;
 
-    const int reduce_ele_per_wi = (length + global_size -1)/global_size;
-    const int scan_ele_per_wi = 14;      //temporary number
+    const int reduce_ele_per_wg = (length + grid_size -1)/grid_size;
+    const int scan_ele_per_wi = 20;      //temporary number
 
     //conpilation parameters
     char extra[500], para_reduce[20], para_scan[20];
-    my_itoa(reduce_ele_per_wi, para_reduce, 10);       //transfer R to string
+    my_itoa(reduce_ele_per_wg, para_reduce, 10);       //transfer R to string
     my_itoa(scan_ele_per_wi, para_scan, 10);       //transfer R to string
 
-    strcpy(extra, "-DREDUCE_ELE_PER_WI=");
+    strcpy(extra, "-DREDUCE_ELE_PER_WG=");
     strcat(extra, para_reduce);
     strcat(extra, " -DSCAN_ELE_PER_WI=");
     strcat(extra, para_scan);
@@ -132,8 +132,8 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
 
     status = clFinish(param.queue);
     status = clEnqueueNDRangeKernel(param.queue, reduce_kernel, 1, 0, reduce_global, reduce_local, 0, NULL, &event);
-    status = clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
+    clFinish(param.queue);
     double reduce_time = clEventTime(event);
     totalTime += reduce_time;
 
@@ -145,16 +145,26 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
 
     argsNum = 0;
     status |= clSetKernelArg(scan_small_kernel, argsNum++, sizeof(cl_mem), &d_reduction);
+    status |= clSetKernelArg(scan_small_kernel, argsNum++, sizeof(cl_mem), &d_reduction);
     status |= clSetKernelArg(scan_small_kernel, argsNum++, sizeof(int), &grid_size);
     status |= clSetKernelArg(scan_small_kernel, argsNum++, sizeof(int)*grid_size, NULL);
     checkErr(status, ERR_SET_ARGUMENTS);
 
     status = clFinish(param.queue);
     status = clEnqueueNDRangeKernel(param.queue, scan_small_kernel, 1, 0, scan_small_global, scan_small_local, 0, NULL, &event); //single WG execution
-    status = clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
+    clFinish(param.queue);
+
     double scan_small_time = clEventTime(event);
     totalTime += scan_small_time;
+
+//    int *h_reduction = new int[grid_size];
+//    status = clEnqueueReadBuffer(param.queue, d_reduction, CL_TRUE, 0, sizeof(int)*grid_size, h_reduction, 0, 0, 0);
+//    for(int i = 0; i < grid_size; i++) {
+//        cout<<i<<' '<<h_reduction[i]<<' '<<endl;
+//    }
+//    cout<<endl;
+//    delete[] h_reduction;
 
 //-------------------------- Step 3: final exclusive scan -----------------------------
     cl_kernel scan_kernel = get_kernel(param.device, param.context, "scan_rss_kernel.cl", "scan_exclusive", extra);
@@ -175,20 +185,17 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
 
     status = clFinish(param.queue);
     status = clEnqueueNDRangeKernel(param.queue, scan_kernel, 1, 0, scan_global, scan_local, 0, NULL, &event);
-    status = clFinish(param.queue);
-
-    status = clEnqueueNDRangeKernel(param.queue, scan_kernel, 1, 0, scan_global, scan_local, 0, NULL, &event);
-    status = clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
+    status = clFinish(param.queue);
     double scan_time = clEventTime(event);
     totalTime += scan_time;
 
     clReleaseMemObject(d_reduction);
 
-    cout<<endl;
-    cout<<"reduce time:"<<reduce_time<<" ms"<<endl;
-    cout<<"scan small time:"<<scan_small_time<<" ms"<<endl;
-    cout<<"scan exclusive time:"<<scan_time<<" ms"<<endl;
+//    cout<<endl;
+//    cout<<"reduce time:"<<reduce_time<<" ms"<<endl;
+//    cout<<"scan small time:"<<scan_small_time<<" ms"<<endl;
+//    cout<<"scan exclusive time:"<<scan_time<<" ms"<<endl;
 
     return totalTime;
 }
@@ -197,7 +204,7 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
 double scan_rss_single(cl_mem d_in, cl_mem d_out, unsigned length)
 {
     device_param_t param = Plat::get_device_param();
-    int grid_size = param.cus-1;
+    int grid_size = 1024;
     int local_size = 1;             /*single-work-item*/
     int len_per_wg = (length + grid_size - 1) / grid_size;
 
@@ -260,12 +267,19 @@ double scan_rss_single(cl_mem d_in, cl_mem d_out, unsigned length)
 
     status = clFinish(param.queue);
     status = clEnqueueNDRangeKernel(param.queue, scan_kernel, 1, 0, global, local, 0, NULL, &event);
-    status = clFinish(param.queue);
+    clFinish(param.queue);
     checkErr(status, ERR_EXEC_KERNEL);
+
     double scan_time = clEventTime(event);
     totalTime += scan_time;
 
     clReleaseMemObject(d_reduction);
+
+//    cout<<endl;
+//    cout<<"reduce time:"<<reduce_time<<" ms"<<endl;
+//    cout<<"scan small time:"<<scan_small_time<<" ms"<<endl;
+//    cout<<"scan exclusive time:"<<scan_time<<" ms"<<endl;
+
     return totalTime;
 }
 
