@@ -38,6 +38,8 @@ enum Data_structure {KO, KVS_AOS, KVS_SOA};
  *
  * */
 enum Algo {WI, WG, WG_fixed_reorder, WG_varied_reorder, Single, Single_reorder};
+enum LocalScanType {SERIAL, KOGGE, SKLANSKY, BRENT};
+enum MatrixScanType {LM, REG, LM_REG};
 enum ReorderType {NO_REORDER, FIXED_REORDER, VARIED_REORDER};
 
 typedef cl_int2 tuple_t;    /*for AOS*/
@@ -94,6 +96,8 @@ bool testGather(int len);
 bool testScatter(int len);
 bool testScan(int length, double &totalTime, int localSize, int gridSize, int R, int L, bool oop=true);
 
+bool test_scan_local_schemes(LocalScanType type, double &ave_time, unsigned repeat);
+bool test_scan_matrix(MatrixScanType type, double &ave_time, int tile_size, unsigned repeat);
 /*
  *  Split test function, to test specific kernel configurations
  *

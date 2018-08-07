@@ -367,6 +367,216 @@ void testScanParameters(int length, int device) {
     cout<<"\tThroughput="<<bestThr<<"GB/s"<<endl;
 }
 
+/*fixed on 512 elements*/
+bool test_scan_local_schemes(LocalScanType type, double &ave_time, unsigned repeat) {
+    device_param_t param = Plat::get_device_param();
+
+    cl_event event;
+    cl_int status = 0;
+    bool res = true;
+
+    int local_size = 512;   /*fixed to 512 WIs*/
+    int grid_size = 1;      /*single WG*/
+    int len_total = local_size;
+
+    int *h_input = new int[len_total];
+    int *h_output = new int[len_total];
+    cl_mem d_in, d_out;
+
+    srand(time(NULL));
+    for(int i = 0; i < len_total; i++) h_input[i] = rand() & 0xf;
+//    for(int i = 0; i < len_total; i++) h_input[i] = 1;
+
+    double tempTimes[EXPERIMENT_TIMES];
+    for(int e = 0; e < EXPERIMENT_TIMES; e++) {
+        d_in = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * len_total, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+        d_out = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * len_total, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+
+        status = clEnqueueWriteBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(int) * len_total, h_input, 0, 0, 0);
+        checkErr(status, ERR_WRITE_BUFFER);
+        clFinish(param.queue);
+
+        /*kernel setting*/
+        char kernel_name[100] = {'\0'};
+        switch (type) {
+            case SERIAL:
+                strcpy(kernel_name, "global_scan_wrapper_SERIAL");
+                break;
+            case KOGGE:
+                strcpy(kernel_name, "global_scan_wrapper_KOGGE");
+                break;
+            case SKLANSKY:
+                strcpy(kernel_name, "global_scan_wrapper_SKLANSKY");
+                break;
+            case BRENT:
+                strcpy(kernel_name, "global_scan_wrapper_BRENT");
+                break;
+        }
+        cl_kernel local_scan_kernel = get_kernel(param.device, param.context, "scan_local.cl", kernel_name);
+
+        size_t local[1] = {(size_t)local_size};
+        size_t global[1] = {(size_t)(local_size*grid_size)};
+
+        int argsNum = 0;
+        status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(cl_mem), &d_in);
+        status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(cl_mem), &d_out);
+        status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(int), &len_total);
+        status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(int)*len_total, NULL);
+        checkErr(status, ERR_SET_ARGUMENTS);
+
+        status = clFinish(param.queue);
+        struct timeval start, end;
+        gettimeofday(&start, NULL);
+        for(int q = 0; q < repeat; q++) {
+            status = clEnqueueNDRangeKernel(param.queue, local_scan_kernel, 1, 0, global, local, 0, NULL, &event);
+            checkErr(status, ERR_EXEC_KERNEL);
+            status = clFinish(param.queue);
+        }
+        gettimeofday(&end, NULL);
+
+//        double temp_time = clEventTime(event);
+        double temp_time = diffTime(end, start);
+
+        status = clEnqueueReadBuffer(param.queue, d_out, CL_TRUE, 0, sizeof(int)*len_total, h_output, 0, NULL, NULL);
+        checkErr(status, ERR_READ_BUFFER);
+        status = clFinish(param.queue);
+
+        //check
+        if (e == 0) {
+            int acc = 0;
+            for (int i = 0; i < len_total; i++) {
+//                cout<<i<<' '<<h_input[i]<<' '<<h_output[i]<<' '<<acc<<endl;
+
+                if (h_output[i] != acc) {
+                    res = false;
+                    break;
+                }
+                acc += h_input[i];
+            }
+        }
+        tempTimes[e] = temp_time;
+
+        cl_mem_free(d_in);
+        cl_mem_free(d_out);
+    }
+    ave_time = averageHampel(tempTimes, EXPERIMENT_TIMES);
+
+    if(h_input) delete[] h_input;
+    if(h_output) delete[] h_output;
+
+    return res;
+}
+
+/*fixed on 512 * TILE_SIZE elements*/
+bool test_scan_matrix(MatrixScanType type, double &ave_time, int tile_size, unsigned repeat) {
+    device_param_t param = Plat::get_device_param();
+
+    cl_event event;
+    cl_int status = 0;
+    bool res = true;
+
+    int local_size = 512;   /*fixed to 512 WIs*/
+    int grid_size = 1;      /*single WG*/
+    int len_total = local_size*tile_size;
+
+    int *h_input = new int[len_total];
+    int *h_output = new int[len_total];
+    cl_mem d_in, d_out;
+
+    srand(time(NULL));
+    for(int i = 0; i < len_total; i++) h_input[i] = rand() & 0xf;
+//    for(int i = 0; i < len_total; i++) h_input[i] = 1;
+
+    double tempTimes[EXPERIMENT_TIMES];
+    for(int e = 0; e < EXPERIMENT_TIMES; e++) {
+        d_in = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * len_total, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+        d_out = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * len_total, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+
+        status = clEnqueueWriteBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(int) * len_total, h_input, 0, 0, 0);
+        checkErr(status, ERR_WRITE_BUFFER);
+        clFinish(param.queue);
+
+        char paras[500];
+        strcpy(paras, "-DTILE_SIZE=");
+        char tile_size_str[20];
+        my_itoa(tile_size, tile_size_str, 10);       //transfer R to string
+        strcat(paras, tile_size_str);
+
+        /*kernel setting*/
+        char kernel_name[100] = {'\0'};
+
+        switch (type) {
+            case LM:
+                strcpy(kernel_name, "matrix_scan_lm");
+                break;
+            case REG:
+                strcpy(kernel_name, "matrix_scan_reg");
+                break;
+            case LM_REG:
+                strcpy(kernel_name, "matrix_scan_lm_reg");
+                break;
+        }
+        cl_kernel local_scan_kernel = get_kernel(param.device, param.context, "scan_local.cl", kernel_name, paras);
+
+        size_t local[1] = {(size_t)local_size};
+        size_t global[1] = {(size_t)(local_size*grid_size)};
+
+        int argsNum = 0;
+        status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(cl_mem), &d_in);
+        status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(cl_mem), &d_out);
+        if (type != REG) {
+            status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(int) * local_size * tile_size, NULL);
+        }
+        status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(int)*local_size, NULL);
+
+        status = clFinish(param.queue);
+        struct timeval start, end;
+        gettimeofday(&start, NULL);
+        for(int q = 0; q < repeat; q++) {
+            status = clEnqueueNDRangeKernel(param.queue, local_scan_kernel, 1, 0, global, local, 0, NULL, &event);
+            checkErr(status, ERR_EXEC_KERNEL);
+            status = clFinish(param.queue);
+        }
+        gettimeofday(&end, NULL);
+
+//        double temp_time = clEventTime(event);
+        double temp_time = diffTime(end, start);
+
+        status = clEnqueueReadBuffer(param.queue, d_out, CL_TRUE, 0, sizeof(int)*len_total, h_output, 0, NULL, NULL);
+        checkErr(status, ERR_READ_BUFFER);
+        status = clFinish(param.queue);
+
+        //check
+        if (e == 0) {
+            int acc = 0;
+            for (int i = 0; i < len_total; i++) {
+//                cout<<i<<' '<<h_input[i]<<' '<<h_output[i]<<' '<<acc<<endl;
+
+                if (h_output[i] != acc) {
+                    res = false;
+                    break;
+                }
+                acc += h_input[i];
+            }
+        }
+        tempTimes[e] = temp_time;
+
+        cl_mem_free(d_in);
+        cl_mem_free(d_out);
+    }
+    ave_time = averageHampel(tempTimes, EXPERIMENT_TIMES);
+
+    if(h_input) delete[] h_input;
+    if(h_output) delete[] h_output;
+
+    return res;
+}
+
+
 /*
  * Split test inner function, to test specific kernel configurations
  *
