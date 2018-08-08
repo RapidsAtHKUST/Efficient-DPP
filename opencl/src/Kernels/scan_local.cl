@@ -205,46 +205,51 @@ void local_sklansky_scan(local int* lo, int length, local int *sum) {
 }
 
 //warp-wise intra-block scan (minimum depth), each thread only processes at most 1 element
-void local_warp_scan(local int* lo, local int *sum) {
+void local_warp_scan(local int* lo, int len_total, local int *sum) {
 
-    const int localId = get_local_id(0);                    //should have sign!!!
-    const unsigned localSize = get_local_size(0);
-    const char warpId = localId >> WARP_BITS;           //warp ID
-    const unsigned warpNum = localSize >> WARP_BITS;        //# warps
-    const char lane = localId & MASK;                  //should have sign!!!
+    const int local_id = get_local_id(0);                   //should have sign
+    if (local_id >= len_total)   return;
+
+    const unsigned local_size = get_local_size(0);
+    const char warp_id = local_id >> WARP_BITS;             //warp ID
+    const unsigned num_warps = local_size >> WARP_BITS;     //# warps
+    const int lane = local_id & MASK;                       //should have sign
+    int temp;
 
 #define MAX_SUM_SIZE    (32)
     local int sums[MAX_SUM_SIZE];       //local temporary sums
 
     //1. Local warp-wise scan
-    int temp = lo[localId];
-    if (lane >= 1) lo[localId] += lo[localId - 1];
-    if (lane >= 2) lo[localId] += lo[localId - 2];
-    if (lane >= 4) lo[localId] += lo[localId - 4];
-    if (lane >= 8) lo[localId] += lo[localId - 8];
-    if (lane >= 16) lo[localId] += lo[localId - 16];
+    temp = lo[local_id];
+    barrier(CLK_LOCAL_MEM_FENCE);       /*need a barrier here*/
 
-    if (lane == WARP_SIZE - 1) sums[warpId] = lo[localId];   //get the warp sum
-    lo[localId] -= temp;                                        //exclusive minus
+    if (lane >= 1) lo[local_id] += lo[local_id - 1];
+    if (lane >= 2) lo[local_id] += lo[local_id - 2];
+    if (lane >= 4) lo[local_id] += lo[local_id - 4];
+    if (lane >= 8) lo[local_id] += lo[local_id - 8];
+    if (lane >= 16) lo[local_id] += lo[local_id - 16];
+
+    if (lane == WARP_SIZE - 1) sums[warp_id] = lo[local_id];   //get the warp sum
+    lo[local_id] -= temp;                                        //exclusive minus
     barrier(CLK_LOCAL_MEM_FENCE);
 
     //2. Scan the intermediate sums
-    if (warpId == 0 && localId < warpNum) {
-        temp=sums[localId];
-        if (lane >= 1)      sums[localId] += sums[localId-1];
-        if (lane >= 2)      sums[localId] += sums[localId-2];
-        if (lane >= 4)      sums[localId] += sums[localId-4];
-        if (lane >= 8)      sums[localId] += sums[localId-8];
-        if (lane >= 16)     sums[localId] += sums[localId-16];
-        if (lane == WARP_SIZE-1)  *sum = sums[warpNum-1];   //get the total sum
-        sums[localId] -= temp;
+    if (warp_id == 0 && (local_id < num_warps)) {
+        temp = sums[local_id];
+        if (lane >= 1)      sums[local_id] += sums[local_id- 1];
+        if (lane >= 2)      sums[local_id] += sums[local_id-2];
+        if (lane >= 4)      sums[local_id] += sums[local_id-4];
+        if (lane >= 8)      sums[local_id] += sums[local_id-8];
+        if (lane >= 16)     sums[local_id] += sums[local_id-16];
+        if ( (sum != NULL) && (lane == 0))  *sum = sums[num_warps-1];
+        sums[local_id] -= temp;
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
     //3. Add back
-    lo[localId] += sums[warpId];
-#undef MAX_SUM_SIZE
+    lo[local_id] += sums[warp_id];
     barrier(CLK_LOCAL_MEM_FENCE);
+#undef MAX_SUM_SIZE
 }
 
 //warp-wise intra-block scan (minimum depth) with memory fence for CPU and MIC
@@ -589,12 +594,14 @@ kernel void local_scan_wrapper_KOGGE(
     int local_size = get_local_size(0);
     local int sum;
 
-    lo[local_id] = d_in[local_id];  /*loaded to local memory*/
+    if (local_id < len_total)
+        lo[local_id] = d_in[local_id];  /*loaded to local memory*/
     barrier(CLK_LOCAL_MEM_FENCE);
-//    local_warp_scan(lo, &sum);
-    local_warp_scan_with_fence(lo, &sum);
+    local_warp_scan(lo, len_total, &sum);
+//    local_warp_scan_with_fence(lo, &sum);
 
-    d_out[local_id] = lo[local_id]; /*written to global memory*/
+    if (local_id < len_total)
+        d_out[local_id] = lo[local_id]; /*written to global memory*/
 }
 
 kernel void local_scan_wrapper_SKLANSKY(
@@ -713,17 +720,17 @@ kernel void matrix_scan_lm(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     /*local scan scheme*/
-//    if (local_id == 0) {
-//        acc = 0;
-//        for (int i = 0; i < local_size; i++) {
-//            int temp = lsum[i];
-//            lsum[i] = acc;
-//            acc += temp;
-//        }
-//    }
-//    barrier(CLK_LOCAL_MEM_FENCE);
-    local int sum;
-    local_warp_scan_with_fence(lsum, &sum);
+    if (local_id == 0) {
+        acc = 0;
+        for (int i = 0; i < local_size; i++) {
+            int temp = lsum[i];
+            lsum[i] = acc;
+            acc += temp;
+        }
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+//    local int sum;
+//    local_warp_scan_with_fence(lsum, &sum);
 
     /*final scan*/
     acc = 0;
@@ -757,17 +764,17 @@ kernel void matrix_scan_reg(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     /*local scan scheme*/
-//    if (local_id == 0) {
-//        acc = 0;
-//        for (int i = 0; i < local_size; i++) {
-//            int temp = lsum[i];
-//            lsum[i] = acc;
-//            acc += temp;
-//        }
-//    }
-//    barrier(CLK_LOCAL_MEM_FENCE);
-    local int sum;
-    local_warp_scan_with_fence(lsum, &sum);
+    if (local_id == 0) {
+        acc = 0;
+        for (int i = 0; i < local_size; i++) {
+            int temp = lsum[i];
+            lsum[i] = acc;
+            acc += temp;
+        }
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+//    local int sum;
+//    local_warp_scan_with_fence(lsum, &sum);
 
     /*final scan*/
     acc = lsum[local_id];
@@ -812,16 +819,17 @@ kernel void matrix_scan_lm_reg(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     /*local scan scheme*/
-//    if (local_id == 0) {
-//        acc = 0;
-//        for (int i = 0; i < local_size; i++) {
-//            int temp = lsum[i];
-//            lsum[i] = acc;
-//            acc += temp;
-//        }
-//    }
-    local int sum;
-    local_warp_scan_with_fence(lsum, &sum);
+    if (local_id == 0) {
+        acc = 0;
+        for (int i = 0; i < local_size; i++) {
+            int temp = lsum[i];
+            lsum[i] = acc;
+            acc += temp;
+        }
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+//    local int sum;
+//    local_warp_scan_with_fence(lsum, &sum);
 
     /*final scan in the registers*/
     acc = lsum[local_id];
@@ -834,4 +842,33 @@ kernel void matrix_scan_lm_reg(
     /*copy to global memory*/
     for(int i = begin; i < end; i += step)
         d_out[i] = ldata[i];
+}
+
+kernel void matrix_scan_lm_serial(
+        global int *d_in,
+        global int *d_out,
+        local int *ldata)
+{
+    int local_id = get_local_id(0);
+    int local_size = get_local_size(0);
+    uint len_total = TILE_SIZE * local_size;
+
+    /*data transferred to local memory*/
+    uint begin, end, step = WARP_SIZE;
+    compute_mixed_access(
+            step, local_id, local_size, len_total,
+            &begin, &end);
+
+    for(int i = begin; i < end; i += step)
+        ldata[i] = d_in[i];
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    if (local_id == 0) {
+        int acc = 0;
+        for (int i = 0; i < len_total; i++) {
+            int temp = ldata[i];
+            d_out[i] = acc;
+            acc += temp;
+        }
+    }
 }

@@ -39,7 +39,7 @@ enum Data_structure {KO, KVS_AOS, KVS_SOA};
  * */
 enum Algo {WI, WG, WG_fixed_reorder, WG_varied_reorder, Single, Single_reorder};
 enum LocalScanType {SERIAL, KOGGE, SKLANSKY, BRENT};
-enum MatrixScanType {LM, REG, LM_REG};
+enum MatrixScanType {LM, REG, LM_REG, LM_SERIAL};
 enum ReorderType {NO_REORDER, FIXED_REORDER, VARIED_REORDER};
 
 typedef cl_int2 tuple_t;    /*for AOS*/
@@ -48,6 +48,7 @@ typedef cl_int2 tuple_t;    /*for AOS*/
 void checkErr(cl_int status, const char* name, int tag=-1);
 void cl_mem_free(cl_mem object);
 double clEventTime(const cl_event event);
+void add_param(char *param, char *macro, bool has_value=false, int value=-1);
 
 /*create the cl_kernel according to the file name and function name*/
 cl_kernel get_kernel(

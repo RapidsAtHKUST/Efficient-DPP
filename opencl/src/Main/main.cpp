@@ -34,20 +34,20 @@ int main(int argc, const char *argv[]) {
 //        testScatter(num, info);
 
     //test scan
-//    for(int scale = 10; scale <= 30; scale++) {
-//        int num = 1<<scale;
-//        double aveTime;
-//        cout<<scale<<'\t';
+    for(int scale = 10; scale <= 30; scale++) {
+        int num = 1<<scale;
+        double aveTime;
+        cout<<scale<<'\t';
 //        bool res = testScan(num, aveTime, 64, 1024, 112, false);    //CPU testing
-////        bool res = testScan(num, aveTime, 64, 240, 67, 0);    //MIC testing
-////        bool res = testScan(num, aveTime, 1024, 15, 0, 11, false);    //GPU testing
-//        if (!res) {
-//            cerr<<"Wrong result!"<<endl;
-//            exit(1);
-//        }
-//        cout<<"Time:"<<aveTime<<" ms.\t";
-//        cout<<"Throughput:"<<num*1.0 /1024/1024/1024/aveTime*1000<<" GKeys/s"<<endl;
-//    }
+//        bool res = testScan(num, aveTime, 64, 240, 67, 0);    //MIC testing
+        bool res = testScan(num, aveTime, 256, 2048, 0, 11, false);    //GPU testing
+        if (!res) {
+            cerr<<"Wrong result!"<<endl;
+            exit(1);
+        }
+        cout<<"Time:"<<aveTime<<" ms.\t";
+        cout<<"Throughput:"<<num*1.0 /1024/1024/1024/aveTime*1000<<" GKeys/s"<<endl;
+    }
     double totalTime;
     int repeat = 1000;
     bool res;
@@ -76,28 +76,34 @@ int main(int argc, const char *argv[]) {
 //    else        cout<<"wrong"<<' ';
 //    cout<<"total time:"<<totalTime<<"ms"<<" (repeat "<<repeat<<" times)"<<endl;
 
-    for(int tile_size = 1; tile_size < 50; tile_size++) {
-        cout << "Matrix_LM: ";
-        res = test_scan_matrix(LM, totalTime, tile_size, repeat);
-        if (res) cout << "right" << ' ';
-        else cout << "wrong" << ' ';
-        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
-             << endl;
-
-        cout << "Matrix_REG: ";
-        res = test_scan_matrix(REG, totalTime, tile_size, repeat);
-        if (res) cout << "right" << ' ';
-        else cout << "wrong" << ' ';
-        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
-             << endl;
-
-        cout << "Matrix_LM_REG: ";
-        res = test_scan_matrix(LM_REG, totalTime, tile_size, repeat);
-        if (res) cout << "right" << ' ';
-        else cout << "wrong" << ' ';
-        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
-             << endl;
-    }
+//    for(int tile_size = 1; tile_size < 50; tile_size++) {
+//        cout << "Matrix_LM: ";
+//        res = test_scan_matrix(LM, totalTime, tile_size, repeat);
+//        if (res) cout << "right" << ' ';
+//        else cout << "wrong" << ' ';
+//        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
+//             << endl;
+//
+//        cout << "Matrix_REG: ";
+//        res = test_scan_matrix(REG, totalTime, tile_size, repeat);
+//        if (res) cout << "right" << ' ';
+//        else cout << "wrong" << ' ';
+//        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
+//             << endl;
+//
+//        cout << "Matrix_LM_REG: ";
+//        res = test_scan_matrix(LM_REG, totalTime, tile_size, repeat);
+//        if (res) cout << "right" << ' ';
+//        else cout << "wrong" << ' ';
+//        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
+//             << endl;
+//        cout << "Matrix_LM_SERIAL: ";
+//        res = test_scan_matrix(LM_SERIAL, totalTime, tile_size, repeat);
+//        if (res) cout << "right" << ' ';
+//        else cout << "wrong" << ' ';
+//        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
+//             << endl;
+//    }
 
 
 ////    uint64_t length = 1<<29; //2GB

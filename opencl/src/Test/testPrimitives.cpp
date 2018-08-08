@@ -226,11 +226,10 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
     cl_mem d_in, d_out;
 
     srand(time(NULL));
-//    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;
-    for(int i = 0; i < length; i++) h_input[i] = 1;
+    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;
 
     double tempTimes[EXPERIMENT_TIMES];
-    for(int e = 0; e < 5; e++) {
+    for(int e = 0; e < EXPERIMENT_TIMES; e++) {
         d_in = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
@@ -247,8 +246,8 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
 //        double tempTime = scan_chained(d_in, d_out, length, localSize, gridSize, R, L);
 
         //three-kernel
-//        double tempTime = scan_rss(d_in, d_out, length, localSize, gridSize);
-        double tempTime = scan_rss_single(d_in, d_out, length);
+        double tempTime = scan_rss(d_in, d_out, length, localSize, gridSize); /*GPU:lsize=256 best*/
+//        double tempTime = scan_rss_single(d_in, d_out, length);
 
         status = clEnqueueReadBuffer(param.queue, d_out, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
 
@@ -267,9 +266,8 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
         if (e == 0) {
             int acc = 0;
             for (int i = 0; i < length; i++) {
-//                cout<<h_output[i]<<' ';
-
                 if (h_output[i] != acc) {
+                    cout<<i<<' '<<h_output[i]<<' '<<acc<<endl;
                     res = false;
                     break;
                 }
@@ -279,7 +277,7 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
         tempTimes[e] = tempTime;
 
     }
-    aveTime = averageHampel(tempTimes, 5);
+    aveTime = averageHampel(tempTimes, EXPERIMENT_TIMES);
 
     if(h_input) delete[] h_input;
     if(h_output) delete[] h_output;
@@ -405,7 +403,7 @@ bool test_scan_local_schemes(LocalScanType type, double &ave_time, unsigned repe
                 strcpy(kernel_name, "global_scan_wrapper_SERIAL");
                 break;
             case KOGGE:
-                strcpy(kernel_name, "global_scan_wrapper_KOGGE");
+                strcpy(kernel_name, "local_scan_wrapper_KOGGE");
                 break;
             case SKLANSKY:
                 strcpy(kernel_name, "global_scan_wrapper_SKLANSKY");
@@ -447,7 +445,7 @@ bool test_scan_local_schemes(LocalScanType type, double &ave_time, unsigned repe
         if (e == 0) {
             int acc = 0;
             for (int i = 0; i < len_total; i++) {
-//                cout<<i<<' '<<h_input[i]<<' '<<h_output[i]<<' '<<acc<<endl;
+                cout<<i<<' '<<h_input[i]<<' '<<h_output[i]<<' '<<acc<<endl;
 
                 if (h_output[i] != acc) {
                     res = false;
@@ -519,6 +517,9 @@ bool test_scan_matrix(MatrixScanType type, double &ave_time, int tile_size, unsi
             case LM_REG:
                 strcpy(kernel_name, "matrix_scan_lm_reg");
                 break;
+            case LM_SERIAL:
+                strcpy(kernel_name, "matrix_scan_lm_serial");
+                break;
         }
         cl_kernel local_scan_kernel = get_kernel(param.device, param.context, "scan_local.cl", kernel_name, paras);
 
@@ -528,10 +529,11 @@ bool test_scan_matrix(MatrixScanType type, double &ave_time, int tile_size, unsi
         int argsNum = 0;
         status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(cl_mem), &d_in);
         status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(cl_mem), &d_out);
-        if (type != REG) {
+
+        if (type != REG)
             status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(int) * local_size * tile_size, NULL);
-        }
-        status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(int)*local_size, NULL);
+        if (type != LM_SERIAL)
+            status |= clSetKernelArg(local_scan_kernel, argsNum++, sizeof(int) * local_size, NULL);
 
         status = clFinish(param.queue);
         struct timeval start, end;

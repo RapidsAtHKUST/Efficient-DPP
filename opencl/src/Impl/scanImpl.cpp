@@ -90,6 +90,7 @@ double scan_chained(cl_mem d_in, cl_mem d_out, int length, int local_size, int g
     return totalTime;
 }
 
+/*multi-WI RSS scan for GPUs*/
 double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int grid_size)
 {
     device_param_t param = Plat::get_device_param();
@@ -100,20 +101,21 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
     int argsNum = 0;
     int global_size = local_size * grid_size;
 
-    const int reduce_ele_per_wg = (length + grid_size -1)/grid_size;
-    const int scan_ele_per_wi = 20;      //temporary number
+    if (grid_size > length) grid_size = length; /*for cases with only a few tuples but lots of WGs*/
+    const int reduce_ele_per_wg = (length + grid_size -1)/grid_size;            /*used in step 1*/
+    const int scan_ele_per_wi = 5;     /*used in step 3, to ensure that 2 WGs executed in a CU*/
+    const int scan_ele_per_wg = (length + grid_size - 1)/grid_size;
+    int scan_ele_per_loop = (scan_ele_per_wi*local_size < scan_ele_per_wg) ? (scan_ele_per_wi*local_size) : scan_ele_per_wg; /*number of elements processed in each iteration in step 3*/
+    const int max_reg_per_WI = 10;  /*for 1024 threads, each thread has at most 16 registers*/
 
     //conpilation parameters
-    char extra[500], para_reduce[20], para_scan[20];
-    my_itoa(reduce_ele_per_wg, para_reduce, 10);       //transfer R to string
-    my_itoa(scan_ele_per_wi, para_scan, 10);       //transfer R to string
+    char param_str[1000] = {'\0'};
+    add_param(param_str, "REDUCE_ELE_PER_WG", true, reduce_ele_per_wg);
+    add_param(param_str, "SCAN_ELE_PER_LOOP", true, scan_ele_per_loop);
+    add_param(param_str, "MAX_NUM_REGS", true, max_reg_per_WI);
 
-    strcpy(extra, "-DREDUCE_ELE_PER_WG=");
-    strcat(extra, para_reduce);
-    strcat(extra, " -DSCAN_ELE_PER_WI=");
-    strcat(extra, para_scan);
 //-------------------------- Step 1: reduce -----------------------------
-    cl_kernel reduce_kernel = get_kernel(param.device, param.context, "scan_rss_kernel.cl", "reduce", extra);
+    cl_kernel reduce_kernel = get_kernel(param.device, param.context, "scan_rss_kernel.cl", "reduce", param_str);
 
     size_t reduce_local[1] = {(size_t)local_size};
     size_t reduce_global[1] = {(size_t)(global_size)};
@@ -127,7 +129,7 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
     status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(cl_mem), &d_in);
     status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(cl_mem), &d_reduction);
     status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(int), &length);
-    status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(int)*grid_size, NULL);
+    status |= clSetKernelArg(reduce_kernel, argsNum++, sizeof(int)*local_size, NULL);
     checkErr(status, ERR_SET_ARGUMENTS);
 
     status = clFinish(param.queue);
@@ -137,8 +139,17 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
     double reduce_time = clEventTime(event);
     totalTime += reduce_time;
 
+//    int *h_reduction = new int[grid_size];
+//    status = clEnqueueReadBuffer(param.queue, d_reduction, CL_TRUE, 0, sizeof(int)*grid_size, h_reduction, 0, 0, 0);
+//    for(int i = 0; i < grid_size; i++) {
+//        cout<<i<<' '<<h_reduction[i]<<' '<<endl;
+//    }
+//    cout<<endl;
+//    delete[] h_reduction;
+//    cout<<"reduce_ele_per_wg:"<<reduce_ele_per_wg<<endl;
+
 //-------------------------- Step 2: intermediate scan -----------------------------
-    cl_kernel scan_small_kernel = get_kernel(param.device, param.context, "scan_rss_kernel.cl", "scan_exclusive_small", extra); //still need extra paras
+    cl_kernel scan_small_kernel = get_kernel(param.device, param.context, "scan_rss_kernel.cl", "scan_exclusive_small", param_str); //still need extra paras
 
     size_t scan_small_local[1] = {(size_t)local_size};
     size_t scan_small_global[1] = {(size_t)(local_size*1)};
@@ -158,18 +169,8 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
     double scan_small_time = clEventTime(event);
     totalTime += scan_small_time;
 
-//    int *h_reduction = new int[grid_size];
-//    status = clEnqueueReadBuffer(param.queue, d_reduction, CL_TRUE, 0, sizeof(int)*grid_size, h_reduction, 0, 0, 0);
-//    for(int i = 0; i < grid_size; i++) {
-//        cout<<i<<' '<<h_reduction[i]<<' '<<endl;
-//    }
-//    cout<<endl;
-//    delete[] h_reduction;
-
 //-------------------------- Step 3: final exclusive scan -----------------------------
-    cl_kernel scan_kernel = get_kernel(param.device, param.context, "scan_rss_kernel.cl", "scan_exclusive", extra);
-
-    int scan_len_per_wg = (length + grid_size - 1)/grid_size;
+    cl_kernel scan_kernel = get_kernel(param.device, param.context, "scan_rss_kernel.cl", "scan_exclusive", param_str);
 
     size_t scan_local[1] = {(size_t)local_size};
     size_t scan_global[1] = {(size_t)(local_size*grid_size)};
@@ -178,7 +179,7 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_in);
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_out);
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(cl_mem), &d_reduction);
-    status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(int), &scan_len_per_wg);
+    status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(int), &scan_ele_per_wg);
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(int), &length);
     status |= clSetKernelArg(scan_kernel, argsNum++, sizeof(int)*local_size*scan_ele_per_wi, NULL);
     checkErr(status, ERR_SET_ARGUMENTS);
@@ -200,11 +201,11 @@ double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int 
     return totalTime;
 }
 
-//single-threaded
+/*single-WI RSS scan for CPUs and MICs*/
 double scan_rss_single(cl_mem d_in, cl_mem d_out, unsigned length)
 {
     device_param_t param = Plat::get_device_param();
-    int grid_size = 1024;
+    int grid_size = 1024;           /*this does not matter*/
     int local_size = 1;             /*single-work-item*/
     int len_per_wg = (length + grid_size - 1) / grid_size;
 

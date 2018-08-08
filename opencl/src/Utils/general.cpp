@@ -23,6 +23,19 @@ double clEventTime(const cl_event event){
     return (end - start) / 1000000.0;
 }
 
+void add_param(char *param, char *macro, bool has_value, int value) {
+    strcat(param, " -D");
+    strcat(param, macro);
+
+    if (has_value) {
+        char value_str[100]={'\0'};
+        my_itoa(value, value_str, 10);  /*translated to string*/
+        strcat(param, "=");
+        strcat(param, value_str);
+    }
+    strcat(param, " ");
+}
+
 void display_compilation_log(cl_device_id device, cl_program program) {
     cout<<"compilation log:"<<endl;
     size_t log_size;

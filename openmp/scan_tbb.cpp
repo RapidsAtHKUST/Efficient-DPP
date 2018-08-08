@@ -118,7 +118,7 @@ double scan_tbb(int *input, int* output, int len) {
 };
 
 void test_scan_tbb() {
-    for(int scale = 30; scale <= 30; scale++) {
+    for(int scale = 10; scale <= 30; scale++) {
         bool res = true;
         int length = 1<<scale;
         std::cout<<scale<<" length: "<<length<<'\t';
