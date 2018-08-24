@@ -24,6 +24,7 @@
 #include <sys/time.h>
 #include <algorithm>
 #include <cmath>
+#include <vector>
 #include "tbb/task_scheduler_init.h"
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_scan.h"
@@ -32,39 +33,53 @@
 using namespace tbb;
 using namespace std;
 
+bool pair_cmp (pair<double, double> i , pair<double, double> j) {
+    return i.first < j.first;
+}
+
 double averageHampel(double *input, int num) {
     int valid = 0;
     double total = 0;
 
     double *temp_input = new double[num];
-    double *myabs = new double[num];
+    vector< pair<double, double> > myabs_and_input_list;
+
     double mean, abs_mean;
 
     for(int i = 0; i < num; i++) temp_input[i]=input[i];
 
-    std::sort(temp_input, temp_input+num);
+    sort(temp_input, temp_input+num);
     if (num % 2 == 0)  mean = 0.5*(temp_input[num/2-1] + temp_input[num/2]);
     else               mean = temp_input[(num-1)/2];
 
-    for(int i = 0; i < num; i++)    myabs[i] = fabs(temp_input[i]-mean);
+    for(int i = 0; i < num; i++)
+        myabs_and_input_list.push_back(make_pair(fabs(temp_input[i]-mean),temp_input[i]));
 
-    std::sort(myabs, myabs+num);
-    if (num % 2 == 0)  abs_mean = 0.5*(myabs[num/2-1] + myabs[num/2]);
-    else               abs_mean = myabs[(num-1)/2];
+    typedef vector< pair<double, double> >::iterator VectorIterator;
+    sort(myabs_and_input_list.begin(), myabs_and_input_list.end(), pair_cmp);
+
+    if (num % 2 == 0)  abs_mean = 0.5*(myabs_and_input_list[num/2-1].first + myabs_and_input_list[num/2].first);
+    else               abs_mean = myabs_and_input_list[(num-1)/2].first;
 
     abs_mean /= 0.6745;
 
-    for(int i = 0; i < num; i++) {
-        double div = myabs[i] / abs_mean;
-        if (div <= 3.5) {
-            total += temp_input[i];
-            valid ++;
+    for(VectorIterator iter = myabs_and_input_list.begin(); iter != myabs_and_input_list.end(); iter++) {
+        if (abs_mean == 0) { /*if abs_mean=0,only choose those with abs=0*/
+            if (iter->first == 0) {
+                total += iter->second;
+                valid ++;
+            }
+        }
+        else {
+            double div = iter->first / abs_mean;
+            if (div <= 3.5) {
+                total += iter->second;
+                valid ++;
+            }
         }
     }
     total = 1.0 * total / valid;
-
     if(temp_input)  delete[] temp_input;
-    if (myabs)      delete[] myabs;
     return total;
 }
 

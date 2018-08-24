@@ -180,7 +180,7 @@ set(SOURCE_FILES
         cuda/common
         cuda/Makefile
         cuda/mem_access
-        cuda/mem_access.cu
+        cuda/mem_mul.cu
         cuda/radixSortCUB.cu
         cuda/scanCUB
         cuda/scanCUB.cu

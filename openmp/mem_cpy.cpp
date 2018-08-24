@@ -3,24 +3,24 @@
  * 1. set the library path:
  *      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/intel/compilers_and_libraries/linux/lib/intel64/
  * 2. compile the file using:
- *      icc -O3 -o mul_omp_cpu mul_omp.cpp -fopenmp
+ *      icc -O3 -o mem_cpy_cpu mem_cpy.cpp -fopenmp
  * 3. Execute:
- *      ./mul_omp_cpu
+ *      ./cpy_omp_cpu
  * To enable streaming store, modify the main function
  *
  * Execute on MIC (only native execution mode):
  * 1. Compile the file:
- *      icc -mmic -O3 -o mul_omp_mic mul_omp.cpp -fopenmp
+ *      icc -mmic -O3 -o mem_cpy_mic mem_cpy.cpp -fopenmp
  * 1.5 Compile with Streaming Store:
- *      icc -mmic -O3 -o mul_omp_mic_ss mul_omp.cpp -fopenmp -qopt-streaming-stores always
+ *      icc -mmic -O3 -o mem_cpy_mic_ss mem_cpy.cpp -fopenmp -qopt-streaming-stores always
  * 2. Copy the executable file to MIC:
- *      scp mul_omp_mic mic0:~
+ *      scp mem_cpy_mic mic0:~
  * 3. (optional) If the MIC does not have libiomp5.so, copy the library from .../intel/lib/mic to MIC:
  *      e.g.: scp libiomp5.so mic0:~
  * 4. (optional) Set the library path on MIC:
  *      e.g.: export LD_LIBRARY_PATH=~
  * 5. Execute:
- *      ./mul_omp_mic
+ *      ./mem_cpy_mic
  */
 #include <iostream>
 #include <sys/time.h>
@@ -30,7 +30,6 @@
 #include <immintrin.h>
 #include <stdio.h>
 #include <vector>
-#define SCALAR (3)
 using namespace std;
 
 bool pair_cmp (pair<double, double> i , pair<double, double> j) {
@@ -95,7 +94,7 @@ double mem_access_omp(int *input, int *output, int len) {
     gettimeofday(&start, NULL);
     #pragma omp parallel for schedule(static)
     for(int i = 0; i < len; i++) {
-        output[i] = input[i] * SCALAR;
+        output[i] = input[i];
     }
     gettimeofday(&end, NULL);
     double tempTime =  diffTime(end, start);
@@ -103,54 +102,16 @@ double mem_access_omp(int *input, int *output, int len) {
     return tempTime;
 }
 
-double mem_access_omp_read(int *input, int *output, int len, int chunk_size) {
-
-    struct timeval start, end;
-
-    int num_threads;
-
-//    #pragma omp parallel for schedule(static)
-//    for(int i = 0; i < len; i++) {
-//        input[i] = 1;
-//    }
-//    omp_set_dynamic(0);
-//    omp_set_num_threads(10);
-
-    gettimeofday(&start, NULL);
-#pragma omp parallel
-{
-//    int thread_num = omp_get_thread_num();
-//    int cpu_num = sched_getcpu();
-//    printf("Thread %d on core %d\n",thread_num, cpu_num);
-
-    long acc = 0;
-    #pragma omp for schedule(dynamic,chunk_size)
-    for(int i = 0; i < len; i++) {
-        acc += input[i];
-    }
-    output[0] = acc;
-}
-    gettimeofday(&end, NULL);
-
-    double tempTime =  diffTime(end, start);
-
-
-    return tempTime;
-}
-
-//scalar multiplication with nontemporal streaming store
+//memory copy with nontemporal streaming store
 double mem_access_omp_ss(int *input, int *output, int len) {
 #define SIMD_WIDTH  (8)
     struct timeval start, end;
-
-    __m256i v = _mm256_set_epi32(SCALAR,SCALAR,SCALAR,SCALAR,SCALAR,SCALAR,SCALAR,SCALAR);
 
     gettimeofday(&start, NULL);
 #pragma omp parallel for schedule(auto)
     for(int i = 0; i < len/8; i++) {
         register __m256i *dest = (__m256i*)output + i;
         register __m256i source = *((__m256i*)input + i);
-        source = _mm256_mullo_epi32 (source, v);
         _mm256_stream_si256(dest,source);   //streaming store
     }
     gettimeofday(&end, NULL);
@@ -159,51 +120,29 @@ double mem_access_omp_ss(int *input, int *output, int len) {
     return tempTime;
 }
 
-void test_omp() {
-    int len = 512 * 8192 * 100;  //1600MB
-    std::cout<<"Data size(Multiplication): "<<len<<" ("<<len* sizeof(int)/1024/1024<<"MB)"<<std::endl;
+void test_omp(int len) {
+    std::cout<<"Data size(Copy): "<<len<<" ("<<1.0*len* sizeof(int)/1024/1024<<"MB)"<<'\t';
 
     int *input = new int[len];
     int *output = new int[len];
     for(int i = 0; i < len; i++) input[i] = i;
 
-    int experTime = 30;
+    int experTime = 150;
     double times[experTime];
     for(int e = 0; e < experTime; e++) {
         times[e] = mem_access_omp(input, output, len);
     }
+
     double aveTime = averageHampel(times,experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
-             <<"Throughput:"<<2*1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
+             <<"Throughput:"<<1.0*len/1024/1024/1024/aveTime*1e3<<" GKeys/s"<<std::endl; //compared with scan
 
     if(input)  delete[] input;
     if(output)  delete[] output;
 }
 
-void test_omp_read(int chunk_size) {
-    int len = 512 * 8192 * 100;  //1600MB
-    std::cout<<"Data size: "<<len<<" ("<<len* sizeof(int)/1024/1024<<"MB)"<<std::endl;
-
-    int *input = new int[len];
-    int *output = new int[len];
-    for(int i = 0; i < len; i++) input[i] = i;
-
-    int experTime = 30;
-    double times[experTime];
-    for(int e = 0; e < experTime; e++) {
-        times[e] = mem_access_omp_read(input, output, len, chunk_size);
-    }
-    double aveTime = averageHampel(times,experTime);
-    std::cout<<"Chunk size:"<<chunk_size<<"\tTime:"<<aveTime<<" ms"<<'\t'
-             <<"Throughput:"<<1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
-
-    if(input)  delete[] input;
-    if(output)  delete[] output;
-}
-
-void test_omp_ss() {
-    int len = 512 * 8192 * 100;  //1600MB
-    std::cout<<"Data size(Multiplication): "<<len<<" ("<<len* sizeof(int)/1024/1024<<"MB)"<<std::endl;
+void test_omp_ss(int len) {
+    std::cout<<"Data size(Copy): "<<len<<" ("<<1.0*len* sizeof(int)/1024/1024<<"MB)"<<'\t';
 
     //use _mm_malloc
     int *input = (int*)_mm_malloc(sizeof(int)*len,32);
@@ -217,7 +156,7 @@ void test_omp_ss() {
     }
     double aveTime = averageHampel(times,experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
-             <<"Throughput:"<<2*1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
+             <<"Throughput:"<<1.0*len/1024/1024/1024/aveTime*1e3<<" GKey/s"<<std::endl; //compared with scan
 
     if(input) _mm_free(input);
     if(output) _mm_free(output);
@@ -226,10 +165,12 @@ void test_omp_ss() {
 int main()
 {
 //    test_omp();
-    for(int i = 64; i <= 524288; i<<=1)
-        test_omp_read(i);
 
-    //streaming store, only used on CPU
-//    test_omp_ss();
+    for(int scale = 10; scale <= 30; scale++) {
+        unsigned data_size = 1<<scale;
+//        test_omp_ss(data_size);
+        test_omp(data_size);
+    }
+
     return 0;
 }

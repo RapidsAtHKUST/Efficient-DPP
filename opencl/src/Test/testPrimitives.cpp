@@ -119,7 +119,7 @@ bool testGather(int len) {
         }
         myTime /= (exper_time-1);
         cout<<"time:"<<myTime<<" ms.";
-        cout<<"("<<myTime/len*1e6<<" ns/tuple, "<< len* sizeof(int)/myTime/1e6<<"GB/s)"<<endl;
+        cout<<"("<<myTime/len*1e6<<" ns/tuple, "<< len* sizeof(int)/myTime/1024/1024/1024*1e3<<"GB/s)"<<endl;
     }
 
     status = clReleaseMemObject(d_out);

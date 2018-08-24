@@ -1,12 +1,10 @@
 /*
- * compile: nvcc -o mem_access -arch=sm_35 -O3 mem_access.cu -I /usr/local/cuda/samples/common/inc/
+ * compile: nvcc -o mem_cpy -arch=sm_35 -O3 mem_cpy.cu -I /usr/local/cuda/samples/common/inc/
  */
 #include <iostream>
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
 using namespace std;
-
-#define SCALAR  (3)
 
 __global__ void mul_kernel(int *d_in, int *d_out, int num)
 {
@@ -14,14 +12,14 @@ __global__ void mul_kernel(int *d_in, int *d_out, int num)
     int globalSIze = blockDim.x * gridDim.x;
 
     while (globalId < num) {
-        d_out[globalId] = d_in[globalId]*SCALAR;
+        d_out[globalId] = d_in[globalId];
         globalId += globalSIze;
     }
 }
 
 float mul(int *d_in, int *d_out, int num)
 {
-    int blockSize = 1024, gridSize = 32768;
+    int blockSize = 1024, gridSize = 1024;
     dim3 grid(gridSize);
     dim3 block(blockSize);
 
@@ -46,12 +44,10 @@ float mul(int *d_in, int *d_out, int num)
     return totalTime;
 }
 
-void testMem() {
+void testMem(int len) {
+    std::cout<<"Data size(Copy): "<<len<<" ("<<len* sizeof(int)/1024/1024<<"MB)"<<'\t';
 
-    int len = 512 * 8192 * 100;     //1600MB
-    std::cout<<"Data size(Multiplication): "<<len<<" ("<<len* sizeof(int)/1024/1024<<"MB)"<<std::endl;
-
-    float mulTime = 0.0;
+    float aveTime = 0.0;
 
     int *h_in, *d_in, *d_out;
     h_in = new int[len];
@@ -65,23 +61,25 @@ void testMem() {
     int experTime = 10;
     for(int i = 0; i < experTime; i++) {
         float tempTime = mul(d_in, d_out, len);
-        if (i != 0)     mulTime += tempTime;
+        if (i != 0)     aveTime += tempTime;
     }
-    mulTime /= (experTime - 1);
+    aveTime /= (experTime - 1);
 
     delete[] h_in;
     checkCudaErrors(cudaFree(d_in));
     checkCudaErrors(cudaFree(d_out));
 
-    //both read and write
-    double throughput = 2*sizeof(int)*len / mulTime / 1e6;
+    std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
+             <<"Throughput:"<<1.0*len/1024/1024/1024/aveTime*1e3<<" GKey/s"<<std::endl; //compared with scan
 
-    std::cout<<"Time for multiplication: "<<mulTime<<" ms."<<'\t'
-        <<"Bandwidth: "<<throughput<<" GB/s"<<std::endl;
 }
 
-int main() {
-    cudaSetDevice(1);
-    testMem();
+int main()
+{
+    for(int scale = 10; scale <= 30; scale++) {
+        unsigned data_size = 1<<scale;
+        testMem(data_size);
+    }
+
     return 0;
 }

@@ -221,7 +221,7 @@ void local_warp_scan(local int* lo, int len_total, local int *sum) {
 
     //1. Local warp-wise scan
     temp = lo[local_id];
-    barrier(CLK_LOCAL_MEM_FENCE);       /*need a barrier here*/
+//    barrier(CLK_LOCAL_MEM_FENCE);       /*need a barrier here*/
 
     if (lane >= 1) lo[local_id] += lo[local_id - 1];
     if (lane >= 2) lo[local_id] += lo[local_id - 2];

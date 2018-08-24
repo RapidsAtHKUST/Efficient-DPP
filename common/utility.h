@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <assert.h>
+#include <vector>
 
 double diffTime(struct timeval end, struct timeval start);
 void my_itoa(int num, char *buffer, int base);

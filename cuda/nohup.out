@@ -1,0 +1,16 @@
+Data size(Copy): 33554432 (128MB)	Time:23.9686 ms	Throughput:5.21516 GB/s
+Data size(Copy): 100663296 (384MB)	Time:106.222 ms	Throughput:3.53034 GB/s
+Data size(Copy): 167772160 (640MB)	Time:209.519 ms	Throughput:2.98303 GB/s
+Data size(Copy): 234881024 (896MB)	Time:313.172 ms	Throughput:2.79399 GB/s
+Data size(Copy): 301989888 (1152MB)	Time:416.655 ms	Throughput:2.70008 GB/s
+Data size(Copy): 369098752 (1408MB)	Time:519.805 ms	Throughput:2.64522 GB/s
+Data size(Copy): 436207616 (1664MB)	Time:623.365 ms	Throughput:2.60682 GB/s
+Data size(Copy): 503316480 (1920MB)	Time:726.647 ms	Throughput:2.58034 GB/s
+Data size(Copy): 570425344 (2176MB)	Time:919.008 ms	Throughput:2.31228 GB/s
+Data size(Copy): 637534208 (2432MB)	Time:1797.31 ms	Throughput:1.32142 GB/s
+Data size(Copy): 704643072 (2688MB)	Time:2818.99 ms	Throughput:0.931183 GB/s
+Data size(Copy): 771751936 (2944MB)	Time:3869.44 ms	Throughput:0.743002 GB/s
+Data size(Copy): 838860800 (3200MB)	Time:4921.24 ms	Throughput:0.635003 GB/s
+Data size(Copy): 905969664 (3456MB)	Time:5973.97 ms	Throughput:0.564951 GB/s
+Data size(Copy): 973078528 (3712MB)	Time:7033.76 ms	Throughput:0.515372 GB/s
+Data size(Copy): 1040187392 (3968MB)	Time:8098.31 ms	Throughput:0.478495 GB/s
