@@ -43,10 +43,10 @@ RM = /Applications/CLion.app/Contents/bin/cmake/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/bryan/workspace/gpu_cluster/workspace/opencl_study
+CMAKE_SOURCE_DIR = /Users/bryan/workspace/comparison_gpu
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/bryan/workspace/gpu_cluster/workspace/opencl_study/cmake-build-debug
+CMAKE_BINARY_DIR = /Users/bryan/workspace/comparison_gpu/cmake-build-debug
 
 # Include any dependencies generated for this target.
 include CMakeFiles/opencl_study.dir/depend.make
@@ -66,6 +66,6 @@ CMakeFiles/opencl_study.dir/clean:
 .PHONY : CMakeFiles/opencl_study.dir/clean
 
 CMakeFiles/opencl_study.dir/depend:
-	cd /Users/bryan/workspace/gpu_cluster/workspace/opencl_study/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/bryan/workspace/gpu_cluster/workspace/opencl_study /Users/bryan/workspace/gpu_cluster/workspace/opencl_study /Users/bryan/workspace/gpu_cluster/workspace/opencl_study/cmake-build-debug /Users/bryan/workspace/gpu_cluster/workspace/opencl_study/cmake-build-debug /Users/bryan/workspace/gpu_cluster/workspace/opencl_study/cmake-build-debug/CMakeFiles/opencl_study.dir/DependInfo.cmake --color=$(COLOR)
+	cd /Users/bryan/workspace/comparison_gpu/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/bryan/workspace/comparison_gpu /Users/bryan/workspace/comparison_gpu /Users/bryan/workspace/comparison_gpu/cmake-build-debug /Users/bryan/workspace/comparison_gpu/cmake-build-debug /Users/bryan/workspace/comparison_gpu/cmake-build-debug/CMakeFiles/opencl_study.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/opencl_study.dir/depend
 

@@ -75,7 +75,7 @@ bool testScan_cub(int len, int isExclusive) {
 
     cout<<"Data num:" <<len<<'\t'
         <<"Time:"<<totalTime<<" ms"<<'\t'
-        <<"Throughput:"<<1.0*len* sizeof(int)/1024/1024/1024/bestTime*1e3<<" GB/s"<<endl;
+        <<"Throughput:"<<1.0*len* sizeof(int)/1024/1024/1024/totalTime*1e3<<" GB/s"<<endl;
 
     return res;
 }

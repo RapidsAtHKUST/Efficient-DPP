@@ -1,4 +1,4 @@
-# Install script for directory: /Users/bryan/workspace/gpu_cluster/workspace/opencl_study
+# Install script for directory: /Users/bryan/workspace/comparison_gpu
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -35,5 +35,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/bryan/workspace/gpu_cluster/workspace/opencl_study/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/bryan/workspace/comparison_gpu/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
