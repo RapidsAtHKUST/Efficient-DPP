@@ -78,15 +78,15 @@ void testAccess() {
     cl_event event;
     cl_int status = 0;
     int argsNum = 0;
-    int localSize = 1024, gridSize = 8192;
+    int localSize = 512, gridSize = 8192;
     int repeat_max = 100;
     int length = localSize * gridSize * repeat_max;
     std::cout<<"Maximal data size: "<<length<<" ("<<length* sizeof(int)/1024/1024<<"MB)"<<std::endl;
 
     //kernel reading
-    cl_kernel mul_row_kernel = get_kernel(param.device, param.context, "memKernel.cl", "mul_row_based");
-    cl_kernel mul_column_kernel = get_kernel(param.device, param.context, "memKernel.cl", "mul_column_based");
-    cl_kernel mul_mixed_kernel = get_kernel(param.device, param.context, "memKernel.cl", "mul_mixed");
+    cl_kernel mul_row_kernel = get_kernel(param.device, param.context, "mem_kernel.cl", "mul_row_based");
+//    cl_kernel mul_column_kernel = get_kernel(param.device, param.context, "mem_kernel.cl", "mul_column_based");
+    cl_kernel mul_mixed_kernel = get_kernel(param.device, param.context, "mem_kernel.cl", "mul_mixed");
 
     //memory allocation
     int *h_in = new int[length];
@@ -101,10 +101,10 @@ void testAccess() {
     status = clFinish(param.queue);
 
     //set kernel arguments: mul_coalesced_kernel
-    argsNum = 0;
-    status |= clSetKernelArg(mul_column_kernel, argsNum++, sizeof(cl_mem), &d_in);
-    status |= clSetKernelArg(mul_column_kernel, argsNum++, sizeof(cl_mem), &d_out);
-    checkErr(status, ERR_SET_ARGUMENTS);
+//    argsNum = 0;
+//    status |= clSetKernelArg(mul_column_kernel, argsNum++, sizeof(cl_mem), &d_in);
+//    status |= clSetKernelArg(mul_column_kernel, argsNum++, sizeof(cl_mem), &d_out);
+//    checkErr(status, ERR_SET_ARGUMENTS);
 
     //set kernel arguments: mul_strided_kernel
     argsNum = 0;
@@ -143,32 +143,32 @@ void testAccess() {
     }
 
     //coalesced
-    cout<<"------------------ Coalesced Access ------------------"<<endl;
-    for(int re = 1; re <= repeat_max; re++) {
-        for(int i = 0; i < EXPERIMENT_TIMES; i++) {
-            status |= clSetKernelArg(mul_column_kernel, 2, sizeof(int), &re);
-            checkErr(status, ERR_SET_ARGUMENTS);
-            status = clEnqueueNDRangeKernel(param.queue, mul_column_kernel, 1, 0, global, local, 0, 0, &event);
-            clFlush(param.queue);
-            status = clFinish(param.queue);
-
-            checkErr(status, ERR_EXEC_KERNEL);
-            double tempTime = clEventTime(event);
-
-            //throw away the first result
-            if (i != 0)     column_time[re] += tempTime;
-        }
-    }
-
-    for(int re = 1; re <= repeat_max; re++) {
-        column_time[re] /= (EXPERIMENT_TIMES - 1);
-        assert(column_time[re] > 0);
-        column_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), column_time[re]);
-        cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
-            <<"("<<localSize*gridSize*(re)<<","<<localSize*gridSize*(re)*1.0* sizeof(int)/1024/1024<<"MB)"
-            <<" Time: "<<column_time[re]<<" ms\t"<<"Throughput: "<<column_throughput[re]<<" GB/s"<<endl;
-    }
-    cout<<endl;
+//    cout<<"------------------ Coalesced Access ------------------"<<endl;
+//    for(int re = 1; re <= repeat_max; re++) {
+//        for(int i = 0; i < EXPERIMENT_TIMES; i++) {
+//            status |= clSetKernelArg(mul_column_kernel, 2, sizeof(int), &re);
+//            checkErr(status, ERR_SET_ARGUMENTS);
+//            status = clEnqueueNDRangeKernel(param.queue, mul_column_kernel, 1, 0, global, local, 0, 0, &event);
+//            clFlush(param.queue);
+//            status = clFinish(param.queue);
+//
+//            checkErr(status, ERR_EXEC_KERNEL);
+//            double tempTime = clEventTime(event);
+//
+//            //throw away the first result
+//            if (i != 0)     column_time[re] += tempTime;
+//        }
+//    }
+//
+//    for(int re = 1; re <= repeat_max; re++) {
+//        column_time[re] /= (EXPERIMENT_TIMES - 1);
+//        assert(column_time[re] > 0);
+//        column_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), column_time[re]);
+//        cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
+//            <<"("<<localSize*gridSize*(re)<<","<<localSize*gridSize*(re)*1.0* sizeof(int)/1024/1024<<"MB)"
+//            <<" Time: "<<column_time[re]<<" ms\t"<<"Throughput: "<<column_throughput[re]<<" GB/s"<<endl;
+//    }
+//    cout<<endl;
 
     //strided
     cout<<"------------------ Strided Access ------------------"<<endl;

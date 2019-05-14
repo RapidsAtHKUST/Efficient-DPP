@@ -90,6 +90,65 @@ double scan_chained(cl_mem d_in, cl_mem d_out, int length, int local_size, int g
     return totalTime;
 }
 
+/*
+ *  Single-pass single-threaded scan for CPUs and MICs
+ *  tile_size: number of items in each tile (partition)
+ */
+double scan_global_single_thread(cl_mem d_in, cl_mem d_out, int length, int tile_size)
+{
+    device_param_t param = Plat::get_device_param();
+
+    double totalTime = 0.0f;
+    cl_event event;
+    cl_int status = 0;
+    int argsNum = 0;
+
+    int num_of_partitions = (length + tile_size - 1) / tile_size;
+
+    int local_size = 1;
+    int grid_size = num_of_partitions;
+
+    /*kernel reading*/
+    cl_kernel kernel = get_kernel(param.device, param.context, "scan_kernel.cl", "scan_global_mem");
+
+    /*initialize the intermediate array*/
+    int *h_inter = new int[num_of_partitions];
+    for(int i = 0; i < num_of_partitions; i++) h_inter[i] = -1;
+
+    int par_counter = 0;
+
+    cl_mem d_inter = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)* num_of_partitions, NULL, &status);
+    status = clEnqueueWriteBuffer(param.queue, d_inter, CL_TRUE, 0, sizeof(int)*num_of_partitions, h_inter, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+
+    cl_mem d_par_counter = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int), NULL, &status);
+    status = clEnqueueWriteBuffer(param.queue, d_par_counter, CL_TRUE, 0, sizeof(int), &par_counter, 0, 0, 0);
+    checkErr(status, ERR_WRITE_BUFFER);
+
+    size_t local[1] = {(size_t)local_size};
+    size_t global[1] = {(size_t)(local_size * grid_size)};
+
+    argsNum = 0;
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_in);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_out);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(int), &length);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(int), &tile_size);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_par_counter);
+    status |= clSetKernelArg(kernel, argsNum++, sizeof(cl_mem), &d_inter);
+    checkErr(status, ERR_SET_ARGUMENTS);
+
+    status = clFinish(param.queue);
+    status = clEnqueueNDRangeKernel(param.queue, kernel, 1, 0, global, local, 0, NULL, &event);
+    status = clFinish(param.queue);
+    checkErr(status, ERR_EXEC_KERNEL);
+    totalTime = clEventTime(event);
+
+    clReleaseMemObject(d_inter);
+    if(h_inter) delete[] h_inter;
+
+    return totalTime;
+}
+
 /*multi-WI RSS scan for GPUs*/
 double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int grid_size)
 {

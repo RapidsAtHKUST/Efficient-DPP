@@ -16,7 +16,8 @@ CPPFLAGS := -g -O3 -DPROJECT_ROOT=\"$(HOME_PATH)\" -Wno-write-strings
 
 INCLUDE := -I$(INCDIR) \
 		   -I$(COMDIR) 
-LINK := -lOpenCL
+LINK := -L/opt/intel/opencl/lib64 -lOpenCL
+#LINK := -L/usr/local/cuda/lib64/ -lOpenCL
 
 SRC :=  $(filter-out ._%,$(notdir $(shell find -L $(SRCDIR) $(COMDIR) -name *.cpp)))
 OBJ := $(SRC:%.cpp=$(OBJDIR)/%.o)

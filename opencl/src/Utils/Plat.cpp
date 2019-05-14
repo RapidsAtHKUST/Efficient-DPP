@@ -89,7 +89,7 @@ void Plat::init_properties() {
     cout<<"Please enter the index of the device to use (0,1,2...) : ";
 
     cin >> this->chosen_device_id;
-//    this->chosen_device_id = 1;
+//    this->chosen_device_id = 0;
     if (this->chosen_device_id < 0 || this->chosen_device_id >= num_devices)   {
         cerr<<"Wrong parameter."<<endl;
         exit(1);
@@ -123,13 +123,16 @@ void Plat::init_properties() {
     cl_device_type my_type;
     clGetDeviceInfo(my_device, CL_DEVICE_TYPE, sizeof(cl_device_type), &my_type, NULL);
 
+    /*a simple kernel*/
+    cl_kernel temp_kernel = get_kernel(this->device_params.device, this->device_params.context, "mem_kernel.cl", "mul_mixed");
+
     if (my_type == CL_DEVICE_TYPE_GPU) {    /*GPUs*/
-        /*a simple kernel*/
-        cl_kernel temp_kernel = get_kernel(this->device_params.device, this->device_params.context, "gather_kernel.cl", "gather");
         clGetKernelWorkGroupInfo(temp_kernel, this->device_params.device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(uint64_t), &this->device_params.wavefront, NULL);
     }
     else {      /*CPUs and MICs*/
-        clGetDeviceInfo(this->device_params.device, CL_DEVICE_NATIVE_VECTOR_WIDTH_INT, sizeof(uint64_t), &this->device_params.wavefront, NULL);
+//        clGetDeviceInfo(this->device_params.device, CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT, sizeof(uint64_t), &this->device_params.wavefront, NULL);
+        clGetKernelWorkGroupInfo(temp_kernel, this->device_params.device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(uint64_t), &this->device_params.wavefront, NULL);
+
     }
 
     /*display the params*/

@@ -18,6 +18,7 @@ kernel void scatter(
         int pos = loc[i];
         if (pos >= from && pos < to) {
             d_out[pos] = d_in[i];
+//            d_out[i] = d_in[i];
         }
     }
 }

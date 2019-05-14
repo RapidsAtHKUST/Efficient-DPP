@@ -93,6 +93,7 @@ bool testGather(int len) {
     for(int i = 0; i < len; i++)    h_in[i] = i;
     random_generator_int_sole(h_loc, len);
 
+
 //    valRandom_Partitioned(h_loc, len, 8192);
 
     cl_mem d_in = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
@@ -147,11 +148,11 @@ bool testGather(int len) {
 /*
  *  lengthMax:         maximum size
  */
-bool testScatter(int len) {
+bool testScatter(int len, int inputPasses) {
     device_param_t param = Plat::get_device_param();
 
     bool res = true;
-    int exper_time = 10;
+    int exper_time = 1;
     cl_int status;
 
     //kernel configuration
@@ -163,7 +164,10 @@ bool testScatter(int len) {
     int *h_in = new int[len];     //no need to copy data
     int *h_loc = new int[len];
     for(int i = 0; i < len; i++)    h_in[i] = i;
-    random_generator_int_sole(h_loc, len);
+    cout<<"Initializing data..."<<endl;
+//    random_generator_int_sole(h_loc, len);
+    random_generator_int(h_loc, len, len); /*not necessarily sole*/
+    cout<<"Initialization finished."<<endl;
 
     cl_mem d_in = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
     checkErr(status, ERR_HOST_ALLOCATION);
@@ -177,17 +181,17 @@ bool testScatter(int len) {
     checkErr(status, ERR_WRITE_BUFFER);
 
     //loop for multi-pass
-    for(int pass = 1; pass <= 32 ; pass<<=1) {
+    for(int pass = 1; pass <= 1 ; pass<<=1) {
         cout<<"[Scatter Running] len:"<<len<<' '
             <<"size:"<<len* sizeof(int)/1024/1024<<"MB "
-            <<"pass:"<<pass<<' '
+            <<"pass:"<<inputPasses<<' '
             <<"gridSize:"<<grid_size<<'\t';
         double myTime = 0;
         for(int i = 0; i < exper_time; i++)  {
-            double tempTime = scatter(d_in, d_out, len, d_loc, local_size, grid_size, pass);
-            if (i != 0)   myTime += tempTime;
+            double tempTime = scatter(d_in, d_out, len, d_loc, local_size, grid_size, inputPasses);
+            myTime += tempTime;
         }
-        myTime /= (exper_time-1);
+        myTime /= (exper_time);
         cout<<"time:"<<myTime<<" ms.";
         cout<<"("<<myTime/len*1e6<<" ns/tuple, "<< len* sizeof(int)/myTime/1e6<<"GB/s)"<<endl;
     }
@@ -227,9 +231,9 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
 
     srand(time(NULL));
     for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;
-
-    double tempTimes[EXPERIMENT_TIMES];
-    for(int e = 0; e < EXPERIMENT_TIMES; e++) {
+#define EXPER_TIME  (1)
+    double tempTimes[EXPER_TIME];
+    for(int e = 0; e < EXPER_TIME; e++) {
         d_in = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
@@ -243,10 +247,10 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
         checkErr(status, ERR_WRITE_BUFFER);
         clFinish(param.queue);
 
-//        double tempTime = scan_chained(d_in, d_out, length, localSize, gridSize, R, L);
+        double tempTime = scan_chained(d_in, d_out, length, localSize, gridSize, R, L);
 
         //three-kernel
-        double tempTime = scan_rss(d_in, d_out, length, localSize, gridSize); /*GPU:lsize=256 best*/
+//        double tempTime = scan_rss(d_in, d_out, length, localSize, gridSize); /*GPU:lsize=256 best*/
 //        double tempTime = scan_rss_single(d_in, d_out, length);
 
         status = clEnqueueReadBuffer(param.queue, d_out, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
@@ -277,7 +281,7 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
         tempTimes[e] = tempTime;
 
     }
-    aveTime = averageHampel(tempTimes, EXPERIMENT_TIMES);
+    aveTime = averageHampel(tempTimes, EXPER_TIME);
 
     if(h_input) delete[] h_input;
     if(h_output) delete[] h_output;
@@ -445,7 +449,7 @@ bool test_scan_local_schemes(LocalScanType type, double &ave_time, unsigned repe
         if (e == 0) {
             int acc = 0;
             for (int i = 0; i < len_total; i++) {
-                cout<<i<<' '<<h_input[i]<<' '<<h_output[i]<<' '<<acc<<endl;
+//                cout<<i<<' '<<h_input[i]<<' '<<h_output[i]<<' '<<acc<<endl;
 
                 if (h_output[i] != acc) {
                     res = false;
@@ -578,6 +582,67 @@ bool test_scan_matrix(MatrixScanType type, double &ave_time, int tile_size, unsi
     return res;
 }
 
+bool testScanSingleThread(int length, double &aveTime, int tile_size) {
+    device_param_t param = Plat::get_device_param();
+
+    cl_int status = 0;
+    bool res = true;
+    cout<<"length:"<<length<<' ';
+
+    int *h_input = new int[length];
+    int *h_output = new int[length];
+    cl_mem d_in, d_out;
+
+    srand(time(NULL));
+    for(int i = 0; i < length; i++) h_input[i] = rand() & 0xf;
+
+    double tempTimes[EXPERIMENT_TIMES];
+    for(int e = 0; e < EXPERIMENT_TIMES; e++) {
+        d_in = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+
+        d_out = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int) * length, NULL, &status);
+        checkErr(status, ERR_HOST_ALLOCATION);
+
+        status = clEnqueueWriteBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(int) * length, h_input, 0, 0, 0);
+        checkErr(status, ERR_WRITE_BUFFER);
+        clFinish(param.queue);
+
+        double tempTime = scan_global_single_thread(d_in, d_out, length, tile_size);
+
+        status = clEnqueueReadBuffer(param.queue, d_out, CL_TRUE, 0, sizeof(int) * length, h_output, 0, NULL, NULL);
+
+        checkErr(status, ERR_READ_BUFFER);
+        status = clFinish(param.queue);
+
+        status = clReleaseMemObject(d_in);
+        checkErr(status, ERR_RELEASE_MEM);
+
+        status = clReleaseMemObject(d_out);
+        checkErr(status, ERR_RELEASE_MEM);
+
+        //check
+        if (e == 0) {
+            int acc = 0;
+            for (int i = 0; i < length; i++) {
+                if (h_output[i] != acc) {
+                    cout<<i<<' '<<h_output[i]<<' '<<acc<<endl;
+                    res = false;
+                    break;
+                }
+                acc += h_input[i];
+            }
+        }
+        tempTimes[e] = tempTime;
+
+    }
+    aveTime = averageHampel(tempTimes, EXPERIMENT_TIMES);
+
+    if(h_input) delete[] h_input;
+    if(h_output) delete[] h_output;
+
+    return res;
+}
 
 /*
  * Split test inner function, to test specific kernel configurations

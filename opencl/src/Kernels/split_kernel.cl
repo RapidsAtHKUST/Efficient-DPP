@@ -665,6 +665,9 @@ void WG_shuffle_fixed(
 }
 
 /*---------------------- dedicated single-threaded kernels for CPUs and MICs --------------------------*/
+/* Note: This implementation is identical to the WG_shuffle_fixed for CPU and MIC shown above
+ * -- 2019.04.19
+ * */
 /*
  * All the kernels are invoked with local_size=1
  * Only support KO and AOS

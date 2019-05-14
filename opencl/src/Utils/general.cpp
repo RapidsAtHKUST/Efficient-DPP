@@ -91,6 +91,7 @@ cl_kernel get_kernel(
     strcat(args, "/src/Kernels ");
 
     strcat(args," -DKERNEL ");
+
     if (params != NULL) strcat(args, params);
 
 //    strcat(args, " -auto-prefetch-level=0 ");
@@ -100,6 +101,28 @@ cl_kernel get_kernel(
         display_compilation_log(device, program);
         exit(EXIT_FAILURE);
     }
+
+//extract the assembly programs if necessary
+    size_t ass_size;
+    status = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &ass_size, NULL);
+    checkErr(status,"Failed to get the size of the assembly program.");
+
+    unsigned char *binary = new unsigned char[ass_size];
+    status = clGetProgramInfo(program, CL_PROGRAM_BINARIES, ass_size, &binary, NULL);
+    checkErr(status,"Failed to generate the assembly program.");
+
+    FILE * fpbin = fopen( "assembly.ass", "w" );
+    if( fpbin == NULL )
+    {
+        fprintf( stderr, "Cannot create '%s'\n", "assembly.ass" );
+    }
+    else
+    {
+        fwrite( binary, 1, ass_size, fpbin );
+        fclose( fpbin );
+    }
+    delete [] binary;
+
 
 /*create the kernel*/
     cl_kernel kernel = clCreateKernel(program, func_name, &status);

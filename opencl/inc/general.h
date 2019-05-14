@@ -63,6 +63,7 @@ double scan_fast_out_of_place(cl_mem d_in, cl_mem d_out, int length, int local_s
 double scan_chained(cl_mem d_in, cl_mem d_out, int length, int localSize, int gridSize, int R, int L);
 double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int grid_size);
 double scan_rss_single(cl_mem d_in, cl_mem d_out, unsigned length);
+double scan_global_single_thread(cl_mem d_in, cl_mem d_out, int length, int tile_size);
 
 /*split algorithms*/
 double WI_split(
@@ -94,11 +95,14 @@ void testMem();
 void test_wg_sequence(unsigned long len);
 void testAccess();
 bool testGather(int len);
-bool testScatter(int len);
+bool testScatter(int len, int inputPass);
+
+bool testScanSingleThread(int length, double &aveTime, int tile_size);
 bool testScan(int length, double &totalTime, int localSize, int gridSize, int R, int L, bool oop=true);
 
 bool test_scan_local_schemes(LocalScanType type, double &ave_time, unsigned repeat);
 bool test_scan_matrix(MatrixScanType type, double &ave_time, int tile_size, unsigned repeat);
+
 /*
  *  Split test function, to test specific kernel configurations
  *

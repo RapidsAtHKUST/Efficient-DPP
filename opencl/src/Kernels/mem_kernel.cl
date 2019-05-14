@@ -4,7 +4,7 @@
 #include "params.h"
 
 //warp_bits: 5 for GPU, 4 for Xeon Phi and 3 for Xeon CPU
-#define WARP_BITS               (3)
+#define WARP_BITS               (1)
 #define WARP_SIZE               (1<<WARP_BITS)
 #define MASK                    (WARP_SIZE-1)
 #define SCALAR                  (3)
@@ -30,10 +30,22 @@ kernel void mul_column_based (
     }
 }
 
+//kernel void mul_row_based (
+//    global const int* d_in,
+//    global int* d_out,
+//    const int repeat)
+//{
+//    int globalId = get_global_id(0);
+//    d_out[globalId] = d_in[globalId] * 7 ;
+//    d_out[globalId+1] = d_in[globalId+1] * 9 ;
+//    barrier(CLK_LOCAL_MEM_FENCE);
+//    d_out[globalId+2] = d_in[globalId+2] * 12;
+//}
+
 kernel void mul_row_based (
-    global const int* d_in,
-    global int* d_out,
-    const int repeat)
+        global const int* d_in,
+        global int* d_out,
+        const int repeat)
 {
     int globalId = get_global_id(0);
 
@@ -45,9 +57,9 @@ kernel void mul_row_based (
 
 //attention: should set the WARP_SIZE before testing on a device!!
 kernel void mul_mixed (
-    global const int* d_in,
-    global int* d_out,
-    const int repeat)
+        global const int* d_in,
+        global int* d_out,
+        const int repeat)
 {
     //for Nvidia GPU, warpsize = 32, for Xeon Phi, warpsize = 16, for
     int globalId = get_global_id(0);
@@ -59,6 +71,7 @@ kernel void mul_mixed (
         idx += WARP_SIZE;
     }
 }
+
 
 kernel void wg_access(
     global int *data,

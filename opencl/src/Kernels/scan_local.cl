@@ -241,7 +241,7 @@ void local_warp_scan(local int* lo, int len_total, local int *sum) {
         if (lane >= 4)      sums[local_id] += sums[local_id-4];
         if (lane >= 8)      sums[local_id] += sums[local_id-8];
         if (lane >= 16)     sums[local_id] += sums[local_id-16];
-        if ( (sum != NULL) && (lane == 0))  *sum = sums[num_warps-1];
+        if ( (sum != 0) && (lane == 0))  *sum = sums[num_warps-1];
         sums[local_id] -= temp;
     }
     barrier(CLK_LOCAL_MEM_FENCE);
@@ -597,7 +597,7 @@ kernel void local_scan_wrapper_KOGGE(
     if (local_id < len_total)
         lo[local_id] = d_in[local_id];  /*loaded to local memory*/
     barrier(CLK_LOCAL_MEM_FENCE);
-    local_warp_scan(lo, len_total, &sum);
+//    local_warp_scan(lo, len_total, &sum);
 //    local_warp_scan_with_fence(lo, &sum);
 
     if (local_id < len_total)
@@ -728,7 +728,7 @@ kernel void matrix_scan_lm(
             acc += temp;
         }
     }
-    barrier(CLK_LOCAL_MEM_FENCE);
+    barrier(CLK_LOCAL_MEM_FENCE);       /*warning: this barrier does not function on Intel devices*/
 //    local int sum;
 //    local_warp_scan_with_fence(lsum, &sum);
 
@@ -765,14 +765,15 @@ kernel void matrix_scan_reg(
 
     /*local scan scheme*/
     if (local_id == 0) {
-        acc = 0;
+        int acc_in = 0;
         for (int i = 0; i < local_size; i++) {
             int temp = lsum[i];
-            lsum[i] = acc;
-            acc += temp;
+            lsum[i] = acc_in;
+            acc_in += temp;
         }
     }
     barrier(CLK_LOCAL_MEM_FENCE);
+
 //    local int sum;
 //    local_warp_scan_with_fence(lsum, &sum);
 
@@ -844,6 +845,7 @@ kernel void matrix_scan_lm_reg(
         d_out[i] = ldata[i];
 }
 
+/*only scan with one work-item in the global memory */
 kernel void matrix_scan_lm_serial(
         global int *d_in,
         global int *d_out,
@@ -854,21 +856,31 @@ kernel void matrix_scan_lm_serial(
     uint len_total = TILE_SIZE * local_size;
 
     /*data transferred to local memory*/
-    uint begin, end, step = WARP_SIZE;
-    compute_mixed_access(
-            step, local_id, local_size, len_total,
-            &begin, &end);
-
-    for(int i = begin; i < end; i += step)
-        ldata[i] = d_in[i];
-    barrier(CLK_LOCAL_MEM_FENCE);
+//    uint begin, end, step = WARP_SIZE;
+//    compute_mixed_access(
+//            step, local_id, local_size, len_total,
+//            &begin, &end);
+//
+//    for(int i = begin; i < end; i += step)
+//        ldata[i] = d_in[i];
+//    barrier(CLK_LOCAL_MEM_FENCE);
+//
+//    if (local_id == 0) {
+//        int acc = 0;
+//        for (int i = 0; i < len_total; i++) {
+//            int temp = ldata[i];
+//            d_out[i] = acc;
+//            acc += temp;
+//        }
+//    }
 
     if (local_id == 0) {
         int acc = 0;
         for (int i = 0; i < len_total; i++) {
-            int temp = ldata[i];
+            int temp = d_in[i];
             d_out[i] = acc;
             acc += temp;
         }
     }
+
 }

@@ -11,20 +11,25 @@ using namespace std;
 int main(int argc, const char *argv[]) {
     Plat::plat_init();
 
+    double totalTime;
+    int repeat = 1;
+    bool res;
+
 //      testMem(info);
-//      testAccess(info);
+//      testAccess();
 //      testLatency(info);
 
     //test the gather and scatter with uniformly distributed indexes
 //    for(int i = 128; i < 4096; i += 256) {
 //        int num = i / sizeof(int) * 1024 * 1024;
-//        testGather(num, info);
+//        testGather(num);
 //        cout<<endl;
 //    }
+//    int inputPass = atoi(argv[1]);
 //
-//    for(int i = 128; i < 4096; i += 256) {
+//    for(int i = 2048; i <= 2048; i += 256) {
 //        int num = i / sizeof(int) * 1024 * 1024;
-//        testScatter(num, info);
+//        testScatter(num, inputPass);
 //        cout<<endl;
 //    }
 
@@ -34,29 +39,30 @@ int main(int argc, const char *argv[]) {
 //        testScatter(num, info);
 
     //test scan
-    for(int scale = 10; scale <= 30; scale++) {
-        int num = 1<<scale;
-        double aveTime;
-        cout<<scale<<'\t';
-//        bool res = testScan(num, aveTime, 64, 1024, 112, false);    //CPU testing
-//        bool res = testScan(num, aveTime, 64, 240, 67, 0);    //MIC testing
-        bool res = testScan(num, aveTime, 256, 2048, 0, 11, false);    //GPU testing
-        if (!res) {
-            cerr<<"Wrong result!"<<endl;
-            exit(1);
-        }
-        cout<<"Time:"<<aveTime<<" ms.\t";
-        cout<<"Throughput:"<<num*1.0 /1024/1024/1024/aveTime*1000<<" GKeys/s"<<endl;
-    }
-    double totalTime;
-    int repeat = 1000;
-    bool res;
+//    for(int scale = 10; scale <= 30; scale++) {
+//        int num = 1<<scale;
+//        double aveTime;
+//        cout<<scale<<'\t';
+////        bool res = testScan(num, aveTime, 64, 40, 112, 0, atoi(argv[1]));    //CPU testing
+////        bool res = testScan(num, aveTime, 64, 240, 67, 0, atoi(argv[1]));    //MIC testing
+////        bool res = testScan(num, aveTime, 256, 2048, 0, 11, false);    //GPU testing
+//        int tile_size = num/240;
+//        if (tile_size > 1048576)    tile_size = 1048576;
+//        bool res = testScanSingleThread(num, aveTime, tile_size);
+//        if (!res) {
+//            cerr<<"Wrong result!"<<endl;
+//            exit(1);
+//        }
+//        cout<<"Time:"<<aveTime<<" ms.\t";
+//        cout<<"Throughput:"<<num*1.0 /1024/1024/1024/aveTime*1000<<" GKeys/s"<<endl;
+//    }
 
-//    cout<<"Serial: ";
-//    res = test_scan_local_schemes(SERIAL, totalTime, repeat);
-//    if (res)    cout<<"right"<<' ';
-//    else        cout<<"wrong"<<' ';
-//    cout<<"total time:"<<totalTime<<"ms"<<" (repeat "<<repeat<<" times)"<<endl;
+
+    cout<<"Serial: ";
+    res = test_scan_local_schemes(SERIAL, totalTime, repeat);
+    if (res)    cout<<"right"<<' ';
+    else        cout<<"wrong"<<' ';
+    cout<<"total time:"<<totalTime<<"ms"<<" (repeat "<<repeat<<" times)"<<endl;
 //
 //    cout<<"Kogge: ";
 //    res = test_scan_local_schemes(KOGGE, totalTime, repeat);
@@ -76,32 +82,48 @@ int main(int argc, const char *argv[]) {
 //    else        cout<<"wrong"<<' ';
 //    cout<<"total time:"<<totalTime<<"ms"<<" (repeat "<<repeat<<" times)"<<endl;
 
+
+
+    /*local matrix scan*/
 //    for(int tile_size = 1; tile_size < 50; tile_size++) {
 //        cout << "Matrix_LM: ";
 //        res = test_scan_matrix(LM, totalTime, tile_size, repeat);
 //        if (res) cout << "right" << ' ';
 //        else cout << "wrong" << ' ';
-//        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
+//        cout << "total time:" << totalTime << "ms\t"
+//             << " (repeat " << repeat << " times)\t"
+//             << " tile:" << tile_size <<"\t"
+//             << "Throughput: "<< 512*tile_size/totalTime*1000*1000/1024/1024<<" MKeys/sec"
 //             << endl;
 //
 //        cout << "Matrix_REG: ";
 //        res = test_scan_matrix(REG, totalTime, tile_size, repeat);
 //        if (res) cout << "right" << ' ';
 //        else cout << "wrong" << ' ';
-//        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
+//        cout << "total time:" << totalTime << "ms\t"
+//             << " (repeat " << repeat << " times)\t"
+//             << " tile:" << tile_size <<"\t"
+//             << "Throughput: "<< 512*tile_size/totalTime*1000*1000/1024/1024<<" MKeys/sec"
 //             << endl;
 //
 //        cout << "Matrix_LM_REG: ";
 //        res = test_scan_matrix(LM_REG, totalTime, tile_size, repeat);
 //        if (res) cout << "right" << ' ';
 //        else cout << "wrong" << ' ';
-//        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
+//        cout << "total time:" << totalTime << "ms\t"
+//             << " (repeat " << repeat << " times)\t"
+//             << " tile:" << tile_size <<"\t"
+//             << "Throughput: "<< 512*tile_size/totalTime*1000*1000/1024/1024<<" MKeys/sec"
 //             << endl;
+//
 //        cout << "Matrix_LM_SERIAL: ";
 //        res = test_scan_matrix(LM_SERIAL, totalTime, tile_size, repeat);
 //        if (res) cout << "right" << ' ';
 //        else cout << "wrong" << ' ';
-//        cout << "total time:" << totalTime << "ms" << " (repeat " << repeat << " times)" << " tile:" << tile_size
+//        cout << "total time:" << totalTime << "ms\t"
+//             << " (repeat " << repeat << " times)\t"
+//             << " tile:" << tile_size <<"\t"
+//             << "Throughput: "<< 512*tile_size/totalTime*1000*1000/1024/1024<<" MKeys/sec"
 //             << endl;
 //    }
 
@@ -130,9 +152,9 @@ int main(int argc, const char *argv[]) {
 //    int gsize[12] = {16384,16384,8192,8192,8192,8192,8192,8192,8192,8192,8192,16384};
 
 //    cout<<"WG_varied_reorder, KO:"<<endl;
-//    for (int buckets = 4096; buckets <= 4096; buckets <<= 1) {
-////        split_test_parameters(length, buckets, WG, KO, 2);
-//        split_test_specific(length, buckets, Single_reorder, KO, 1, 32768);
+//    for (int buckets = 2; buckets <= 4096; buckets <<= 1) {
+//        split_test_parameters(length, buckets, WG, KO, 2);
+//        split_test_specific(length, buckets, WG, KO, 1, 2048);
 //    }
 
         return 0;
