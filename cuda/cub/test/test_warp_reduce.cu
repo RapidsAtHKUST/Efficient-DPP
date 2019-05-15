@@ -80,7 +80,7 @@ struct WrapperFunctor
 
 
 //---------------------------------------------------------------------
-// Test kernels
+// test kernels
 //---------------------------------------------------------------------
 
 /**
@@ -209,7 +209,7 @@ __global__ void FullWarpReduceKernel(
     clock_t start = clock();
     __threadfence_block();      // workaround to prevent clock hoisting
 
-    // Test warp reduce
+    // test warp reduce
     int warp_id = threadIdx.x / LOGICAL_WARP_THREADS;
 
     T output = DeviceTest<T, ReductionOp, WarpReduce>::Reduce(
@@ -257,7 +257,7 @@ __global__ void PartialWarpReduceKernel(
     clock_t start = clock();
     __threadfence_block();      // workaround to prevent clock hoisting
 
-    // Test partial-warp reduce
+    // test partial-warp reduce
     int warp_id = threadIdx.x / LOGICAL_WARP_THREADS;
     T output = DeviceTest<T, ReductionOp, WarpReduce>::Reduce(
         temp_storage[warp_id], input, reduction_op, valid_warp_threads);
@@ -307,7 +307,7 @@ __global__ void WarpHeadSegmentedReduceKernel(
     clock_t start = clock();
     __threadfence_block();      // workaround to prevent clock hoisting
 
-    // Test segmented warp reduce
+    // test segmented warp reduce
     int warp_id = threadIdx.x / LOGICAL_WARP_THREADS;
     T output = DeviceTest<T, ReductionOp, WarpReduce>::HeadSegmentedReduce(
         temp_storage[warp_id], input, head_flag, reduction_op);
@@ -360,7 +360,7 @@ __global__ void WarpTailSegmentedReduceKernel(
     clock_t start = clock();
     __threadfence_block();      // workaround to prevent clock hoisting
 
-    // Test segmented warp reduce
+    // test segmented warp reduce
     int warp_id = threadIdx.x / LOGICAL_WARP_THREADS;
     T output = DeviceTest<T, ReductionOp, WarpReduce>::TailSegmentedReduce(
         temp_storage[warp_id], input, tail_flag, reduction_op);
@@ -823,7 +823,7 @@ int main(int argc, char** argv)
     // Compile/run thorough tests
     for (int i = 0; i <= g_repeat; ++i)
     {
-        // Test logical warp sizes
+        // test logical warp sizes
         Test<32>();
         Test<16>();
         Test<9>();

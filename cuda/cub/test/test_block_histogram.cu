@@ -59,7 +59,7 @@ CachingDeviceAllocator  g_allocator(true);
 
 
 //---------------------------------------------------------------------
-// Test kernels
+// test kernels
 //---------------------------------------------------------------------
 
 /**
@@ -86,7 +86,7 @@ __global__ void BlockHistogramKernel(
     T data[ITEMS_PER_THREAD];
     LoadDirectStriped<BLOCK_THREADS>(threadIdx.x, d_samples, data);
 
-    // Test histo (writing directly to histogram buffer in global)
+    // test histo (writing directly to histogram buffer in global)
     BlockHistogram(temp_storage).Histogram(data, d_histogram);
 }
 
@@ -288,8 +288,8 @@ int main(int argc, char** argv)
 #ifdef QUICK_TEST
 
     // Compile/run quick tests
-    Test<unsigned char, 256, 128, 4, BLOCK_HISTO_SORT>(RANDOM);
-    Test<unsigned char, 256, 128, 4, BLOCK_HISTO_ATOMIC>(RANDOM);
+    test<unsigned char, 256, 128, 4, BLOCK_HISTO_SORT>(RANDOM);
+    test<unsigned char, 256, 128, 4, BLOCK_HISTO_ATOMIC>(RANDOM);
 
 #else
 

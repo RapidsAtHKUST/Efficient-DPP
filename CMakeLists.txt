@@ -257,15 +257,15 @@ set(SOURCE_FILES
         opencl/inc/Foundation.h
         opencl/inc/KernelProcessor.h
         opencl/inc/PlatInit.h
-        opencl/Kernels/gather_kernel.cl
-        opencl/Kernels/hj_non_partitioned_kernel.cl
-        opencl/Kernels/hj_partitioned_kernel.cl
-        opencl/Kernels/mem_kernel.cl
-        opencl/Kernels/scan_rss_kernel.cl
-        opencl/Kernels/scan_rss_single_kernel.cl
-        opencl/Kernels/scan_kernel.cl
-        opencl/Kernels/scatter_kernel.cl
-        opencl/Kernels/split_kernel.cl
+        opencl/kernels/gather_kernel.cl
+        opencl/kernels/hj_non_partitioned_kernel.cl
+        opencl/kernels/hj_partitioned_kernel.cl
+        opencl/kernels/mem_kernel.cl
+        opencl/kernels/scan_rss_kernel.cl
+        opencl/kernels/scan_rss_single_kernel.cl
+        opencl/kernels/scan_kernel.cl
+        opencl/kernels/scatter_kernel.cl
+        opencl/kernels/split_kernel.cl
         opencl/obj/bisortImpl.d
         opencl/obj/bisortImpl.o
         opencl/obj/CSSTree.d
@@ -308,16 +308,16 @@ set(SOURCE_FILES
         opencl/obj/utility.o
         opencl/src/Join/nphjImpl.cpp
         opencl/src/Join/phjImpl.cpp
-        opencl/src/Main/main.cpp
+        opencl/src/test/main.cpp
         opencl/src/Primitive/gatherImpl.cpp
         opencl/src/Primitive/scanImpl.cpp
         opencl/src/Primitive/scatterImpl.cpp
         opencl/src/Primitive/splitImpl.cpp
-        opencl/src/Test/testBasic.cpp
-        opencl/src/Test/testJoins.cpp
-        opencl/src/Test/testPrimitives.cpp
-        opencl/src/Utils/KernelProcessor.cpp
-        opencl/src/Utils/PlatInit.cpp
+        opencl/src/util/testBasic.cpp
+        opencl/src/util/testJoins.cpp
+        opencl/src/util/testPrimitives.cpp
+        opencl/src/util/KernelProcessor.cpp
+        opencl/src/util/PlatInit.cpp
         opencl/Makefile
         opencl/README.txt
         openmp/inc/functions.h

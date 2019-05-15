@@ -60,7 +60,7 @@ CachingDeviceAllocator  g_allocator(true);
 
 
 //---------------------------------------------------------------------
-// Test kernels
+// test kernels
 //---------------------------------------------------------------------
 
 
@@ -352,7 +352,7 @@ void TestFullTile(
     CubDebugExit(cudaMemcpy(d_in, h_in, sizeof(T) * num_items, cudaMemcpyHostToDevice));
     CubDebugExit(cudaMemset(d_out, 0, sizeof(T) * 1));
 
-    // Test multi-tile (unguarded)
+    // test multi-tile (unguarded)
     printf("TestFullTile %s, %s, gen-mode %d, num_items(%d), BLOCK_THREADS(%d) (%d,%d,%d), ITEMS_PER_THREAD(%d), tiles(%d), %s (%d bytes) elements:\n",
         Equals<ReductionOp, Sum>::VALUE ? "Sum" : "Max",
         (ALGORITHM == BLOCK_REDUCE_RAKING) ? "BLOCK_REDUCE_RAKING" : (ALGORITHM == BLOCK_REDUCE_RAKING_COMMUTATIVE_ONLY) ? "BLOCK_REDUCE_RAKING_COMMUTATIVE_ONLY" : "BLOCK_REDUCE_WARP_REDUCTIONS",
@@ -696,11 +696,11 @@ void Test(
     ReductionOp     reduction_op)
 {
 #ifdef TEST_RAKING
-    Test<BLOCK_REDUCE_RAKING, BLOCK_THREADS, T>(reduction_op);
-    Test<BLOCK_REDUCE_RAKING_COMMUTATIVE_ONLY, BLOCK_THREADS, T>(reduction_op);
+    test<BLOCK_REDUCE_RAKING, BLOCK_THREADS, T>(reduction_op);
+    test<BLOCK_REDUCE_RAKING_COMMUTATIVE_ONLY, BLOCK_THREADS, T>(reduction_op);
 #endif
 #ifdef TEST_WARP_REDUCTIONS
-    Test<BLOCK_REDUCE_WARP_REDUCTIONS, BLOCK_THREADS, T>(reduction_op);
+    test<BLOCK_REDUCE_WARP_REDUCTIONS, BLOCK_THREADS, T>(reduction_op);
 #endif
 }
 

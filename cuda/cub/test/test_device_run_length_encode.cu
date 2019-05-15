@@ -261,7 +261,7 @@ cudaError_t Dispatch(
 
 
 //---------------------------------------------------------------------
-// CUDA Nested Parallelism Test Kernel
+// CUDA Nested Parallelism test Kernel
 //---------------------------------------------------------------------
 
 /**
@@ -354,7 +354,7 @@ cudaError_t Dispatch(
 
 
 //---------------------------------------------------------------------
-// Test generation
+// test generation
 //---------------------------------------------------------------------
 
 
@@ -640,7 +640,7 @@ void TestPointer(
     // Initialize device input
     CubDebugExit(cudaMemcpy(d_in, h_in, sizeof(T) * num_items, cudaMemcpyHostToDevice));
 
-    // Run Test
+    // Run test
     Test<RLE_METHOD, BACKEND>(d_in, h_unique_reference, h_offsets_reference, h_lengths_reference, equality_op, num_runs, num_items);
 
     // Cleanup
@@ -685,7 +685,7 @@ void TestIterator(
         typeid(T).name(), typeid(OffsetT).name(), typeid(LengthT).name());
     fflush(stdout);
 
-    // Run Test
+    // Run test
     Test<RLE_METHOD, BACKEND>(h_in, h_unique_reference, h_offsets_reference, h_lengths_reference, equality_op, num_runs, num_items);
 
     // Cleanup
@@ -719,7 +719,7 @@ template <
 void Test(
     int             num_items)
 {
-    // Test iterator (one run)
+    // test iterator (one run)
     TestIterator<RLE_METHOD, BACKEND, T, OffsetT, LengthT>(num_items, Int2Type<Traits<T>::PRIMITIVE>());
 
     // num_items runs
@@ -751,8 +751,8 @@ void TestDispatch(
     Test<NON_TRIVIAL,   CUB, T, OffsetT, LengthT>(num_items);
 
 #ifdef CUB_CDP
-    Test<RLE,           CDP, T, OffsetT, LengthT>(num_items);
-    Test<NON_TRIVIAL,   CDP, T, OffsetT, LengthT>(num_items);
+    test<RLE,           CDP, T, OffsetT, LengthT>(num_items);
+    test<NON_TRIVIAL,   CDP, T, OffsetT, LengthT>(num_items);
 #endif
 }
 
@@ -863,7 +863,7 @@ int main(int argc, char** argv)
     // Compile/run thorough tests
     for (int i = 0; i <= g_repeat; ++i)
     {
-        // Test different input types
+        // test different input types
         TestSize<char,          int, int>(num_items);
         TestSize<short,         int, int>(num_items);
         TestSize<int,           int, int>(num_items);

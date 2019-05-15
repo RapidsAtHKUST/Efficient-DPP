@@ -6,9 +6,16 @@
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
 #include "Plat.h"
+//#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+//#if defined(__APPLE__) || defined(__MACOSX)
+//#include <OpenCL/OpenCL.h>
+//#else
+//#include <CL/cl.h>
+//#endif
 using namespace std;
 
 int main(int argc, const char *argv[]) {
+
     Plat::plat_init();
 
     double totalTime;
@@ -25,13 +32,13 @@ int main(int argc, const char *argv[]) {
 //        testGather(num);
 //        cout<<endl;
 //    }
-//    int inputPass = atoi(argv[1]);
+    int inputPass = atoi(argv[1]);
 //
-//    for(int i = 2048; i <= 2048; i += 256) {
-//        int num = i / sizeof(int) * 1024 * 1024;
-//        testScatter(num, inputPass);
-//        cout<<endl;
-//    }
+    for(int i = 2048; i <= 2048; i += 256) {
+        int num = i / sizeof(int) * 1024 * 1024;
+        testScatter(num, inputPass);
+        cout<<endl;
+    }
 
 
 //    testAtomic(info);
@@ -58,11 +65,11 @@ int main(int argc, const char *argv[]) {
 //    }
 
 
-    cout<<"Serial: ";
-    res = test_scan_local_schemes(SERIAL, totalTime, repeat);
-    if (res)    cout<<"right"<<' ';
-    else        cout<<"wrong"<<' ';
-    cout<<"total time:"<<totalTime<<"ms"<<" (repeat "<<repeat<<" times)"<<endl;
+//    cout<<"Serial: ";
+//    res = test_scan_local_schemes(SERIAL, totalTime, repeat);
+//    if (res)    cout<<"right"<<' ';
+//    else        cout<<"wrong"<<' ';
+//    cout<<"total time:"<<totalTime<<"ms"<<" (repeat "<<repeat<<" times)"<<endl;
 //
 //    cout<<"Kogge: ";
 //    res = test_scan_local_schemes(KOGGE, totalTime, repeat);

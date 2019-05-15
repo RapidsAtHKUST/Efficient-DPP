@@ -4,4 +4,5 @@
 *.optrpt
 *.d
 *.du
-
+.idea
+cmake-build-debug

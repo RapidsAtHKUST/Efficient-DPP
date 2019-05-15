@@ -1063,7 +1063,7 @@ void TestByBackend(
     CubDebugExit(cudaMemcpy(d_in, h_in, sizeof(InputT) * num_items, cudaMemcpyHostToDevice));
 
     //
-    // Test single-segment implementations
+    // test single-segment implementations
     //
 
     InitializeSegments(num_items, 1, h_segment_offsets, g_verbose_input);
@@ -1082,7 +1082,7 @@ void TestByBackend(
     }
 
     //
-    // Test segmented implementation
+    // test segmented implementation
     //
 
     // Right now we assign a single thread block to each segment, so lets keep it to under 128K items per segment
@@ -1092,13 +1092,13 @@ void TestByBackend(
         num_segments < max_segments;
         num_segments = (num_segments * 32) + 1)
     {
-        // Test with segment pointer
+        // test with segment pointer
         InitializeSegments(num_items, num_segments, h_segment_offsets, g_verbose_input);
         CubDebugExit(cudaMemcpy(d_segment_offsets, h_segment_offsets, sizeof(OffsetT) * (num_segments + 1), cudaMemcpyHostToDevice));
         TestByOp<CUB_SEGMENTED, OutputT>(
             h_in, d_in, num_items, num_segments, h_segment_offsets, d_segment_offsets);
 
-        // Test with segment iterator
+        // test with segment iterator
         typedef CastOp<OffsetT> IdentityOpT;
         IdentityOpT identity_op;
         TransformInputIterator<OffsetT, IdentityOpT, OffsetT*, OffsetT> h_segment_offsets_itr(
@@ -1129,7 +1129,7 @@ void TestByGenMode(
     OffsetT max_segments)
 {
     //
-    // Test pointer support using different input-generation modes
+    // test pointer support using different input-generation modes
     //
 
     TestByBackend<InputT, OutputT>(num_items, max_segments, UNIFORM);
@@ -1137,7 +1137,7 @@ void TestByGenMode(
     TestByBackend<InputT, OutputT>(num_items, max_segments, RANDOM);
 
     //
-    // Test iterator support using a constant-iterator and SUM
+    // test iterator support using a constant-iterator and SUM
     //
 
     InputT val;
@@ -1178,12 +1178,12 @@ struct TestBySize
         // Black-box testing on all backends
         //
 
-        // Test 0, 1, many
+        // test 0, 1, many
         TestByGenMode<InputT, OutputT>(0,           max_segments);
         TestByGenMode<InputT, OutputT>(1,           max_segments);
         TestByGenMode<InputT, OutputT>(max_items,   max_segments);
 
-        // Test random problem sizes from a log-distribution [8, max_items-ish)
+        // test random problem sizes from a log-distribution [8, max_items-ish)
         int     num_iterations = 8;
         double  max_exp = log(double(max_items)) / log(double(2.0));
         for (int i = 0; i < num_iterations; ++i)
@@ -1326,7 +1326,7 @@ int main(int argc, char** argv)
     // Compile/run thorough tests
     for (int i = 0; i <= g_repeat; ++i)
     {
-        // Test different input types
+        // test different input types
         TestType<char, char>(max_items, max_segments);
 
         TestType<unsigned char, unsigned char>(max_items, max_segments);

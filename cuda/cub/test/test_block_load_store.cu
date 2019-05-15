@@ -56,7 +56,7 @@ CachingDeviceAllocator  g_allocator(true);
 
 
 //---------------------------------------------------------------------
-// Test kernels
+// test kernels
 //---------------------------------------------------------------------
 
 
@@ -168,7 +168,7 @@ void TestKernel(
 
     int unguarded_elements = grid_size * BLOCK_THREADS * ITEMS_PER_THREAD;
 
-    // Test with discard output iterator
+    // test with discard output iterator
     typedef typename std::iterator_traits<InputIteratorT>::difference_type OffsetT;
     DiscardOutputIterator<OffsetT> discard_itr;
 
@@ -179,7 +179,7 @@ void TestKernel(
             discard_itr,
             guarded_elements);
 
-    // Test with regular output iterator
+    // test with regular output iterator
     Kernel<BLOCK_THREADS, ITEMS_PER_THREAD, LOAD_ALGORITHM, STORE_ALGORITHM>
         <<<grid_size, BLOCK_THREADS>>>(
             d_in,
@@ -252,7 +252,7 @@ void TestNative(
 
     TestKernel<T, BLOCK_THREADS, ITEMS_PER_THREAD, LOAD_ALGORITHM, STORE_ALGORITHM>(
         h_in,
-        (T const *) d_in,   // Test const
+        (T const *) d_in,   // test const
         d_out_unguarded,
         d_out_guarded,
         d_out_unguarded,

@@ -162,7 +162,7 @@ cudaError_t Dispatch(
 
 
 //---------------------------------------------------------------------
-// CUDA Nested Parallelism Test Kernel
+// CUDA Nested Parallelism test Kernel
 //---------------------------------------------------------------------
 
 /**
@@ -228,7 +228,7 @@ cudaError_t Dispatch(
 
 
 //---------------------------------------------------------------------
-// Test generation
+// test generation
 //---------------------------------------------------------------------
 
 
@@ -433,7 +433,7 @@ void TestPointer(
     // Initialize device input
     CubDebugExit(cudaMemcpy(d_in, h_in, sizeof(T) * num_items, cudaMemcpyHostToDevice));
 
-    // Run Test
+    // Run test
     Test<BACKEND>(d_in, h_reference, num_selected, num_items);
 
     // Cleanup
@@ -468,7 +468,7 @@ void TestIterator(
         (int) sizeof(T));
     fflush(stdout);
 
-    // Run Test
+    // Run test
     Test<BACKEND>(h_in, h_reference, num_selected, num_items);
 
     // Cleanup
@@ -504,7 +504,7 @@ void TestOp(
 {
     Test<CUB, T>(num_items);
 #ifdef CUB_CDP
-    Test<CDP, T>(num_items);
+    test<CDP, T>(num_items);
 #endif
 }
 
@@ -622,7 +622,7 @@ int main(int argc, char** argv)
     // Compile/run thorough tests
     for (int i = 0; i <= g_repeat; ++i)
     {
-        // Test different input types
+        // test different input types
         Test<unsigned char>(num_items);
         Test<unsigned short>(num_items);
         Test<unsigned int>(num_items);

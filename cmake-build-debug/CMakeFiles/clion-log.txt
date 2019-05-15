@@ -13,4 +13,3 @@ CMake Error: CMake can not determine linker language for target: opencl_study
 CMake Error: Cannot determine link language for target "opencl_study".
 -- Generating done
 -- Build files have been written to: /Users/bryan/workspace/comparison_gpu/cmake-build-debug
-Unable to determine product file path for target opencl_study. Running and debugging will be unavailable.

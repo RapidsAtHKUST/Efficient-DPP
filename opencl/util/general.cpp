@@ -56,7 +56,7 @@ cl_kernel get_kernel(
     char *addr = new char[1000];
     memset(addr, '\0', sizeof(char)*1000);
     strcat(addr, PROJECT_ROOT);
-    strcat(addr, "src/Kernels/");
+    strcat(addr, "/kernels/");
     strcat(addr, file_name);
 
     ifstream in(addr,std::fstream::in| std::fstream::binary);
@@ -88,7 +88,7 @@ cl_kernel get_kernel(
 
     strcat(args, "-I");
     strcat(args, PROJECT_ROOT);
-    strcat(args, "/src/Kernels ");
+    strcat(args, "/src/kernels ");
 
     strcat(args," -DKERNEL ");
 

@@ -49,7 +49,7 @@
 //    }
 //
 //    double joinTime = 0, totalTime = 0;
-//    //------------------------ Test 1: No duplicate key values ------------------------
+//    //------------------------ test 1: No duplicate key values ------------------------
 //
 ////    cout<<"--- Test 1 : no duplicate---"<<endl;
 //    int *h_R_keys = new int[rLen];
@@ -167,7 +167,7 @@
 //
 //    //---------------------------------- End fo test 1 -----------------------------------
 //
-//    //------------------------ Test 2: Having duplicate key values ------------------------
+//    //------------------------ test 2: Having duplicate key values ------------------------
 //
 ////    cout<<"--- Test 2 : has duplicate---"<<endl;
 ////

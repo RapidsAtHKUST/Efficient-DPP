@@ -472,7 +472,7 @@ cudaError_t Dispatch(
 
 
 //---------------------------------------------------------------------
-// Test generation
+// test generation
 //---------------------------------------------------------------------
 
 // Searches for bin given a list of bin-boundary levels
@@ -1169,11 +1169,11 @@ void TestEven(
         upper_level[channel] = (max_level + (num_bins * min_level_increment)) / 2;
     }
 
-    // Test pointer-based samples
+    // test pointer-based samples
     TestEvenNative<BACKEND, NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleT, CounterT, LevelT, OffsetT>(
         max_level, entropy_reduction, num_levels, lower_level, upper_level, num_row_pixels, num_rows, row_stride_bytes);
 
-    // Test iterator-based samples (CUB-only)
+    // test iterator-based samples (CUB-only)
     TestEvenIterator<CUB, NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleT, CounterT, LevelT, OffsetT>(
         max_level, entropy_reduction, num_levels, lower_level, upper_level, num_row_pixels, num_rows, row_stride_bytes);
 }
@@ -1279,7 +1279,7 @@ void Test(
 //    {
 //        num_levels[channel] = max_num_levels;
 //    }
-//    Test<SampleT, NUM_CHANNELS, NUM_ACTIVE_CHANNELS, CounterT, LevelT, OffsetT>(
+//    test<SampleT, NUM_CHANNELS, NUM_ACTIVE_CHANNELS, CounterT, LevelT, OffsetT>(
 //        num_row_pixels, num_rows, row_stride_bytes, entropy_reduction, num_levels, max_level, max_num_levels);
 
     // All different levels
@@ -1658,7 +1658,7 @@ int main(int argc, char** argv)
         TestChannels <unsigned short,   int, int,   int>(8192,  8192 + 1, Int2Type<true>());
         TestChannels <float,            int, float, int>(1.0,   256 + 1, Int2Type<true>());
 
-		// Test down-conversion of size_t offsets to int
+		// test down-conversion of size_t offsets to int
         TestChannels <unsigned char,    int, int,   long long>(256, 256 + 1, Int2Type<(sizeof(size_t) != sizeof(int))>());
     }
 

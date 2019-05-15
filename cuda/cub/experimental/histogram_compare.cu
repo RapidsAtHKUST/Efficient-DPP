@@ -349,7 +349,7 @@ void HistogramGold(PixelType *image, int width, int height, unsigned int* hist)
 
 
 //---------------------------------------------------------------------
-// Test execution
+// test execution
 //---------------------------------------------------------------------
 
 /**
@@ -592,7 +592,7 @@ int main(int argc, char **argv)
     else
     {
         // Run test suite
-        printf("Test, MIN, RLE CUB, SMEM, GMEM, , MIN, RLE_CUB, SMEM, GMEM, , MIN, RLE_CUB, SMEM, GMEM\n");
+        printf("test, MIN, RLE CUB, SMEM, GMEM, , MIN, RLE_CUB, SMEM, GMEM, , MIN, RLE_CUB, SMEM, GMEM\n");
 
         // Entropy reduction tests
         for (entropy_reduction = 0; entropy_reduction < 5; ++entropy_reduction)

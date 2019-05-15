@@ -890,10 +890,10 @@ private:
     template <typename BinaryOpT, bool (BinaryOpT::*)(T a, T b, int idx) const>                         struct SFINAE7 {};
     template <typename BinaryOpT, bool (BinaryOpT::*)(T a, T b, int idx)>                               struct SFINAE8 {};
 /*
-    template <typename BinaryOpT> static char Test(SFINAE1<BinaryOpT, &BinaryOpT::operator()> *);
-    template <typename BinaryOpT> static char Test(SFINAE2<BinaryOpT, &BinaryOpT::operator()> *);
-    template <typename BinaryOpT> static char Test(SFINAE3<BinaryOpT, &BinaryOpT::operator()> *);
-    template <typename BinaryOpT> static char Test(SFINAE4<BinaryOpT, &BinaryOpT::operator()> *);
+    template <typename BinaryOpT> static char test(SFINAE1<BinaryOpT, &BinaryOpT::operator()> *);
+    template <typename BinaryOpT> static char test(SFINAE2<BinaryOpT, &BinaryOpT::operator()> *);
+    template <typename BinaryOpT> static char test(SFINAE3<BinaryOpT, &BinaryOpT::operator()> *);
+    template <typename BinaryOpT> static char test(SFINAE4<BinaryOpT, &BinaryOpT::operator()> *);
 */
     template <typename BinaryOpT> __host__ __device__ static char Test(SFINAE5<BinaryOpT, &BinaryOpT::operator()> *);
     template <typename BinaryOpT> __host__ __device__ static char Test(SFINAE6<BinaryOpT, &BinaryOpT::operator()> *);

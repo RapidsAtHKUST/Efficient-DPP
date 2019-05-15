@@ -10,7 +10,7 @@
 using namespace std;
 
 /*
- * Test scalar multiplication bandwidth
+ * test scalar multiplication bandwidth
  */
 void testMem() {
     device_param_t param = Plat::get_device_param();

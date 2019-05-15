@@ -96,7 +96,7 @@ struct SelectOp
 
 
 //---------------------------------------------------------------------
-// Test kernels
+// test kernels
 //---------------------------------------------------------------------
 
 /**
@@ -193,7 +193,7 @@ void TestConstant(T base)
     printf("\nTesting constant iterator on type %s (base: %lld)\n", typeid(T).name(), (unsigned long long) (base)); fflush(stdout);
 
     //
-    // Test iterator manipulation in kernel
+    // test iterator manipulation in kernel
     //
 
     T h_reference[8] = {base, base, base, base, base, base, base, base};
@@ -203,7 +203,7 @@ void TestConstant(T base)
 #if (THRUST_VERSION >= 100700)  // Thrust 1.7 or newer
 
     //
-    // Test with thrust::copy_if()
+    // test with thrust::copy_if()
     //
 
     int copy_items  = 100;
@@ -238,7 +238,7 @@ void TestCounting(T base)
     printf("\nTesting counting iterator on type %s (base: %d) \n", typeid(T).name(), int(base)); fflush(stdout);
 
     //
-    // Test iterator manipulation in kernel
+    // test iterator manipulation in kernel
     //
 
     // Initialize reference data
@@ -258,7 +258,7 @@ void TestCounting(T base)
 #if (THRUST_VERSION >= 100700)  // Thrust 1.7 or newer
 
     //
-    // Test with thrust::copy_if()
+    // test with thrust::copy_if()
     //
 
     unsigned long long  max_items   = ((1ull << ((sizeof(T) * 8) - 1)) - 1);
@@ -293,7 +293,7 @@ void TestModified()
     printf("\nTesting cache-modified iterator on type %s\n", typeid(T).name()); fflush(stdout);
 
     //
-    // Test iterator manipulation in kernel
+    // test iterator manipulation in kernel
     //
 
     const unsigned int TEST_VALUES = 11000;
@@ -331,7 +331,7 @@ void TestModified()
 #if (THRUST_VERSION >= 100700)  // Thrust 1.7 or newer
 
     //
-    // Test with thrust::copy_if()
+    // test with thrust::copy_if()
     //
 
     T *d_copy = NULL;
@@ -365,7 +365,7 @@ void TestTransform()
     printf("\nTesting transform iterator on type %s\n", typeid(T).name()); fflush(stdout);
 
     //
-    // Test iterator manipulation in kernel
+    // test iterator manipulation in kernel
     //
 
     const unsigned int TEST_VALUES = 11000;
@@ -400,7 +400,7 @@ void TestTransform()
 #if (THRUST_VERSION >= 100700)  // Thrust 1.7 or newer
 
     //
-    // Test with thrust::copy_if()
+    // test with thrust::copy_if()
     //
 
     T *h_copy = new T[TEST_VALUES];
@@ -437,7 +437,7 @@ void TestTexObj()
     printf("\nTesting tex-obj iterator on type %s\n", typeid(T).name()); fflush(stdout);
 
     //
-    // Test iterator manipulation in kernel
+    // test iterator manipulation in kernel
     //
 
     const unsigned int TEST_VALUES          = 11000;
@@ -479,7 +479,7 @@ void TestTexObj()
 #if (THRUST_VERSION >= 100700)  // Thrust 1.7 or newer
 
     //
-    // Test with thrust::copy_if()
+    // test with thrust::copy_if()
     //
 
     T *d_copy = NULL;
@@ -509,7 +509,7 @@ void TestTexObj()
 #if CUDA_VERSION >= 5050
 
 /**
- * Test tex-ref texture iterator
+ * test tex-ref texture iterator
  */
 template <typename T, typename CastT>
 void TestTexRef()
@@ -517,7 +517,7 @@ void TestTexRef()
     printf("\nTesting tex-ref iterator on type %s\n", typeid(T).name()); fflush(stdout);
 
     //
-    // Test iterator manipulation in kernel
+    // test iterator manipulation in kernel
     //
 
     const unsigned int TEST_VALUES          = 11000;
@@ -558,12 +558,12 @@ void TestTexRef()
     TexRefInputIterator<T, __LINE__> d_ref_itr2;
     CubDebugExit(d_ref_itr2.BindTexture((CastT*) d_dummy, sizeof(T) * DUMMY_TEST_VALUES));
 
-    Test(d_ref_itr, h_reference);
+    test(d_ref_itr, h_reference);
 
 #if (THRUST_VERSION >= 100700)  // Thrust 1.7 or newer
 
     //
-    // Test with thrust::copy_if()
+    // test with thrust::copy_if()
     //
 
     T *d_copy = NULL;
@@ -591,7 +591,7 @@ void TestTexRef()
 
 
 /**
- * Test texture transform iterator
+ * test texture transform iterator
  */
 template <typename T, typename CastT>
 void TestTexTransform()
@@ -599,7 +599,7 @@ void TestTexTransform()
     printf("\nTesting tex-transform iterator on type %s\n", typeid(T).name()); fflush(stdout);
 
     //
-    // Test iterator manipulation in kernel
+    // test iterator manipulation in kernel
     //
 
     const unsigned int TEST_VALUES = 11000;
@@ -637,12 +637,12 @@ void TestTexTransform()
     // Create transform iterator
     TransformInputIterator<T, TransformOp<T>, TextureIterator> xform_itr(d_tex_itr, op);
 
-    Test(xform_itr, h_reference);
+    test(xform_itr, h_reference);
 
 #if (THRUST_VERSION >= 100700)  // Thrust 1.7 or newer
 
     //
-    // Test with thrust::copy_if()
+    // test with thrust::copy_if()
     //
 
     T *h_copy = new T[TEST_VALUES];
@@ -685,12 +685,12 @@ void Test(Int2Type<false> is_integer)
     TestTransform<T, CastT>();
 
 #if CUB_CDP
-    // Test tex-obj iterators if CUDA dynamic parallelism enabled
+    // test tex-obj iterators if CUDA dynamic parallelism enabled
     TestTexObj<T, CastT>(type_string);
 #endif  // CUB_CDP
 
 #if CUDA_VERSION >= 5050
-    // Test tex-ref iterators for CUDA 5.5
+    // test tex-ref iterators for CUDA 5.5
     TestTexRef<T, CastT>();
     TestTexTransform<T, CastT>();
 #endif  // CUDA_VERSION
@@ -722,10 +722,10 @@ void Test()
         IS_INTEGER = (Traits<T>::CATEGORY == SIGNED_INTEGER) || (Traits<T>::CATEGORY == UNSIGNED_INTEGER)
     };
 
-    // Test non-const type
+    // test non-const type
     Test<T, T>(Int2Type<IS_INTEGER>());
 
-    // Test non-const type
+    // test non-const type
     Test<T, const T>(Int2Type<IS_INTEGER>());
 }
 

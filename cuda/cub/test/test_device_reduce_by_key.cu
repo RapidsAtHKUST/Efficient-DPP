@@ -211,7 +211,7 @@ cudaError_t Dispatch(
 
 
 //---------------------------------------------------------------------
-// CUDA Nested Parallelism Test Kernel
+// CUDA Nested Parallelism test Kernel
 //---------------------------------------------------------------------
 
 /**
@@ -304,7 +304,7 @@ cudaError_t Dispatch(
 
 
 //---------------------------------------------------------------------
-// Test generation
+// test generation
 //---------------------------------------------------------------------
 
 
@@ -558,7 +558,7 @@ void TestPointer(
     CubDebugExit(cudaMemcpy(d_keys_in, h_keys_in, sizeof(KeyT) * num_items, cudaMemcpyHostToDevice));
     CubDebugExit(cudaMemcpy(d_values_in, h_values_in, sizeof(ValueT) * num_items, cudaMemcpyHostToDevice));
 
-    // Run Test
+    // Run test
     Test<BACKEND>(d_keys_in, d_values_in, h_keys_reference, h_values_reference, equality_op, reduction_op, num_segments, num_items);
 
     // Cleanup
@@ -614,7 +614,7 @@ void TestIterator(
     // Initialize device input
     CubDebugExit(cudaMemcpy(d_keys_in, h_keys_in, sizeof(KeyT) * num_items, cudaMemcpyHostToDevice));
 
-    // Run Test
+    // Run test
     Test<BACKEND>(d_keys_in, h_values_in, h_keys_reference, h_values_reference, equality_op, reduction_op, num_segments, num_items);
 
     // Cleanup
@@ -689,7 +689,7 @@ void TestDispatch(
 {
     Test<CUB, KeyT, ValueT>(num_items, reduction_op);
 #ifdef CUB_CDP
-    Test<CDP, KeyT, ValueT>(num_items, reduction_op);
+    test<CDP, KeyT, ValueT>(num_items, reduction_op);
 #endif
 }
 
@@ -819,7 +819,7 @@ int main(int argc, char** argv)
     for (int i = 0; i <= g_repeat; ++i)
     {
 
-        // Test different input types
+        // test different input types
         TestOp<int, char>(num_items);
         TestOp<int, short>(num_items);
         TestOp<int, int>(num_items);

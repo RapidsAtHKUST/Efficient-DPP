@@ -365,7 +365,7 @@ __device__ __forceinline__ void DeviceTest(
 
 
 //---------------------------------------------------------------------
-// Test kernels
+// test kernels
 //---------------------------------------------------------------------
 
 /**
@@ -409,7 +409,7 @@ __global__ void BlockScanKernel(
     clock_t start = clock();
     __threadfence_block();      // workaround to prevent clock hoisting
 
-    // Test scan
+    // test scan
     T                                   block_aggregate;
     BlockScanT                          block_scan(temp_storage);
     BlockPrefixCallbackOp<T, ScanOpT>   prefix_op(linear_tid, initial_value, scan_op);
@@ -546,14 +546,14 @@ void Test(
         initial_value,
         Int2Type<SCAN_MODE>());
 
-    // Test reference block_aggregate is returned in all threads
+    // test reference block_aggregate is returned in all threads
     for (int i = 0; i < BLOCK_THREADS; ++i)
     {
         h_aggregate[i] = block_aggregate;
     }
 
     // Run kernel
-    printf("Test-mode %d, gen-mode %d, policy %d, %s %s BlockScan, %d (%d,%d,%d) thread block threads, %d items per thread, %d tile size, %s (%d bytes) elements:\n",
+    printf("test-mode %d, gen-mode %d, policy %d, %s %s BlockScan, %d (%d,%d,%d) thread block threads, %d items per thread, %d tile size, %s (%d bytes) elements:\n",
         TEST_MODE, gen_mode, ALGORITHM,
         (SCAN_MODE == INCLUSIVE) ? "Inclusive" : "Exclusive", typeid(ScanOpT).name(),
         BLOCK_THREADS, BLOCK_DIM_X, BLOCK_DIM_Y, BLOCK_DIM_Z,
@@ -741,13 +741,13 @@ void Test(
     T           initial_value)
 {
 #ifdef TEST_RAKING
-    Test<BLOCK_THREADS, ITEMS_PER_THREAD, SCAN_MODE, TEST_MODE, BLOCK_SCAN_RAKING>(gen_mode, scan_op, initial_value);
+    test<BLOCK_THREADS, ITEMS_PER_THREAD, SCAN_MODE, TEST_MODE, BLOCK_SCAN_RAKING>(gen_mode, scan_op, initial_value);
 #endif
 #ifdef TEST_RAKING_MEMOIZE
-    Test<BLOCK_THREADS, ITEMS_PER_THREAD, SCAN_MODE, TEST_MODE, BLOCK_SCAN_RAKING_MEMOIZE>(gen_mode, scan_op, initial_value);
+    test<BLOCK_THREADS, ITEMS_PER_THREAD, SCAN_MODE, TEST_MODE, BLOCK_SCAN_RAKING_MEMOIZE>(gen_mode, scan_op, initial_value);
 #endif
 #ifdef TEST_WARP_SCANS
-    Test<BLOCK_THREADS, ITEMS_PER_THREAD, SCAN_MODE, TEST_MODE, BLOCK_SCAN_WARP_SCANS>(gen_mode, scan_op, initial_value);
+    test<BLOCK_THREADS, ITEMS_PER_THREAD, SCAN_MODE, TEST_MODE, BLOCK_SCAN_WARP_SCANS>(gen_mode, scan_op, initial_value);
 #endif
 }
 
@@ -894,15 +894,15 @@ int main(int argc, char** argv)
 
 #ifdef QUICK_TEST
 
-    Test<128, 1, 1, 1, EXCLUSIVE, AGGREGATE, BLOCK_SCAN_WARP_SCANS>(UNIFORM, Sum(), int(0));
+    test<128, 1, 1, 1, EXCLUSIVE, AGGREGATE, BLOCK_SCAN_WARP_SCANS>(UNIFORM, Sum(), int(0));
 
     // Compile/run quick tests
-    Test<128, 1, 1, 4, EXCLUSIVE, AGGREGATE, BLOCK_SCAN_WARP_SCANS>(UNIFORM, Sum(), int(0));
-    Test<128, 1, 1, 4, EXCLUSIVE, AGGREGATE, BLOCK_SCAN_RAKING>(UNIFORM, Sum(), int(0));
-    Test<128, 1, 1, 4, EXCLUSIVE, AGGREGATE, BLOCK_SCAN_RAKING_MEMOIZE>(UNIFORM, Sum(), int(0));
+    test<128, 1, 1, 4, EXCLUSIVE, AGGREGATE, BLOCK_SCAN_WARP_SCANS>(UNIFORM, Sum(), int(0));
+    test<128, 1, 1, 4, EXCLUSIVE, AGGREGATE, BLOCK_SCAN_RAKING>(UNIFORM, Sum(), int(0));
+    test<128, 1, 1, 4, EXCLUSIVE, AGGREGATE, BLOCK_SCAN_RAKING_MEMOIZE>(UNIFORM, Sum(), int(0));
 
-    Test<128, 1, 1, 2, INCLUSIVE, PREFIX, BLOCK_SCAN_RAKING>(INTEGER_SEED, Sum(), TestFoo::MakeTestFoo(17, 21, 32, 85));
-    Test<128, 1, 1, 1, EXCLUSIVE, AGGREGATE, BLOCK_SCAN_WARP_SCANS>(UNIFORM, Sum(), make_longlong4(17, 21, 32, 85));
+    test<128, 1, 1, 2, INCLUSIVE, PREFIX, BLOCK_SCAN_RAKING>(INTEGER_SEED, Sum(), TestFoo::MakeTestFoo(17, 21, 32, 85));
+    test<128, 1, 1, 1, EXCLUSIVE, AGGREGATE, BLOCK_SCAN_WARP_SCANS>(UNIFORM, Sum(), make_longlong4(17, 21, 32, 85));
 
 
 #else
@@ -915,7 +915,7 @@ int main(int argc, char** argv)
         Test<32>();
         Test<62>();
         Test<65>();
-//            Test<96>();             // TODO: file bug for UNREACHABLE error for Test<96, 9, BASIC, BLOCK_SCAN_RAKING>(UNIFORM, Sum(), NullType(), make_ulonglong2(17, 21));
+//            test<96>();             // TODO: file bug for UNREACHABLE error for test<96, 9, BASIC, BLOCK_SCAN_RAKING>(UNIFORM, Sum(), NullType(), make_ulonglong2(17, 21));
         Test<128>();
     }
 

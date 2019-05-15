@@ -407,7 +407,7 @@ cudaError_t Dispatch(
 
 
 //---------------------------------------------------------------------
-// CUDA Nested Parallelism Test Kernel
+// CUDA Nested Parallelism test Kernel
 //---------------------------------------------------------------------
 
 /**
@@ -500,7 +500,7 @@ cudaError_t Dispatch(
 
 
 //---------------------------------------------------------------------
-// Test generation
+// test generation
 //---------------------------------------------------------------------
 
 
@@ -742,7 +742,7 @@ void TestPointer(
     // Initialize device input
     CubDebugExit(cudaMemcpy(d_in, h_in, sizeof(InputT) * num_items, cudaMemcpyHostToDevice));
 
-    // Run Test
+    // Run test
     Test<BACKEND>(d_in, h_reference, num_items, scan_op, initial_value);
 
     // Cleanup
@@ -784,7 +784,7 @@ void TestIterator(
     // Initialize problem and solution
     Solve(h_in, h_reference, num_items, scan_op, initial_value);
 
-    // Run Test
+    // Run test
     Test<BACKEND>(h_in, h_reference, num_items, scan_op, initial_value);
 
     // Cleanup
@@ -827,7 +827,7 @@ void Test(
 {
     Test<CUB, InputT, OutputT>(num_items, scan_op, initial_value);
 #ifdef CUB_CDP
-    Test<CDP, InputT, OutputT>(num_items, scan_op, initial_value);
+    test<CDP, InputT, OutputT>(num_items, scan_op, initial_value);
 #endif
 }
 
@@ -975,10 +975,10 @@ int main(int argc, char** argv)
     // Compile/run thorough tests
     for (int i = 0; i <= g_repeat; ++i)
     {
-        // Test different input+output data types
+        // test different input+output data types
         TestSize<unsigned char>(num_items,      (int) 0, (int) 99);
 
-        // Test same intput+output data types
+        // test same intput+output data types
         TestSize<unsigned char>(num_items,      (unsigned char) 0,      (unsigned char) 99);
         TestSize<char>(num_items,               (char) 0,               (char) 99);
         TestSize<unsigned short>(num_items,     (unsigned short) 0,     (unsigned short)99);

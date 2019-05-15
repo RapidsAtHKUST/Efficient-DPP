@@ -353,7 +353,7 @@ struct Schmoo
 
 
     //---------------------------------------------------------------------
-    // Test methods
+    // test methods
     //---------------------------------------------------------------------
 
     /**
@@ -745,7 +745,7 @@ int main(int argc, char** argv)
     CubDebugExit(g_allocator.DeviceAllocate((void**)&d_out, sizeof(T) * 1));
     CubDebugExit(cudaMemcpy(d_in, h_in, sizeof(T) * g_max_items, cudaMemcpyHostToDevice));
 
-    // Test kernels
+    // test kernels
     if (g_single)
         schmoo.TestSingle(h_in, d_in, d_out, reduction_op);
     else

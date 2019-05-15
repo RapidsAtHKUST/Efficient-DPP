@@ -84,7 +84,7 @@ struct WrapperFunctor
 };
 
 //---------------------------------------------------------------------
-// Test kernels
+// test kernels
 //---------------------------------------------------------------------
 
 /// Exclusive scan basic
@@ -98,7 +98,7 @@ __device__ __forceinline__ void DeviceTest(
     Int2Type<BASIC>                 test_mode,
     IsPrimitiveT                    is_primitive)
 {
-    // Test basic warp scan
+    // test basic warp scan
     warp_scan.ExclusiveScan(data, data, initial_value, scan_op);
 }
 
@@ -117,7 +117,7 @@ __device__ __forceinline__ void DeviceTest(
     Int2Type<AGGREGATE>             test_mode,
     IsPrimitiveT                    is_primitive)
 {
-    // Test with cumulative aggregate
+    // test with cumulative aggregate
     warp_scan.ExclusiveScan(data, data, initial_value, scan_op, aggregate);
 }
 
@@ -135,7 +135,7 @@ __device__ __forceinline__ void DeviceTest(
     Int2Type<BASIC>                 test_mode,
     Int2Type<true>                  is_primitive)
 {
-    // Test basic warp scan
+    // test basic warp scan
     warp_scan.ExclusiveSum(data, data);
 }
 
@@ -153,7 +153,7 @@ __device__ __forceinline__ void DeviceTest(
     Int2Type<AGGREGATE>             test_mode,
     Int2Type<true>                  is_primitive)
 {
-    // Test with cumulative aggregate
+    // test with cumulative aggregate
     warp_scan.ExclusiveSum(data, data, aggregate);
 }
 
@@ -173,7 +173,7 @@ __device__ __forceinline__ void DeviceTest(
     Int2Type<BASIC>                 test_mode,
     IsPrimitiveT                    is_primitive)
 {
-    // Test basic warp scan
+    // test basic warp scan
     warp_scan.InclusiveScan(data, data, scan_op);
 }
 
@@ -192,7 +192,7 @@ __device__ __forceinline__ void DeviceTest(
     Int2Type<AGGREGATE>             test_mode,
     IsPrimitiveT                    is_primitive)
 {
-    // Test with cumulative aggregate
+    // test with cumulative aggregate
     warp_scan.InclusiveScan(data, data, scan_op, aggregate);
 }
 
@@ -210,7 +210,7 @@ __device__ __forceinline__ void DeviceTest(
     Int2Type<BASIC>                 test_mode,
     Int2Type<true>                  is_primitive)
 {
-    // Test basic warp scan
+    // test basic warp scan
     warp_scan.InclusiveSum(data, data);
 }
 
@@ -228,7 +228,7 @@ __device__ __forceinline__ void DeviceTest(
     Int2Type<AGGREGATE>             test_mode,
     Int2Type<true>                  is_primitive)
 {
-    // Test with cumulative aggregate
+    // test with cumulative aggregate
     warp_scan.InclusiveSum(data, data, aggregate);
 }
 
@@ -269,7 +269,7 @@ __global__ void WarpScanKernel(
 
     T aggregate;
 
-    // Test scan
+    // test scan
     WarpScanT warp_scan(temp_storage[warp_id]);
     DeviceTest(
         warp_scan,
@@ -449,7 +449,7 @@ void Test(
     CubDebugExit(cudaMemset(d_aggregate, 0, sizeof(T) * TOTAL_ITEMS));
 
     // Run kernel
-    printf("Test-mode %d (%s), gen-mode %d (%s), %s warpscan, %d warp threads, %s (%d bytes) elements:\n",
+    printf("test-mode %d (%s), gen-mode %d (%s), %s warpscan, %d warp threads, %s (%d bytes) elements:\n",
         TEST_MODE, typeid(TEST_MODE).name(),
         gen_mode, typeid(gen_mode).name(),
         (Equals<InitialValueT, NullType>::VALUE) ? "Inclusive" : "Exclusive",
@@ -630,21 +630,21 @@ int main(int argc, char** argv)
 #ifdef QUICK_TEST
 
     // Compile/run quick tests
-    Test<32, AGGREGATE, int>(UNIFORM, Sum(), (int) 0);
-    Test<32, AGGREGATE, float>(UNIFORM, Sum(), (float) 0);
-    Test<32, AGGREGATE, long long>(UNIFORM, Sum(), (long long) 0);
-    Test<32, AGGREGATE, double>(UNIFORM, Sum(), (double) 0);
+    test<32, AGGREGATE, int>(UNIFORM, Sum(), (int) 0);
+    test<32, AGGREGATE, float>(UNIFORM, Sum(), (float) 0);
+    test<32, AGGREGATE, long long>(UNIFORM, Sum(), (long long) 0);
+    test<32, AGGREGATE, double>(UNIFORM, Sum(), (double) 0);
 
     typedef KeyValuePair<int, float> T;
     cub::Sum sum_op;
-    Test<32, AGGREGATE, T>(UNIFORM, ReduceBySegmentOp<cub::Sum>(sum_op), T());
+    test<32, AGGREGATE, T>(UNIFORM, ReduceBySegmentOp<cub::Sum>(sum_op), T());
 
 #else
 
     // Compile/run thorough tests
     for (int i = 0; i <= g_repeat; ++i)
     {
-        // Test logical warp sizes
+        // test logical warp sizes
         Test<32>();
         Test<16>();
         Test<9>();

@@ -464,7 +464,7 @@ cudaError_t Dispatch(
 
 
 //---------------------------------------------------------------------
-// CUDA Nested Parallelism Test Kernel
+// CUDA Nested Parallelism test Kernel
 //---------------------------------------------------------------------
 
 /**
@@ -695,7 +695,7 @@ void InitializeSolution(
 
 
 //---------------------------------------------------------------------
-// Test generation
+// test generation
 //---------------------------------------------------------------------
 
 
@@ -902,17 +902,17 @@ void TestBackend(
     }
 
 #ifdef SEGMENTED_SORT
-    // Test multi-segment implementations
-    Test<CUB_SEGMENTED, IS_DESCENDING>(               h_keys, h_values, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_values);
-    Test<CUB_SEGMENTED_NO_OVERWRITE, IS_DESCENDING>(  h_keys, h_values, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_values);
+    // test multi-segment implementations
+    test<CUB_SEGMENTED, IS_DESCENDING>(               h_keys, h_values, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_values);
+    test<CUB_SEGMENTED_NO_OVERWRITE, IS_DESCENDING>(  h_keys, h_values, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_values);
 #else   // SEGMENTED_SORT
     if (num_segments == 1)
     {
-        // Test single-segment implementations
+        // test single-segment implementations
         Test<CUB, IS_DESCENDING>(               h_keys, h_values, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_values);
         Test<CUB_NO_OVERWRITE, IS_DESCENDING>(  h_keys, h_values, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_values);
     #ifdef CUB_CDP
-        Test<CDP, IS_DESCENDING>(               h_keys, h_values, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_values);
+        test<CDP, IS_DESCENDING>(               h_keys, h_values, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_values);
     #endif
     }
 #endif  // SEGMENTED_SORT
@@ -942,19 +942,19 @@ void TestValueTypes(
     KeyT *h_reference_keys = NULL;
     InitializeSolution<IS_DESCENDING>(h_keys, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_ranks, h_reference_keys);
 
-    // Test keys-only
+    // test keys-only
     TestBackend<IS_DESCENDING, KeyT, NullType>          (h_keys, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_ranks);
 
-    // Test with 8b value
+    // test with 8b value
     TestBackend<IS_DESCENDING, KeyT, unsigned char>     (h_keys, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_ranks);
 
-    // Test with 32b value
+    // test with 32b value
     TestBackend<IS_DESCENDING, KeyT, unsigned int>      (h_keys, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_ranks);
 
-    // Test with 64b value
+    // test with 64b value
     TestBackend<IS_DESCENDING, KeyT, unsigned long long>(h_keys, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_ranks);
 
-    // Test with non-trivially-constructable value
+    // test with non-trivially-constructable value
     TestBackend<IS_DESCENDING, KeyT, TestBar>           (h_keys, num_items, num_segments, h_segment_offsets, begin_bit, end_bit, h_reference_keys, h_reference_ranks);
 
     // Cleanup
@@ -1032,7 +1032,7 @@ void TestSegments(
         }
     }
 #else
-    // Test single segment
+    // test single segment
     if (num_items < 128 * 1000) {
         // Right now we assign a single thread block to each segment, so lets keep it to under 128K items per segment
         InitializeSegments(num_items, 1, h_segment_offsets);
@@ -1219,20 +1219,20 @@ int main(int argc, char** argv)
     if (num_items < 0)      num_items       = 48000000;
     if (num_segments < 0)   num_segments    = 5000;
 
-    Test<CUB,           unsigned char, NullType, IS_DESCENDING>(num_items, 1, RANDOM, entropy_reduction, 0, bits);
-    Test<CUB,           unsigned char, unsigned int, IS_DESCENDING>(num_items, 1, RANDOM, entropy_reduction, 0, bits);
+    test<CUB,           unsigned char, NullType, IS_DESCENDING>(num_items, 1, RANDOM, entropy_reduction, 0, bits);
+    test<CUB,           unsigned char, unsigned int, IS_DESCENDING>(num_items, 1, RANDOM, entropy_reduction, 0, bits);
 
 #if (__CUDACC_VER_MAJOR__ >= 9)
-    Test<CUB,           half_t,       NullType, IS_DESCENDING>(       num_items, 1,               RANDOM, entropy_reduction, 0, bits);
+    test<CUB,           half_t,       NullType, IS_DESCENDING>(       num_items, 1,               RANDOM, entropy_reduction, 0, bits);
 #endif
 
-    Test<CUB_SEGMENTED, unsigned int,       NullType, IS_DESCENDING>(       num_items, num_segments,    RANDOM, entropy_reduction, 0, bits);
+    test<CUB_SEGMENTED, unsigned int,       NullType, IS_DESCENDING>(       num_items, num_segments,    RANDOM, entropy_reduction, 0, bits);
 
-    Test<CUB,           unsigned int,       NullType, IS_DESCENDING>(       num_items, 1,               RANDOM, entropy_reduction, 0, bits);
-    Test<CUB,           unsigned long long, NullType, IS_DESCENDING>(       num_items, 1,               RANDOM, entropy_reduction, 0, bits);
+    test<CUB,           unsigned int,       NullType, IS_DESCENDING>(       num_items, 1,               RANDOM, entropy_reduction, 0, bits);
+    test<CUB,           unsigned long long, NullType, IS_DESCENDING>(       num_items, 1,               RANDOM, entropy_reduction, 0, bits);
 
-    Test<CUB,           unsigned int,       unsigned int, IS_DESCENDING>(   num_items, 1,               RANDOM, entropy_reduction, 0, bits);
-    Test<CUB,           unsigned long long, unsigned int, IS_DESCENDING>(   num_items, 1,               RANDOM, entropy_reduction, 0, bits);
+    test<CUB,           unsigned int,       unsigned int, IS_DESCENDING>(   num_items, 1,               RANDOM, entropy_reduction, 0, bits);
+    test<CUB,           unsigned long long, unsigned int, IS_DESCENDING>(   num_items, 1,               RANDOM, entropy_reduction, 0, bits);
 
 #elif defined(QUICK_TEST)
 
@@ -1241,21 +1241,21 @@ int main(int argc, char** argv)
     if (num_segments < 0)   num_segments    = 5000;
 
     // Compare CUB and thrust on 32b keys-only
-    Test<CUB, unsigned int, NullType, false> (                      num_items, 1, RANDOM, entropy_reduction, 0, bits);
-    Test<THRUST, unsigned int, NullType, false> (                   num_items, 1, RANDOM, entropy_reduction, 0, bits);
+    test<CUB, unsigned int, NullType, false> (                      num_items, 1, RANDOM, entropy_reduction, 0, bits);
+    test<THRUST, unsigned int, NullType, false> (                   num_items, 1, RANDOM, entropy_reduction, 0, bits);
 
     // Compare CUB and thrust on 64b keys-only
-    Test<CUB, unsigned long long, NullType, false> (                num_items, 1, RANDOM, entropy_reduction, 0, bits);
-    Test<THRUST, unsigned long long, NullType, false> (             num_items, 1, RANDOM, entropy_reduction, 0, bits);
+    test<CUB, unsigned long long, NullType, false> (                num_items, 1, RANDOM, entropy_reduction, 0, bits);
+    test<THRUST, unsigned long long, NullType, false> (             num_items, 1, RANDOM, entropy_reduction, 0, bits);
 
 
     // Compare CUB and thrust on 32b key-value pairs
-    Test<CUB, unsigned int, unsigned int, false> (                  num_items, 1, RANDOM, entropy_reduction, 0, bits);
-    Test<THRUST, unsigned int, unsigned int, false> (               num_items, 1, RANDOM, entropy_reduction, 0, bits);
+    test<CUB, unsigned int, unsigned int, false> (                  num_items, 1, RANDOM, entropy_reduction, 0, bits);
+    test<THRUST, unsigned int, unsigned int, false> (               num_items, 1, RANDOM, entropy_reduction, 0, bits);
 
     // Compare CUB and thrust on 64b key-value pairs
-    Test<CUB, unsigned long long, unsigned long long, false> (      num_items, 1, RANDOM, entropy_reduction, 0, bits);
-    Test<THRUST, unsigned long long, unsigned long long, false> (   num_items, 1, RANDOM, entropy_reduction, 0, bits);
+    test<CUB, unsigned long long, unsigned long long, false> (      num_items, 1, RANDOM, entropy_reduction, 0, bits);
+    test<THRUST, unsigned long long, unsigned long long, false> (   num_items, 1, RANDOM, entropy_reduction, 0, bits);
 
 
 #else

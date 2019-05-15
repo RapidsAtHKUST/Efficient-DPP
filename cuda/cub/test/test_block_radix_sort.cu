@@ -55,7 +55,7 @@ CachingDeviceAllocator  g_allocator(true);
 
 
 //---------------------------------------------------------------------
-// Test kernels
+// test kernels
 //---------------------------------------------------------------------
 
 
@@ -534,7 +534,7 @@ template <
     typename                Key>
 void TestKeys()
 {
-    // Test keys-only sorting with both smem configs
+    // test keys-only sorting with both smem configs
     Test<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, cudaSharedMemBankSizeFourByte, Key, NullType>();    // Keys-only (4-byte smem bank config)
 #if !defined(SM100) && !defined(SM110) && !defined(SM130) && !defined(SM200)
     Test<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, cudaSharedMemBankSizeEightByte, Key, NullType>();   // Keys-only (8-byte smem bank config)
@@ -554,7 +554,7 @@ template <
     typename                Key>
 void TestKeysAndPairs()
 {
-    // Test pairs sorting with only 4-byte configs
+    // test pairs sorting with only 4-byte configs
     Test<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, cudaSharedMemBankSizeFourByte, Key, char>();        // With small-values
     Test<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, cudaSharedMemBankSizeFourByte, Key, Key>();         // With same-values
     Test<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, cudaSharedMemBankSizeFourByte, Key, TestFoo>();     // With large values
@@ -578,7 +578,7 @@ void Test()
 
 #ifdef TEST_KEYS_ONLY
 
-    // Test unsigned types with keys-only
+    // test unsigned types with keys-only
     TestKeys<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, unsigned char>();
     TestKeys<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, unsigned short>();
     TestKeys<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, unsigned int>();
@@ -587,7 +587,7 @@ void Test()
 
 #else
 
-    // Test signed and fp types with paired values
+    // test signed and fp types with paired values
     TestKeysAndPairs<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, char>();
     TestKeysAndPairs<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, short>();
     TestKeysAndPairs<BLOCK_THREADS, ITEMS_PER_THREAD, RADIX_BITS, MEMOIZE_OUTER_SCAN, INNER_SCAN_ALGORITHM, int>();

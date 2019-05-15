@@ -59,7 +59,7 @@ CachingDeviceAllocator  g_allocator(true);  // Caching allocator for device memo
 
 
 //---------------------------------------------------------------------
-// Test generation
+// test generation
 //---------------------------------------------------------------------
 
 /**
