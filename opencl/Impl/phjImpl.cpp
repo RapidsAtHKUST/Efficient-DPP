@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
 
-#include "Plat.h"
+#include "../util/Plat.h"
 
 double probe(cl_mem d_R_keys, cl_mem d_R_values, cl_mem d_S_keys, cl_mem d_S_values, int r_len, int s_len, cl_mem start_R, cl_mem start_S, int buckets, int &res_len);
 

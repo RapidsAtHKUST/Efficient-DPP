@@ -1,13 +1,11 @@
 #ifndef GATHER_KERNEL_CL
 #define GATHER_KERNEL_CL
 
-#include "params.h"
+#include "../params.h"
 
-kernel void gather(
-        global const int *d_in, global int* d_out, global const int* loc,
-        const int length, const int ele_per_thread,
-        const int from, const int to)
-{
+kernel void gather(global const int *d_in, global int* d_out, global const int* loc,
+                   const int length, const int ele_per_thread,
+                   const int from, const int to) {
     int globalId = get_global_id(0);
     int warpId = globalId >> WARP_BITS;
 

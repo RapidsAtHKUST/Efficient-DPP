@@ -1,4 +1,4 @@
-#include "params.h"
+#include "../params.h"
 #define NUM_OF_BANKS 32
 #define CON_OFFSET(n)  ((n)/NUM_OF_BANKS)
 //#define CON_OFFSET(n)  (0)

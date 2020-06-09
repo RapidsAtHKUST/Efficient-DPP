@@ -9,19 +9,13 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -g -w")
 set(UTIL_DIR ${CMAKE_SOURCE_DIR}/util)
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
 set(IMPL_DIR ${CMAKE_SOURCE_DIR}/Impl)
-set(HEADER_DIR ${CMAKE_SOURCE_DIR}/inc)
-
-# Moving executable files into bin
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+#set(HEADER_DIR ${CMAKE_SOURCE_DIR}/inc)
 
 #include paths
-include_directories(inc)
-
-# Add all the header files automatically
-file(GLOB_RECURSE HEADERS ${HEADER_DIR}/*)
+include_directories(util)
 
 # Add all the source files automatically
-file(GLOB_RECURSE SOURCE_FILES ${UTIL_DIR}/* ${DATA_GENERATOR_DIR}/*.cu ${CMAKE_SOURCE_DIR}/third_party/topkapi/*.cpp)
+file(GLOB_RECURSE SOURCE_FILES ${UTIL_DIR}/*)
 
 file(GLOB_RECURSE SRC_FILES ${UTIL_DIR}/* ${IMPL_DIR}/*)
 
@@ -29,7 +23,7 @@ file(GLOB_RECURSE SRC_FILES ${UTIL_DIR}/* ${IMPL_DIR}/*)
 file(GLOB_RECURSE TEST_FILES ${TEST_DIR}/*)
 
 #We provide the OpenCL 1.2 header files in inc
-set(OpenCL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/inc")
+set(OpenCL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}")
 
 find_package(OpenCL REQUIRED)
 if (OpenCL_FOUND)
@@ -42,6 +36,7 @@ if (OpenCL_FOUND)
 
         #compile options
         add_compile_options("-DPROJECT_ROOT=\"${CMAKE_SOURCE_DIR}\"")
+        add_compile_options("-DUSE_LOG")
 
         add_executable(${target_name} ${test_file} ${SRC_FILES})
         target_link_libraries(${target_name} ${OpenCL_LIBRARY})

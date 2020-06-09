@@ -1,61 +1,53 @@
 //
-//  PlatInit.cpp
-//  gpuqp_opencl
+// Created by Bryan on 9/6/2020.
 //
-//  Created by Bryan on 4/7/15.
-//  Copyright (c) 2015 Bryan. All rights reserved.
-//
+
 #include "Plat.h"
-#include <fstream>
-#include <iostream>
-using namespace std;
+#include "log.h"
 
-Plat* Plat::instance = NULL;
-
-Plat::Plat() {}
+Plat* Plat::_instance = nullptr;
 
 void Plat::autoDestroy() {
-    if (instance != NULL) {
-        delete instance;
+    if (_instance != nullptr) {
+        delete _instance;
     }
 }
 
 void Plat::plat_init(cl_device_type new_type) {
-    if (Plat::instance == NULL) {
-        cout<<endl<<"Device type: ";
-        if (new_type == CL_DEVICE_TYPE_ALL)         cout<<"All"<<endl;
-        else if (new_type == CL_DEVICE_TYPE_GPU)    cout <<"GPUs only"<<endl;
-        else if (new_type == CL_DEVICE_TYPE_CPU)    cout <<"CPUs only"<<endl;
-        else if (new_type == CL_DEVICE_TYPE_ACCELERATOR)    cout <<"Accelerators only"<<endl;
+    if (Plat::_instance == nullptr) {
+        if (new_type == CL_DEVICE_TYPE_ALL) log_info("Device type: All");
+        else if (new_type == CL_DEVICE_TYPE_GPU)    log_info("Device type: GPUs only");
+        else if (new_type == CL_DEVICE_TYPE_CPU)    log_info("Device type: CPUs only");
+        else if (new_type == CL_DEVICE_TYPE_ACCELERATOR)    log_info("Device type: Accelerators only");
         else {
-            cerr<<"Wrong device type."<<endl;
+            log_error("Wrong device type");
             return;
         }
 
         /*initilize the plaform*/
-        Plat::instance = new Plat();
-        instance->type = new_type;
-        instance->init_properties();
+        Plat::_instance = new Plat();
+        _instance->_type = new_type;
+        _instance->init_properties();
         atexit(autoDestroy);               /*to call destroy() before exit*/
     }
     else {
-        std::cout<<"Platform has been initialized"<<std::endl;
+        log_info("Platform has been initialized");
     }
 }
 
 device_param_t Plat::get_device_param() {
-    if (Plat::instance == NULL) {
-        cerr<<"Platform and Deivce have not been initialized."<<endl;
+    if (Plat::_instance == nullptr) {
+        log_error("Platform and Deivce have not been initialized");
         exit(1);
     }
     else {
-        uint idx = Plat::instance->chosen_device_id;
-        return Plat::instance->device_params;
+        uint idx = Plat::_instance->_chosen_device_id;
+        return Plat::_instance->_device_params;
     }
 }
 
 void Plat::init_properties() {
-    cout<<"------ Start hardware checking ------"<<endl;
+    log_info("------ Start hardware checking ------");
     cl_int status;
     cl_uint plat_num;
     char platform_name[200];                        /*platform name*/
@@ -68,92 +60,82 @@ void Plat::init_properties() {
     checkErr(status,"No platform available.");
 
     /*only 1 platform used*/
-    status = clGetPlatformIDs(MAX_PLATFORM_NUM, &this->platform, NULL);
+    status = clGetPlatformIDs(MAX_PLATFORM_NUM, &this->_platform, nullptr);
     memset(platform_name, '\0', sizeof(char)*200);
-    status = clGetPlatformInfo(this->platform, CL_PLATFORM_NAME, 200, platform_name, NULL);
-    cout<<"Platform: "<<platform_name<<endl;
-    this->device_params.platform = this->platform;
+    status = clGetPlatformInfo(this->_platform, CL_PLATFORM_NAME, 200, platform_name, nullptr);
+    log_info("Platform: %s", platform_name);
+    this->_device_params.platform = this->_platform;
 
     /*get device IDs*/
-    status = clGetDeviceIDs(this->platform, this->type, 0, 0, &this->num_devices);
+    status = clGetDeviceIDs(this->_platform, this->_type, 0, 0, &this->_num_devices);
     checkErr(status, "No devices available");
-    status = clGetDeviceIDs(this->platform, this->type, this->num_devices, devices, NULL);
-    cout<<"Number of devices: "<<this->num_devices<<endl;
+    status = clGetDeviceIDs(this->_platform, this->_type, this->_num_devices, devices, nullptr);
+    log_info("Number of devices: %d", this->_num_devices);
 
-    for(int i = 0; i< this->num_devices; i++) {
+    for(int i = 0; i< this->_num_devices; i++) {
         memset(devices_name[i], '\0', sizeof(char)*200);
-        status = clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 200, devices_name[i], NULL);
-        cout<<"\tComputing device " <<i<<" : "<<devices_name[i]<<endl;
+        status = clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 200, devices_name[i], nullptr);
+        log_info("\tComputing device %d : %s", i, devices_name[i]);
     }
 
-    cout<<"Please enter the index of the device to use (0,1,2...) : ";
+    log_info("Please enter the index of the device to use (0,1,2...) : ");
 
-    cin >> this->chosen_device_id;
+    cin >> this->_chosen_device_id;
 //    this->chosen_device_id = 0;
-    if (this->chosen_device_id < 0 || this->chosen_device_id >= num_devices)   {
-        cerr<<"Wrong parameter."<<endl;
+    if (this->_chosen_device_id < 0 || this->_chosen_device_id >= _num_devices)   {
+        log_error("Wrong parameter.");
         exit(1);
     }
-    cl_device_id my_device = devices[this->chosen_device_id];
-    cout<<"Selected device: "<<devices_name[this->chosen_device_id]<<endl;
-    this->device_params.device = my_device;
+    cl_device_id my_device = devices[this->_chosen_device_id];
+    log_info("Selected device: %s", devices_name[this->_chosen_device_id]);
+    this->_device_params.device = my_device;
 
-    clGetDeviceInfo(my_device, CL_DEVICE_VERSION, sizeof(char)*100, cl_version_info, NULL); /*retrieve the OpenCL support version*/
+    clGetDeviceInfo(my_device, CL_DEVICE_VERSION, sizeof(char)*100, cl_version_info, nullptr); /*retrieve the OpenCL support version*/
 
     /*create the context*/
-    const cl_context_properties prop[3] = {CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(this->platform),0};
-    cl_context my_context = clCreateContext(prop, 1, &my_device, NULL, NULL, &status);
+    const cl_context_properties prop[3] = {CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(this->_platform),0};
+    cl_context my_context = clCreateContext(prop, 1, &my_device, nullptr, nullptr, &status);
     checkErr(status, "Fail to create the context."); //only 1 device is used
-    this->device_params.context = my_context;
+    this->_device_params.context = my_context;
 
     /*create the command queue*/
     cl_command_queue my_queue = clCreateCommandQueue(my_context, my_device, CL_QUEUE_PROFILING_ENABLE, &status);
     checkErr(status, "Failed to create the command queue.");
-    this->device_params.queue = my_queue;
+    this->_device_params.queue = my_queue;
 
     /*initialize other params*/
-    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(uint64_t), &this->device_params.gmem_size, NULL);  /*global memory size*/
-    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(uint64_t), &this->device_params.cacheline_size, NULL); /*cacheline size*/
-    clGetDeviceInfo(my_device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(uint64_t), &this->device_params.lmem_size, NULL); /*local memory size*/
-    clGetDeviceInfo(my_device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(uint64_t), &this->device_params.cus, NULL);       /*number of CUs*/
-    clGetDeviceInfo(my_device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(uint64_t), &this->device_params.max_alloc_size, NULL);       /*number of CUs*/
-    clGetDeviceInfo(my_device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(uint64_t), &this->device_params.max_local_size, NULL);       /*maximal local size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(uint64_t), &this->_device_params.gmem_size, nullptr);  /*global memory size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(uint64_t), &this->_device_params.cacheline_size, nullptr); /*cacheline size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(uint64_t), &this->_device_params.lmem_size, nullptr); /*local memory size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(uint64_t), &this->_device_params.cus, nullptr);       /*number of CUs*/
+    clGetDeviceInfo(my_device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(uint64_t), &this->_device_params.max_alloc_size, nullptr);       /*number of CUs*/
+    clGetDeviceInfo(my_device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(uint64_t), &this->_device_params.max_local_size, nullptr);       /*maximal local size*/
 
     /*get the wavefront size according to the device type*/
     cl_device_type my_type;
-    clGetDeviceInfo(my_device, CL_DEVICE_TYPE, sizeof(cl_device_type), &my_type, NULL);
+    clGetDeviceInfo(my_device, CL_DEVICE_TYPE, sizeof(cl_device_type), &my_type, nullptr);
 
     /*a simple kernel*/
-    cl_kernel temp_kernel = get_kernel(this->device_params.device, this->device_params.context, "mem_kernel.cl", "mul_mixed");
+    cl_kernel temp_kernel = get_kernel(this->_device_params.device, this->_device_params.context, "mem_kernel.cl", "mul_mixed");
 
     if (my_type == CL_DEVICE_TYPE_GPU) {    /*GPUs*/
-        clGetKernelWorkGroupInfo(temp_kernel, this->device_params.device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(uint64_t), &this->device_params.wavefront, NULL);
+        clGetKernelWorkGroupInfo(temp_kernel, this->_device_params.device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(uint64_t), &this->_device_params.wavefront, nullptr);
     }
     else {      /*CPUs and MICs*/
-//        clGetDeviceInfo(this->device_params.device, CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT, sizeof(uint64_t), &this->device_params.wavefront, NULL);
-        clGetKernelWorkGroupInfo(temp_kernel, this->device_params.device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(uint64_t), &this->device_params.wavefront, NULL);
+//        clGetDeviceInfo(this->device_params.device, CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT, sizeof(uint64_t), &this->device_params.wavefront, nullptr);
+        clGetKernelWorkGroupInfo(temp_kernel, this->_device_params.device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(uint64_t), &this->_device_params.wavefront, nullptr);
 
     }
 
     /*display the params*/
-    cout<<"\tVersion: "<<cl_version_info<<endl;
-    cout<<"\tGlobal memory size: "<<this->device_params.gmem_size*1.0/1024/1024/1024<<" GB"<<endl;
-    cout<<"\tLocal memory size: "<<this->device_params.lmem_size*1.0/1024<<" KB"<<endl;
-    cout<<"\tCompute units: "<<this->device_params.cus<<endl;
-    cout<<"\tMaximal local_size: "<<this->device_params.max_local_size<<endl;
-    cout<<"\tMaximal memory object size: "<<this->device_params.max_alloc_size*1.0/1024/1024/1024<<" GB"<<endl;
-    cout<<"\tGlobal memory cache line size: "<<this->device_params.cacheline_size<<" Byte"<<endl;
-    cout<<"\tWavefront size: "<<this->device_params.wavefront<<endl;
+    log_info("Version: %s", cl_version_info);
+    log_info("Global memory size: %.1f GB", this->_device_params.gmem_size*1.0/1024/1024/1024);
+    log_info("Local memory size: %.1f KB", this->_device_params.lmem_size*1.0/1024);
+    log_info("Compute units: %d", this->_device_params.cus);
+    log_info("Maximal local_size: %d", this->_device_params.max_local_size);
+    log_info("Maximal memory object size: %.1f GB", this->_device_params.max_alloc_size*1.0/1024/1024/1024);
+    log_info("Global memory cache line size: %d bytes", _device_params.cacheline_size);
+    log_info("Wavefront size: %d", _device_params.wavefront);
 
-    std::cout<<"------ End of hardware checking ------"<<endl<<endl;
-}
-
-/*deconstruction*/
-Plat::~Plat() {
-    clReleaseContext(this->device_params.context);
-    clReleaseCommandQueue(this->device_params.queue);
-
-    if (Plat::instance) {
-        instance = NULL;
-    }
+    log_info("------ End of hardware checking ------");
 }

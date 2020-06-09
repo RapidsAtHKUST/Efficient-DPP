@@ -9,7 +9,7 @@
 #define __KERNELS_H__
 
 
-#include "utility.h"
+#include "../../opencl/util/utility.h"
 
 float mul(int *d_in, int *d_out, int blockSize, int gridSize);
 

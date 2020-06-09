@@ -1,4 +1,4 @@
-#include "Plat.h"
+#include "../util/Plat.h"
 using namespace std;
 
 int main(int argc, char *argv[])

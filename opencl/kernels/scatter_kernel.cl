@@ -1,7 +1,7 @@
 #ifndef SCATTER_KERNEL_CL
 #define SCATTER_KERNEL_CL
 
-#include "params.h"
+#include "../params.h"
 
 kernel void scatter(
         global const int *d_in, global int* d_out, global const int* loc,

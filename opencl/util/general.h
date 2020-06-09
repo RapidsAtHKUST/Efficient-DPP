@@ -1,5 +1,9 @@
-#ifndef __GENERAL_H__
-#define __GENERAL_H__
+#pragma once
+
+#ifdef __JETBRAINS_IDE__
+#include "../CL/cl.h"
+#include "opencl_fake.h"
+#endif
 
 /*literal macros*/
 #define ERR_HOST_ALLOCATION                 "Failed to allocate the host memory."
@@ -10,17 +14,16 @@
 #define ERR_LOCAL_MEM_OVERFLOW              "Local memory overflow "
 #define ERR_COPY_BUFFER                     "Failed to copy the buffer."
 #define ERR_RELEASE_MEM                     "Failed to release the device memory object."
-#endif
 
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #if defined(__APPLE__) || defined(__MACOSX)
-    #include <OpenCL/OpenCL.h>
+    #include <OpenCL/opencl.h>
 #else
     #include <CL/cl.h>
 #endif
 
 #include "utility.h"
-#include "params.h"
+#include "../params.h"
 
 /*
  *  define the structure of data

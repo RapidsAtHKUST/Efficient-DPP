@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
 
-#include "Plat.h"
+#include "../util/Plat.h"
 using namespace std;
 
 double scatter(cl_mem d_in, cl_mem d_out, int length, cl_mem d_loc, int localSize, int gridSize, int pass) {

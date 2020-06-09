@@ -1,7 +1,7 @@
 #ifndef MEM_KERNEL_CL
 #define	MEM_KERNEL_CL
 
-#include "params.h"
+#include "../params.h"
 
 //warp_bits: 5 for GPU, 4 for Xeon Phi and 3 for Xeon CPU
 #define WARP_BITS               (1)

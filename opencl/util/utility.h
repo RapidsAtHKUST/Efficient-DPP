@@ -5,8 +5,7 @@
 //  Created by Bryan on 01/19/16.
 //  Copyright (c) 2015-2016 Bryan. All rights reserved.
 //
-#ifndef __UTILITY_H__
-#define __UTILITY_H__
+#pragma once
 
 #include <cstdlib>
 #include <iostream>
@@ -25,4 +24,3 @@ void my_itoa(int num, char *buffer, int base);
 double computeMem(unsigned long dataSize, int wordSize, double elapsedTime);
 double averageHampel(double *input, int num);
 
-#endif

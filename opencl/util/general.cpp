@@ -1,10 +1,11 @@
 #include "general.h"
+#include "log.h"
 using namespace std;
 
 /*OpenCL related functions*/
 void checkErr(cl_int status, const char* name, int tag) {
     if (status != CL_SUCCESS) {
-        std::cout<<"statusError: " << name<< " (" << status <<") Tag: "<<tag<<std::endl;
+        log_error("StatusError: %s (%d) Tag: %d", name, status, tag);
         exit(EXIT_FAILURE);
     }
 }
