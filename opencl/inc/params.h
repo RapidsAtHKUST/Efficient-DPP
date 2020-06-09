@@ -1,7 +1,7 @@
 #ifndef __PARAMS_H__
 #define __PARAMS_H__
 
-#define WARP_BITS                   (0)
+#define WARP_BITS                   (4)
 #define WARP_SIZE                   (1<<(WARP_BITS))
 #define MASK                        (WARP_SIZE-1)
 

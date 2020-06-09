@@ -1,6 +1,6 @@
 #include "params.h"
 #define NUM_OF_BANKS 32
- #define CON_OFFSET(n)  ((n)/NUM_OF_BANKS)
+#define CON_OFFSET(n)  ((n)/NUM_OF_BANKS)
 //#define CON_OFFSET(n)  (0)
 
 //log function based on look-up table
@@ -845,7 +845,8 @@ kernel void matrix_scan_lm_reg(
         d_out[i] = ldata[i];
 }
 
-/*only scan with one work-item in the global memory */
+/*baseline: fetch the data to the local memory
+ * and scan with a single workitem*/
 kernel void matrix_scan_lm_serial(
         global int *d_in,
         global int *d_out,

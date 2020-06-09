@@ -6,11 +6,12 @@
 //  Copyright (c) 2015 Bryan. All rights reserved.
 //
 #include "Plat.h"
+
 //#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 //#if defined(__APPLE__) || defined(__MACOSX)
 //#include <OpenCL/OpenCL.h>
 //#else
-//#include <CL/cl.h>
+//#include <CL-v2.1/cl.h>
 //#endif
 using namespace std;
 

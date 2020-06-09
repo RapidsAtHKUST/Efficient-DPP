@@ -1,0 +1,16 @@
+Matrix_LM_SERIAL: right total time:35.4386ms     (repeat 1000 times)    Throughput: 13.7782 MKeys/sec
+Matrix_LM_SERIAL: right total time:36.5354ms     (repeat 1000 times)    Throughput: 26.7292 MKeys/sec
+Matrix_LM_SERIAL: right total time:37.2886ms     (repeat 1000 times)    Throughput: 39.2839 MKeys/sec
+Matrix_LM_SERIAL: right total time:39.2289ms     (repeat 1000 times)    Throughput: 49.7879 MKeys/sec
+Matrix_LM_SERIAL: right total time:41.681ms      (repeat 1000 times)    Throughput: 58.5736 MKeys/sec
+Matrix_LM_SERIAL: right total time:43.3182ms     (repeat 1000 times)    Throughput: 67.6318 MKeys/sec
+Matrix_LM_SERIAL: right total time:44.9801ms     (repeat 1000 times)    Throughput: 75.9884 MKeys/sec
+Matrix_LM_SERIAL: right total time:45.8161ms     (repeat 1000 times)    Throughput: 85.2593 MKeys/sec
+Matrix_LM_SERIAL: right total time:47.1151ms     (repeat 1000 times)    Throughput: 93.2722 MKeys/sec
+Matrix_LM_SERIAL: right total time:49.3801ms     (repeat 1000 times)    Throughput: 98.8822 MKeys/sec
+Matrix_LM_SERIAL: right total time:50.6703ms     (repeat 1000 times)    Throughput: 106.001 MKeys/sec
+Matrix_LM_SERIAL: right total time:51.8516ms     (repeat 1000 times)    Throughput: 113.003 MKeys/sec
+Matrix_LM_SERIAL: right total time:52.4442ms     (repeat 1000 times)    Throughput: 121.036 MKeys/sec
+Matrix_LM_SERIAL: right total time:54.7326ms     (repeat 1000 times)    Throughput: 124.897 MKeys/sec
+Matrix_LM_SERIAL: right total time:56.4288ms     (repeat 1000 times)    Throughput: 129.796 MKeys/sec
+Matrix_LM_SERIAL: right total time:57.4447ms     (repeat 1000 times)    Throughput: 136 MKeys/sec
