@@ -96,7 +96,7 @@ double hashjoin_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys
 
 //-------------------------test primitives-------------------------
 //void test_bandwidth();
-void test_wg_sequence(unsigned long len);
+//void test_wg_sequence(unsigned long len);
 //void testAccess();
 //bool testGather(int len);
 //bool testScatter(int len, int inputPass);
