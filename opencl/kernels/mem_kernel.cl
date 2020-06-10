@@ -6,31 +6,34 @@
 #define SCALAR                  (3)
 
 /* Memory bandwidth test */
-kernel void copy_bandwidth(global const int* d_in, global int* d_out) {
+kernel
+void copy_bandwidth(global const int* d_in, global int* d_out) {
     int globalId = get_global_id(0);
     d_out[globalId] = d_in[globalId];
 }
 
-kernel void addition_bandwidth(global const int* d_in_1, global const int *d_in_2, global int* d_out) {
+kernel
+void addition_bandwidth(global const int* d_in_1, global const int *d_in_2, global int* d_out) {
     int globalId = get_global_id(0);
     d_out[globalId] = d_in_1[globalId] + d_in_2[globalId];
 }
 
-kernel void scale_bandwidth (global const int* d_in, global int* d_out) {
+kernel
+void scale_bandwidth (global const int* d_in, global int* d_out) {
     int globalId = get_global_id(0);
     d_out[globalId] = SCALAR * d_in[globalId];
 }
 
-kernel void triad_bandwidth(global const int* d_in_1, global const int *d_in_2, global int* d_out) {
+kernel
+void triad_bandwidth(global const int* d_in_1, global const int *d_in_2, global int* d_out) {
     int globalId = get_global_id(0);
     d_out[globalId] = d_in_1[globalId] + SCALAR * d_in_2[globalId];
 }
 
-kernel void mul_column_based (
-    global const int* d_in,
-    global int* d_out,
-    const int repeat)
-{
+kernel
+void scale_column (global const int* d_in,
+                   global int* d_out,
+                   const int repeat) {
     int globalId = get_global_id(0);
     int globalSize = get_global_size(0);
 
@@ -40,23 +43,10 @@ kernel void mul_column_based (
     }
 }
 
-//kernel void mul_row_based (
-//    global const int* d_in,
-//    global int* d_out,
-//    const int repeat)
-//{
-//    int globalId = get_global_id(0);
-//    d_out[globalId] = d_in[globalId] * 7 ;
-//    d_out[globalId+1] = d_in[globalId+1] * 9 ;
-//    barrier(CLK_LOCAL_MEM_FENCE);
-//    d_out[globalId+2] = d_in[globalId+2] * 12;
-//}
-
-kernel void mul_row_based (
-        global const int* d_in,
-        global int* d_out,
-        const int repeat)
-{
+kernel
+void scale_row (global const int* d_in,
+                global int* d_out,
+                const int repeat) {
     int globalId = get_global_id(0);
 
     int begin = globalId * repeat;
@@ -66,12 +56,10 @@ kernel void mul_row_based (
 }
 
 //attention: should set the WARP_SIZE before testing on a device!!
-kernel void mul_mixed (
-        global const int* d_in,
-        global int* d_out,
-        const int repeat)
-{
-    //for Nvidia GPU, warpsize = 32, for Xeon Phi, warpsize = 16, for
+kernel
+void scale_mixed (global const int* d_in,
+                  global int* d_out,
+                  const int repeat) {
     int globalId = get_global_id(0);
     int warp_num = globalId >> WARP_BITS;
     int idx = WARP_SIZE * repeat * warp_num + (globalId & (WARP_SIZE-1));

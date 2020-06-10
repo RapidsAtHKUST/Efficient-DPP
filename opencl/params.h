@@ -7,7 +7,7 @@
 #endif
 
 //warp_bits: 5 for GPU, 4 for Xeon Phi and 3 for Xeon CPU
-#define WARP_BITS                   (4)
+#define WARP_BITS                   (5)
 #define WARP_SIZE                   (1<<(WARP_BITS))
 #define MASK                        (WARP_SIZE-1)
 

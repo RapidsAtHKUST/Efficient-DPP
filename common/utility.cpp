@@ -28,8 +28,8 @@ void my_itoa(int num, char *buffer, int base) {
 
 //calculating the memory bandwidth
 //elasped time: in ms using diffTime
-double compute_bandwidth(unsigned long num, int wordSize, double kernel_time) {
-    return (double)(1.0*num)/1024/1024/1024*wordSize/kernel_time * 1000 ;
+double compute_bandwidth(uint64_t num, int wordSize, double kernel_time) {
+    return 1.0*num/1024/1024/1024*wordSize/kernel_time * 1000 ;
 }
 
 bool pair_cmp (pair<double, double> i , pair<double, double> j) {

@@ -116,7 +116,7 @@ void Plat::init_properties() {
     clGetDeviceInfo(my_device, CL_DEVICE_TYPE, sizeof(cl_device_type), &my_type, nullptr);
 
     /*a simple kernel*/
-    cl_kernel temp_kernel = get_kernel(this->_device_params.device, this->_device_params.context, "mem_kernel.cl", "mul_mixed");
+    cl_kernel temp_kernel = get_kernel(this->_device_params.device, this->_device_params.context, "mem_kernel.cl", "scale_mixed");
 
     if (my_type == CL_DEVICE_TYPE_GPU) {    /*GPUs*/
         clGetKernelWorkGroupInfo(temp_kernel, this->_device_params.device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(uint64_t), &this->_device_params.wavefront, nullptr);

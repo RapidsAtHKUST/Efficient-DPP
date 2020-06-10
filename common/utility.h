@@ -22,7 +22,7 @@
 
 double diffTime(struct timeval end, struct timeval start);
 void my_itoa(int num, char *buffer, int base);
-double compute_bandwidth(unsigned long dataSize, int wordSize, double elapsedTime);
+double compute_bandwidth(uint64_t dataSize, int wordSize, double elapsedTime);
 double average_Hampel(double *input, int num);
 
 #endif
