@@ -4,12 +4,11 @@ cmake_minimum_required(VERSION 3.1)
 project(HeteroSys_study)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -g -w")
+set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -g -w -fopenmp")
 
 set(UTIL_DIR ${CMAKE_SOURCE_DIR}/util)
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
 set(IMPL_DIR ${CMAKE_SOURCE_DIR}/Impl)
-#set(HEADER_DIR ${CMAKE_SOURCE_DIR}/inc)
 
 #include paths
 include_directories(util)
@@ -22,7 +21,7 @@ file(GLOB_RECURSE SRC_FILES ${UTIL_DIR}/* ${IMPL_DIR}/*)
 # Add all the test files automatically
 file(GLOB_RECURSE TEST_FILES ${TEST_DIR}/*)
 
-#We provide the OpenCL 1.2 header files in inc
+#We provide the OpenCL 1.2 header files
 set(OpenCL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}")
 
 find_package(OpenCL REQUIRED)

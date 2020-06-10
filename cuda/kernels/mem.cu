@@ -2,8 +2,8 @@
 //  map.cu
 //  comparison_gpu/cuda
 //
-//  Created by Bryan on 01/19/16.
-//  Copyright (c) 2015-2016 Bryan. All rights reserved.
+//  Created by Zhuohang Lai on 01/19/16.
+//  Copyright (c) 2015-2016 Zhuohang Lai. All rights reserved.
 //
 #include "kernels.h"
 

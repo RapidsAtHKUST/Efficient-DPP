@@ -2,8 +2,8 @@
 //  scanImpl.cpp
 //  gpuqp_opencl
 //
-//  Created by Bryan on 4/10/15.
-//  Copyright (c) 2015 Bryan. All rights reserved.
+//  Created by Zhuohang Lai on 4/10/15.
+//  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
 
 #include "../util/Plat.h"
@@ -14,8 +14,10 @@ using namespace std;
  *  R: number of elements in registers in each work-item
  *  L: number of elememts in local memory
  */
-double scan_chained(cl_mem d_in, cl_mem d_out, int length, int local_size, int grid_size, int R, int L)
-{
+double
+scan_chained(cl_mem d_in, cl_mem d_out,
+             int length, int local_size,
+             int grid_size, int R, int L) {
     device_param_t param = Plat::get_device_param();
 
     double totalTime = 0.0f;

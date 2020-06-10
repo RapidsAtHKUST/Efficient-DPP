@@ -1,5 +1,5 @@
 //
-// Created by Bryan on 9/6/2020.
+// Created by Zhuohang Lai on 9/6/2020.
 //
 
 #include "Plat.h"

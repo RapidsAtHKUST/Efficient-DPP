@@ -36,7 +36,7 @@ bool pair_cmp (pair<double, double> i , pair<double, double> j) {
     return i.first < j.first;
 }
 
-double averageHampel(double *input, int num) {
+double average_Hampel(double *input, int num) {
     int valid = 0;
     double total = 0;
 
@@ -133,7 +133,7 @@ void test_omp(int len) {
         times[e] = mem_access_omp(input, output, len);
     }
 
-    double aveTime = averageHampel(times,experTime);
+    double aveTime = average_Hampel(times, experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
              <<"Throughput:"<<1.0*len/1024/1024/1024/aveTime*1e3<<" GKeys/s"<<std::endl; //compared with scan
 
@@ -154,7 +154,7 @@ void test_omp_ss(int len) {
     for(int e = 0; e < experTime; e++) {
         times[e] = mem_access_omp_ss(input, output, len);
     }
-    double aveTime = averageHampel(times,experTime);
+    double aveTime = average_Hampel(times, experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
              <<"Throughput:"<<1.0*len/1024/1024/1024/aveTime*1e3<<" GKey/s"<<std::endl; //compared with scan
 

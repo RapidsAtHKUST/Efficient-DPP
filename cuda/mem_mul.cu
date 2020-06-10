@@ -46,7 +46,7 @@ float mul(int *d_in, int *d_out, int num)
     return totalTime;
 }
 
-void testMem() {
+void test_bandwidth() {
 
     int len = 512 * 8192 * 100;     //1600MB
     std::cout<<"Data size(Multiplication): "<<len<<" ("<<len* sizeof(int)/1024/1024<<"MB)"<<std::endl;
@@ -82,6 +82,6 @@ void testMem() {
 
 int main() {
     cudaSetDevice(1);
-    testMem();
+    test_bandwidth();
     return 0;
 }

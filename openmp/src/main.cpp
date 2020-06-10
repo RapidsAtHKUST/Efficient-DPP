@@ -67,7 +67,7 @@ cout<<"---------------- begin test ----------------"<<endl;
 	// cout<<"Write totalTime:"<<writeTime<<" ms.\t"
 	// <<"Write Throughput: "<< computeMem(n, sizeof(int), writeTime)<<" GB/s"<<endl;
 	 cout<<"Mul totalTime:"<<mulTime<<" ms.\t"
-	 <<"Mul Throughput: "<< computeMem(n*2, sizeof(int), mulTime)<<" GB/s"<<endl;
+	 <<"Mul Throughput: "<< compute_bandwidth(n * 2, sizeof(int), mulTime)<<" GB/s"<<endl;
 	// cout<<"Add totalTime:"<<addTime<<" ms.\t"
 	// <<"Add Throughput: "<< computeMem(n*3, sizeof(int), addTime)<<" GB/s"<<endl;
 

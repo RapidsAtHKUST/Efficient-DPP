@@ -3,17 +3,27 @@
 
 #include "../params.h"
 
-//warp_bits: 5 for GPU, 4 for Xeon Phi and 3 for Xeon CPU
-#define WARP_BITS               (1)
-#define WARP_SIZE               (1<<WARP_BITS)
-#define MASK                    (WARP_SIZE-1)
 #define SCALAR                  (3)
 
-//testing memory bandwidth and access patterns on different devices
-kernel void mul_bandwidth (global const int* d_in, global int* d_out, const int scalar)
-{
+/* Memory bandwidth test */
+kernel void copy_bandwidth(global const int* d_in, global int* d_out) {
     int globalId = get_global_id(0);
-    d_out[globalId] = scalar * d_in[globalId];
+    d_out[globalId] = d_in[globalId];
+}
+
+kernel void addition_bandwidth(global const int* d_in_1, global const int *d_in_2, global int* d_out) {
+    int globalId = get_global_id(0);
+    d_out[globalId] = d_in_1[globalId] + d_in_2[globalId];
+}
+
+kernel void scale_bandwidth (global const int* d_in, global int* d_out) {
+    int globalId = get_global_id(0);
+    d_out[globalId] = SCALAR * d_in[globalId];
+}
+
+kernel void triad_bandwidth(global const int* d_in_1, global const int *d_in_2, global int* d_out) {
+    int globalId = get_global_id(0);
+    d_out[globalId] = d_in_1[globalId] + SCALAR * d_in_2[globalId];
 }
 
 kernel void mul_column_based (

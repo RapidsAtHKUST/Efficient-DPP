@@ -26,7 +26,7 @@ bool pair_cmp (pair<double, double> i , pair<double, double> j) {
     return i.first < j.first;
 }
 
-double averageHampel(double *input, int num) {
+double average_Hampel(double *input, int num) {
     int valid = 0;
     double total = 0;
 
@@ -169,7 +169,7 @@ void test_gather(int len) {
         }
     }
 
-    double aveTime = averageHampel(times,experTime);
+    double aveTime = average_Hampel(times, experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
              <<"Throughput:"<<1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
 
@@ -221,7 +221,7 @@ void test_scatter(int len) {
         }
     }
 
-    double aveTime = averageHampel(times,experTime);
+    double aveTime = average_Hampel(times, experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
              <<"Throughput:"<<1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
 
@@ -273,7 +273,7 @@ void test_gather_intrinsic(int len) {
             if (!res)   cout<<"Wrong result."<<endl;
         }
     }
-    double aveTime = averageHampel(times,experTime);
+    double aveTime = average_Hampel(times, experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
              <<"Throughput:"<<1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
 

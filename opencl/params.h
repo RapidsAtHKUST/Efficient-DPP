@@ -6,11 +6,12 @@
 #include "util/opencl_fake.h"
 #endif
 
+//warp_bits: 5 for GPU, 4 for Xeon Phi and 3 for Xeon CPU
 #define WARP_BITS                   (4)
 #define WARP_SIZE                   (1<<(WARP_BITS))
 #define MASK                        (WARP_SIZE-1)
 
 #define SPLIT_VALUE_DEFAULT         (1024)       /*default value*/
-#define EXPERIMENT_TIMES            (10)
+#define EXPERIMENT_TIMES            (5)
 
 #endif

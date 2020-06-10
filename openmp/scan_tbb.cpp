@@ -37,7 +37,7 @@ bool pair_cmp (pair<double, double> i , pair<double, double> j) {
     return i.first < j.first;
 }
 
-double averageHampel(double *input, int num) {
+double average_Hampel(double *input, int num) {
     int valid = 0;
     double total = 0;
 
@@ -162,7 +162,7 @@ void test_scan_tbb() {
             if(input)   delete[] input;
             if(output)  delete[] output;
         }
-        double aveTime = averageHampel(tempTimes,experTime);
+        double aveTime = average_Hampel(tempTimes, experTime);
 
         if (res)
             std::cout<<"Time:"<<aveTime<<" ms"<<'\t'

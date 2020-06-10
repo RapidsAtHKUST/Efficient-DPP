@@ -2,75 +2,14 @@
 //  TestBasic.cpp
 //  gpuqp_opencl
 //
-//  Created by Bryan on 6/14/16.
-//  Copyright (c) 2015 Bryan. All rights reserved.
+//  Created by Zhuohang Lai on 6/14/16.
+//  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
 
 #include "Plat.h"
 using namespace std;
 
-/*
- * test scalar multiplication bandwidth
- */
-void testMem() {
-    device_param_t param = Plat::get_device_param();
 
-    cl_int status = 0;
-    cl_event event;
-    int argsNum;
-    int localSize = 1024;
-    int gridSize = 262144;
-    double mulTime = 0.0;
-    int scalar = 13;
-
-    //set work group and NDRange sizes
-    size_t local[1] = {(size_t)(localSize)};
-    size_t global[1] = {(size_t)(localSize * gridSize)};
-
-    //get the kernel
-    cl_kernel mul_kernel = get_kernel(param.device, param.context, "memKernel.cl", "mul_bandwidth");
-
-    int len = localSize*gridSize;
-    std::cout<<"Data size for read/write(multiplication test): "<<len<<" ("<<len*sizeof(int)*1.0/1024/1024<<"MB)"<<std::endl;
-
-    //data initialization
-    int *h_in = new int[len];
-    for(int i = 0; i < len; i++) h_in[i] = i;
-    cl_mem d_in = clCreateBuffer(param.context, CL_MEM_READ_WRITE , sizeof(int)*len, NULL, &status);
-    cl_mem d_out = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY , sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(int)*len, h_in, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-
-    //set kernel arguments
-    argsNum = 0;
-    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_in);
-    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(cl_mem), &d_out);
-    status |= clSetKernelArg(mul_kernel, argsNum++, sizeof(int), &scalar);
-    checkErr(status, ERR_SET_ARGUMENTS);
-
-    status = clFinish(param.queue);
-    for(int i = 0; i < EXPERIMENT_TIMES; i++) {
-        status = clEnqueueNDRangeKernel(param.queue, mul_kernel, 1, 0, global, local, 0, 0, &event);  //kernel execution
-        status = clFinish(param.queue);
-        checkErr(status, ERR_EXEC_KERNEL);
-
-        //throw away the first result
-        if (i != 0) mulTime += clEventTime(event);
-    }
-    mulTime /= (EXPERIMENT_TIMES - 1);
-
-    status = clFinish(param.queue);
-    status = clReleaseMemObject(d_in);
-    status = clReleaseMemObject(d_out);
-    checkErr(status, ERR_RELEASE_MEM);
-    delete[] h_in;
-
-    //compute the bandwidth, including read and write
-    double throughput = computeMem(len*2, sizeof(int), mulTime);
-    cout<<"Time for multiplication: "<<mulTime<<" ms."<<'\t'
-        <<"Bandwidth: "<<throughput<<" GB/s"<<endl;
-}
 
 void testAccess() {
     device_param_t param = Plat::get_device_param();
@@ -192,7 +131,7 @@ void testAccess() {
     for(int re = 1; re <= repeat_max; re++) {
         row_time[re] /= (EXPERIMENT_TIMES - 1);
         assert(row_time[re] > 0);
-        row_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), row_time[re]);
+        row_throughput[re] = compute_bandwidth(localSize * gridSize * (re) * 2, sizeof(int), row_time[re]);
         cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
             <<"("<<localSize*gridSize*(re)<<","<<localSize*gridSize*(re)*1.0* sizeof(int)/1024/1024<<"MB)"
             <<" Time: "<<row_time[re]<<" ms\t"<<"Throughput: "<<row_throughput[re]<<" GB/s"<<endl;
@@ -219,7 +158,7 @@ void testAccess() {
     for(int re = 1; re <= repeat_max; re++) {
         mixed_time[re] /= (EXPERIMENT_TIMES - 1);
         assert(mixed_time[re] > 0);
-        mixed_throughput[re] = computeMem(localSize*gridSize*(re)*2, sizeof(int), mixed_time[re]);
+        mixed_throughput[re] = compute_bandwidth(localSize * gridSize * (re) * 2, sizeof(int), mixed_time[re]);
         cout<<"Data size: "<<localSize<<'*'<<gridSize<<'*'<<(re)
             <<"("<<localSize*gridSize*(re)<<","<<localSize*gridSize*(re)*1.0* sizeof(int)/1024/1024<<"MB)"
             <<" Time: "<<mixed_time[re]<<" ms\t"<<"Throughput: "<<mixed_throughput[re]<<" GB/s"<<endl;
@@ -339,7 +278,7 @@ double wg_sequence(int *h_data, int len, int *h_idx_array, int local_size, int g
         // tempTimes[e] = clEventTime(event);
         tempTimes[e] = diffTime(end, start);
     }
-    return averageHampel(tempTimes, EXPERIMENT_TIMES);
+    return average_Hampel(tempTimes, EXPERIMENT_TIMES);
 }
 
 void test_wg_sequence(unsigned long len) {
@@ -367,7 +306,7 @@ void test_wg_sequence(unsigned long len) {
        aveTime = wg_sequence(h_data, len, h_idx_array, local_size, grid_size, false);
         // aveTime = wg_sequence_no_atomic(h_data,len,local_size,grid_size,info,false);
 
-       throughput = computeMem(len, sizeof(int), aveTime);
+       throughput = compute_bandwidth(len, sizeof(int), aveTime);
        cout<<"\tDS/WG:"<<ds_wg_kb<<"KB "<<"gs:"<<grid_size<<" Time: "<<aveTime<<" ms."<<'\t'
            <<"Throughput: "<<throughput<<" GB/s"<<endl;
        if (h_idx_array)    delete[] h_idx_array;

@@ -2,8 +2,8 @@
 //  scan.cu
 //  gpuqp_cuda
 //
-//  Created by Bryan on 01/21/16.
-//  Copyright (c) 2015-2016 Bryan. All rights reserved.
+//  Created by Zhuohang Lai on 01/21/16.
+//  Copyright (c) 2015-2016 Zhuohang Lai. All rights reserved.
 //
 #include "kernels.h"
 #include "dataDef.h"

@@ -1,5 +1,5 @@
 #This is the make file for gpuqp_openmp
-#created by Bryan Lai from HKUST
+#created by Zhuohang Lai Lai from HKUST
 
 HOME_PATH = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 

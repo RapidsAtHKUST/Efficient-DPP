@@ -2,8 +2,8 @@
 //  phjImpl.cpp: non-partition based hash join
 //  gpuqp_opencl
 //
-//  Created by Bryan on 5/16/15.
-//  Copyright (c) 2015 Bryan. All rights reserved.
+//  Created by Zhuohang Lai on 5/16/15.
+//  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
 
 #include "../util/Plat.h"

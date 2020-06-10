@@ -2,10 +2,12 @@
 //  utility.cpp
 //  gpuqp_cuda
 //
-//  Created by Bryan on 01/19/2016.
-//  Copyright (c) 2015-2016 Bryan. All rights reserved.
+//  Created by Zhuohang Lai on 01/19/2016.
+//  Copyright (c) 2015-2016 Zhuohang Lai. All rights reserved.
 //
 #include "utility.h"
+#include "log.h"
+#include <omp.h>
 using namespace std;
 
 double diffTime(struct timeval end, struct timeval start) {
@@ -28,15 +30,15 @@ void my_itoa(int num, char *buffer, int base) {
 
 //calculating the memory bandwidth
 //elasped time: in ms using diffTime
-double computeMem(unsigned long num, int wordSize, double kernel_time) {
-    return (double)(1.0*num)/1024/1024/1024*wordSize/kernel_time * 1000 ;
+double compute_bandwidth(unsigned long num, int wordSize, double kernel_time) {
+    return (1.0*num)/1024/1024/1024*wordSize/kernel_time * 1000 ;
 }
 
 bool pair_cmp (pair<double, double> i , pair<double, double> j) {
     return i.first < j.first;
 }
 
-double averageHampel(double *input, int num) {
+double average_Hampel(double *input, int num) {
     int valid = 0;
     double total = 0;
 
@@ -80,4 +82,37 @@ double averageHampel(double *input, int num) {
     total = 1.0 * total / valid;
     if(temp_input)  delete[] temp_input;
     return total;
+}
+
+/*data generators*/
+/*
+ * Generate random uniform int value array
+ * */
+void random_generator_int(int *keys, uint64_t length, int max, unsigned long long seed) {
+#pragma omp parallel
+    {
+        unsigned int tid = omp_get_thread_num();
+        unsigned int my_seed = seed + tid;
+#pragma omp for schedule(dynamic)
+        for(int i = 0; i < length ; i++)    keys[i] = rand_r(&my_seed) % max;
+    }
+}
+
+/*
+ * Generate random uniform unique int value array
+ * */
+void random_generator_int_unique(int *keys, uint64_t length) {
+    srand((unsigned)time(nullptr));
+#pragma omp parallel for
+    for(int i = 0; i < length ; i++) {
+        keys[i] = i;
+    }
+    log_trace("Key assignment finished");
+    /*shuffling*/
+    for(auto i = length-1; i > 0; i--) {
+        auto from = rand() % i;
+        auto to = rand() % i;
+        std::swap(keys[from], keys[to]);
+    }
+    log_trace("Key shuffling finished");
 }

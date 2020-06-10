@@ -2,8 +2,8 @@
 //  utility.cpp
 //  gpuqp_cuda
 //
-//  Created by Bryan on 01/19/2016.
-//  Copyright (c) 2015-2016 Bryan. All rights reserved.
+//  Created by Zhuohang Lai on 01/19/2016.
+//  Copyright (c) 2015-2016 Zhuohang Lai. All rights reserved.
 //
 #include "utility.h"
 using namespace std;
@@ -28,7 +28,7 @@ void my_itoa(int num, char *buffer, int base) {
 
 //calculating the memory bandwidth
 //elasped time: in ms using diffTime
-double computeMem(unsigned long num, int wordSize, double kernel_time) {
+double compute_bandwidth(unsigned long num, int wordSize, double kernel_time) {
     return (double)(1.0*num)/1024/1024/1024*wordSize/kernel_time * 1000 ;
 }
 
@@ -36,7 +36,7 @@ bool pair_cmp (pair<double, double> i , pair<double, double> j) {
     return i.first < j.first;
 }
 
-double averageHampel(double *input, int num) {
+double average_Hampel(double *input, int num) {
     int valid = 0;
     double total = 0;
 

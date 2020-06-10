@@ -2,33 +2,15 @@
 //  TestPrimitives.cpp
 //  gpuqp_opencl
 //
-//  Created by Bryan on 5/21/15.
-//  Copyright (c) 2015 Bryan. All rights reserved.
+//  Created by Zhuohang Lai on 5/21/15.
+//  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
 
 #include "Plat.h"
+#include "utility.h"
 using namespace std;
 
-void random_generator_int(int *in_keys, uint64_t length, int max) {
-    sleep(1); srand((unsigned)time(NULL));
-    for(int i = 0; i < length ; i++)    in_keys[i] = rand() % max;
-}
 
-void random_generator_int_sole(int *in_keys, uint64_t length) {
-    sleep(1); srand((unsigned)time(NULL));
-    for(int i = 0; i < length ; i++)    in_keys[i] = i;
-
-    int temp;
-    uint64_t from, to, times=length*3;
-
-    for(int i = 0; i < times; i++) {
-        from = rand() % length;
-        to = rand() % length;
-        temp = in_keys[from];
-        in_keys[from] = in_keys[to];
-        in_keys[to] = temp;
-    }
-}
 
 void fixed_generator_int(int *in_keys, uint64_t length, int value) {
     for(int i = 0; i < length ; i++)    in_keys[i] = value;
@@ -70,151 +52,6 @@ void valRandom_Partitioned(int *arr, uint64_t length, int partitions) {
 
     delete[] pars;
     delete[] his;
-}
-
-/*
- *  lengthMax:         maximum size
- */
-bool testGather(int len) {
-    device_param_t param = Plat::get_device_param();
-
-    bool res = true;
-    int exper_time = 10;
-    cl_int status;
-
-    //kernel configuration
-    const size_t local_size = 1024;             //local size
-    int elements_per_thread = 16;               //elements per thread
-    int grid_size = len / local_size / elements_per_thread;
-
-    //data initialization
-    int *h_in = new int[len];     //no need to copy data
-    int *h_loc = new int[len];
-    for(int i = 0; i < len; i++)    h_in[i] = i;
-    random_generator_int_sole(h_loc, len);
-
-
-//    valRandom_Partitioned(h_loc, len, 8192);
-
-    cl_mem d_in = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(int)*len, h_in, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-    cl_mem d_out = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_loc = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(param.queue, d_loc, CL_TRUE, 0, sizeof(int)*len, h_loc, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-
-    //loop for multi-pass
-    for(int pass = 1; pass <= 32 ; pass<<=1) {
-        cout<<"[Gather Running] len:"<<len<<' '
-            <<"size:"<<len* sizeof(int)/1024/1024<<"MB "
-            <<"pass:"<<pass<<' '
-            <<"gridSize:"<<grid_size<<'\t';
-        double myTime = 0;
-        for(int i = 0; i < exper_time; i++)  {
-            double tempTime = gather(d_in, d_out, len, d_loc, local_size, grid_size, pass);
-            if (i != 0)   myTime += tempTime;
-        }
-        myTime /= (exper_time-1);
-        cout<<"time:"<<myTime<<" ms.";
-        cout<<"("<<myTime/len*1e6<<" ns/tuple, "<< len* sizeof(int)/myTime/1024/1024/1024*1e3<<"GB/s)"<<endl;
-    }
-
-    status = clReleaseMemObject(d_out);
-    checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_in);
-    checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_loc);
-    checkErr(status, ERR_RELEASE_MEM);
-    delete[] h_loc;
-    delete[] h_in;
-
-    //check
-    // for(int i = 0; i < length; i++) {
-    //     if (h_dest_values[h_loc[i]] != h_source_values[i]) {
-    //         res = false;
-    //         break;
-    //     }
-    // }
-    // FUNC_CHECK(res);
-
-    return res;
-}
-
-
-/*
- *  lengthMax:         maximum size
- */
-bool testScatter(int len, int inputPasses) {
-    device_param_t param = Plat::get_device_param();
-
-    bool res = true;
-    int exper_time = 1;
-    cl_int status;
-
-    //kernel configuration
-    const size_t local_size = 1024;             //local size
-    int elements_per_thread = 16;               //elements per thread
-    int grid_size = len / local_size / elements_per_thread;
-
-    //data initialization
-    int *h_in = new int[len];     //no need to copy data
-    int *h_loc = new int[len];
-    for(int i = 0; i < len; i++)    h_in[i] = i;
-    cout<<"Initializing data..."<<endl;
-//    random_generator_int_sole(h_loc, len);
-    random_generator_int(h_loc, len, len); /*not necessarily sole*/
-    cout<<"Initialization finished."<<endl;
-
-    cl_mem d_in = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(param.queue, d_in, CL_TRUE, 0, sizeof(int)*len, h_in, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-    cl_mem d_out = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    cl_mem d_loc = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(int)*len, NULL, &status);
-    checkErr(status, ERR_HOST_ALLOCATION);
-    status = clEnqueueWriteBuffer(param.queue, d_loc, CL_TRUE, 0, sizeof(int)*len, h_loc, 0, 0, 0);
-    checkErr(status, ERR_WRITE_BUFFER);
-
-    //loop for multi-pass
-    for(int pass = 1; pass <= 1 ; pass<<=1) {
-        cout<<"[Scatter Running] len:"<<len<<' '
-            <<"size:"<<len* sizeof(int)/1024/1024<<"MB "
-            <<"pass:"<<inputPasses<<' '
-            <<"gridSize:"<<grid_size<<'\t';
-        double myTime = 0;
-        for(int i = 0; i < exper_time; i++)  {
-            double tempTime = scatter(d_in, d_out, len, d_loc, local_size, grid_size, inputPasses);
-            myTime += tempTime;
-        }
-        myTime /= (exper_time);
-        cout<<"time:"<<myTime<<" ms.";
-        cout<<"("<<myTime/len*1e6<<" ns/tuple, "<< len* sizeof(int)/myTime/1e6<<"GB/s)"<<endl;
-    }
-
-    status = clReleaseMemObject(d_out);
-    checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_in);
-    checkErr(status, ERR_RELEASE_MEM);
-    status = clReleaseMemObject(d_loc);
-    checkErr(status, ERR_RELEASE_MEM);
-    delete[] h_loc;
-    delete[] h_in;
-
-    //check
-    // for(int i = 0; i < length; i++) {
-    //     if (h_dest_values[i] != h_source_values[h_loc[i]]) {
-    //         res = false;
-    //         break;
-    //     }
-    // }
-    // FUNC_CHECK(res);
-
-    return res;
 }
 
 //only test exclusive scan
@@ -281,7 +118,7 @@ bool testScan(int length, double &aveTime, int localSize, int gridSize, int R, i
         tempTimes[e] = tempTime;
 
     }
-    aveTime = averageHampel(tempTimes, EXPER_TIME);
+    aveTime = average_Hampel(tempTimes, EXPER_TIME);
 
     if(h_input) delete[] h_input;
     if(h_output) delete[] h_output;
@@ -463,7 +300,7 @@ bool test_scan_local_schemes(LocalScanType type, double &ave_time, unsigned repe
         cl_mem_free(d_in);
         cl_mem_free(d_out);
     }
-    ave_time = averageHampel(tempTimes, EXPERIMENT_TIMES);
+    ave_time = average_Hampel(tempTimes, EXPERIMENT_TIMES);
 
     if(h_input) delete[] h_input;
     if(h_output) delete[] h_output;
@@ -574,7 +411,7 @@ bool test_scan_matrix(MatrixScanType type, double &ave_time, int tile_size, unsi
         cl_mem_free(d_in);
         cl_mem_free(d_out);
     }
-    ave_time = averageHampel(tempTimes, EXPERIMENT_TIMES);
+    ave_time = average_Hampel(tempTimes, EXPERIMENT_TIMES);
 
     if(h_input) delete[] h_input;
     if(h_output) delete[] h_output;
@@ -636,7 +473,7 @@ bool testScanSingleThread(int length, double &aveTime, int tile_size) {
         tempTimes[e] = tempTime;
 
     }
-    aveTime = averageHampel(tempTimes, EXPERIMENT_TIMES);
+    aveTime = average_Hampel(tempTimes, EXPERIMENT_TIMES);
 
     if(h_input) delete[] h_input;
     if(h_output) delete[] h_output;
@@ -675,7 +512,7 @@ bool split_test(
     h_out_keys = new int[len];
     h_in_values = new int[len];
     h_out_values = new int[len];
-    random_generator_int(h_in_keys, len, len);
+    random_generator_int(h_in_keys, len, len, 1234);
     fixed_generator_int(h_in_values, len, SPLIT_VALUE_DEFAULT);  /*all values set to SPLIT_VALUE_DEFAULT*/
 
     if (structure == KVS_AOS) { /*KVS_AOS*/
@@ -848,7 +685,7 @@ bool split_test(
         }
         time_recorder[e] = tempTime;
     }
-    ave_time = averageHampel(time_recorder, experTime);
+    ave_time = average_Hampel(time_recorder, experTime);
 
     /*memory free*/
     cl_mem_free(d_in_keys);
@@ -882,7 +719,7 @@ void split_test_specific(
 
     /*report the results*/
     if (res) {
-        double throughput = computeMem(len, sizeof(int), my_time);
+        double throughput = compute_bandwidth(len, sizeof(int), my_time);
         cout << "Time: " << my_time << " ms." << "(" << throughput << "GB/s)" << endl;
     }
     else {

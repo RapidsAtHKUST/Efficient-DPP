@@ -37,7 +37,7 @@ bool pair_cmp (pair<double, double> i , pair<double, double> j) {
     return i.first < j.first;
 }
 
-double averageHampel(double *input, int num) {
+double average_Hampel(double *input, int num) {
     int valid = 0;
     double total = 0;
 
@@ -172,7 +172,7 @@ void test_omp() {
     for(int e = 0; e < experTime; e++) {
         times[e] = mem_access_omp(input, output, len);
     }
-    double aveTime = averageHampel(times,experTime);
+    double aveTime = average_Hampel(times, experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
              <<"Throughput:"<<2*1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
 
@@ -193,7 +193,7 @@ void test_omp_read(int chunk_size) {
     for(int e = 0; e < experTime; e++) {
         times[e] = mem_access_omp_read(input, output, len, chunk_size);
     }
-    double aveTime = averageHampel(times,experTime);
+    double aveTime = average_Hampel(times, experTime);
     std::cout<<"Chunk size:"<<chunk_size<<"\tTime:"<<aveTime<<" ms"<<'\t'
              <<"Throughput:"<<1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
 
@@ -215,7 +215,7 @@ void test_omp_ss() {
     for(int e = 0; e < experTime; e++) {
         times[e] = mem_access_omp_ss(input, output, len);
     }
-    double aveTime = averageHampel(times,experTime);
+    double aveTime = average_Hampel(times, experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
              <<"Throughput:"<<2*1.0*len* sizeof(int)/1024/1024/1024/aveTime*1e3<<" GB/s"<<std::endl;
 

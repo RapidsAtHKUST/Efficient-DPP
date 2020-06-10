@@ -2,8 +2,8 @@
 //  main.cpp
 //  gpuqp_opencl
 //
-//  Created by Bryan on 4/7/15.
-//  Copyright (c) 2015 Bryan. All rights reserved.
+//  Created by Zhuohang Lai on 4/7/15.
+//  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
 #include "Plat.h"
 
@@ -23,24 +23,9 @@ int main(int argc, const char *argv[]) {
     int repeat = 1;
     bool res;
 
-//      testMem(info);
+//    test_mem(info);
 //      testAccess();
 //      testLatency(info);
-
-    //test the gather and scatter with uniformly distributed indexes
-//    for(int i = 128; i < 4096; i += 256) {
-//        int num = i / sizeof(int) * 1024 * 1024;
-//        testGather(num);
-//        cout<<endl;
-//    }
-    int inputPass = atoi(argv[1]);
-//
-    for(int i = 2048; i <= 2048; i += 256) {
-        int num = i / sizeof(int) * 1024 * 1024;
-        testScatter(num, inputPass);
-        cout<<endl;
-    }
-
 
 //    testAtomic(info);
 

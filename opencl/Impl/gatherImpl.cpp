@@ -2,13 +2,16 @@
 //  gatherImpl.cpp
 //  gpuqp_opencl
 //
-//  Created by Bryan on 4/10/15.
-//  Copyright (c) 2015 Bryan. All rights reserved.
+//  Created by Zhuohang Lai on 4/10/15.
+//  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
 
 #include "../util/Plat.h"
 
-double gather(cl_mem d_in, cl_mem d_out, int length, cl_mem d_loc, int localSize, int gridSize, int pass) {
+double
+gather(cl_mem d_in, cl_mem d_out,
+       int length, cl_mem d_loc,
+       int localSize, int gridSize, int pass) {
     device_param_t param = Plat::get_device_param();
 
     cl_event event;

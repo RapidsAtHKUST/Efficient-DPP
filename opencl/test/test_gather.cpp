@@ -4,8 +4,9 @@
 //
 #include "Plat.h"
 #include "log.h"
+using namespace std;
 
-bool test_scatter(int len) {
+bool test_gather(int len) {
     log_trace("Function: %s", __FUNCTION__);
     bool res = true;
     cl_int status;
@@ -41,7 +42,7 @@ bool test_scatter(int len) {
     for(int pass = 1; pass <= 32 ; pass<<=1) {
         double myTime = 0;
         for(int i = 0; i < EXPERIMENT_TIMES; i++)  {
-            double tempTime = scatter(d_in, d_out, len, d_loc, local_size, grid_size, pass);
+            double tempTime = gather(d_in, d_out, len, d_loc, local_size, grid_size, pass);
             myTime += tempTime;
         }
         myTime /= EXPERIMENT_TIMES;
@@ -61,7 +62,7 @@ bool test_scatter(int len) {
 
     /*check the results*/
     for(int i = 0; i < len; i++) {
-        if (h_in[i] != h_out[h_loc[i]]) {
+        if (h_out[i] != h_in[h_loc[i]]) {
             res = false;
             log_warn("Incorrect results");
             break;
@@ -78,11 +79,11 @@ bool test_scatter(int len) {
 
 /*
  * Usage:
- *    ./test_scatter DATA_CARDINALITY
+ *    ./test_gather DATA_CARDINALITY
  * */
 int main(int argc, const char *argv[]) {
     Plat::plat_init();
     unsigned long long card = stoull(argv[1]);
-    assert(test_scatter(card));
+    assert(test_gather(card));
     return 0;
 }

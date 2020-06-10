@@ -3,6 +3,7 @@
 #ifdef __JETBRAINS_IDE__
 #include "../CL/cl.h"
 #include "opencl_fake.h"
+#include "openmp_fake.h"
 #endif
 
 /*literal macros*/
@@ -94,11 +95,11 @@ double hashjoin_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys
 
 
 //-------------------------test primitives-------------------------
-void testMem();
+//void test_bandwidth();
 void test_wg_sequence(unsigned long len);
 void testAccess();
-bool testGather(int len);
-bool testScatter(int len, int inputPass);
+//bool testGather(int len);
+//bool testScatter(int len, int inputPass);
 
 bool testScanSingleThread(int length, double &aveTime, int tile_size);
 bool testScan(int length, double &totalTime, int localSize, int gridSize, int R, int L, bool oop=true);
