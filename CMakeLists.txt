@@ -48,32 +48,28 @@ add_executable(comparison_gpu
         opencl/CL/cl_gl_ext.h
         opencl/CL/cl_platform.h
         opencl/CL/opencl.h
-        opencl/Impl/gatherImpl.cpp
-        opencl/Impl/nphjImpl.cpp
-        opencl/Impl/phjImpl.cpp
-        opencl/Impl/scanImpl.cpp
-        opencl/Impl/scatterImpl.cpp
-        opencl/Impl/splitImpl.cpp
+        opencl/primitives/gatherImpl.cpp
+        opencl/others/nphjImpl.cpp
+        opencl/others/phjImpl.cpp
+        opencl/primitives/scanImpl.cpp
+        opencl/primitives/scatterImpl.cpp
+        opencl/primitives/splitImpl.cpp
         opencl/kernels/gather_kernel.cl
-        opencl/kernels/hj_non_partitioned_kernel.cl
-        opencl/kernels/hj_partitioned_kernel.cl
+        opencl/others/hj_non_partitioned_kernel.cl
+        opencl/others/hj_partitioned_kernel.cl
         opencl/kernels/mem_kernel.cl
         opencl/kernels/scan_local_kernel.cl
         opencl/kernels/scan_global_RSS_kernel.cl
         opencl/kernels/scan_global_RSS_single_kernel.cl
         opencl/kernels/scatter_kernel.cl
         opencl/kernels/split_kernel.cl
-        opencl/test/main.cpp
         opencl/test/test_scan_local.cpp
-        opencl/util/general.cpp
-        opencl/util/general.h
+        opencl/primitives.h
         opencl/util/log.cpp
         opencl/util/log.h
         opencl/util/opencl_fake.h
         opencl/util/Plat.cpp
         opencl/util/Plat.h
-        opencl/util/testJoins.cpp
-        opencl/util/testPrimitives.cpp
         opencl/util/utility.cpp
         opencl/util/utility.h
         opencl/CMakeLists.txt

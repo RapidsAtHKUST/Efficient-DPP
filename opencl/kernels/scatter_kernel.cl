@@ -6,8 +6,7 @@
 kernel void scatter(
         global const int *d_in, global int* d_out, global const int* loc,
         const int length, const int ele_per_thread,
-        const int from, const int to)
-{
+        const int from, const int to) {
     int globalId = get_global_id(0);
     int warpId = globalId >> WARP_BITS;
 
@@ -18,7 +17,6 @@ kernel void scatter(
         int pos = loc[i];
         if (pos >= from && pos < to) {
             d_out[pos] = d_in[i];
-//            d_out[i] = d_in[i];
         }
     }
 }

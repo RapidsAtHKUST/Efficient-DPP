@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
 
-#include "../util/Plat.h"
+#include "Plat.h"
 
 double probe(cl_mem d_R_keys, cl_mem d_R_values, cl_mem d_S_keys, cl_mem d_S_values, int r_len, int s_len, cl_mem start_R, cl_mem start_S, int buckets, int &res_len);
 
@@ -14,7 +14,7 @@ double probe(cl_mem d_R_keys, cl_mem d_R_values, cl_mem d_S_keys, cl_mem d_S_val
 double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len)
 {
     device_param_t param = Plat::get_device_param();
-    Data_structure structure = KVS_SOA; /*SOA by default*/
+    DataStruc structure = KVS_SOA; /*SOA by default*/
 
     struct timeval start, end;
     double totalTime = 0;

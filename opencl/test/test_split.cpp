@@ -1,79 +1,25 @@
 //
-//  TestPrimitives.cpp
-//  gpuqp_opencl
-//
-//  Created by Zhuohang Lai on 5/21/15.
+//  Created by Zhuohang Lai on 4/7/15.
 //  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
-
 #include "Plat.h"
-#include "utility.h"
-using namespace std;
+#include "log.h"
+#include "../params.h"
+#include "../types.h"
 
-void fixed_generator_int(int *in_keys, uint64_t length, int value) {
-    for(int i = 0; i < length ; i++)    in_keys[i] = value;
-}
-
-void random_generator_tuples(tuple_t *in, uint64_t length, int max) {
-    sleep(1); srand((unsigned)time(NULL));
-    for(ulong i = 0; i < length ; i++)    {
-        in[i].x = rand() % max;
-        in[i].y = SPLIT_VALUE_DEFAULT;        /*all values set to 1*/
-    }
-}
-
-void valRandom_Partitioned(int *arr, uint64_t length, int partitions) {
-    srand((unsigned)time(NULL));
-    sleep(1);
-
-    //1. generate the partition array
-    int *pars = new int[length];
-    for(int i = 0; i < length; i++) pars[i] = rand()%partitions;
-
-    //2.histogram
-    int *his = new int[partitions];
-    for(int i = 0; i < partitions; i++) his[i] = 0;
-    for(int i = 0; i < length; i++) his[pars[i]]++;
-
-    //3.scan exclusively
-    int temp1 = 0;
-    for(int i = 0; i < partitions; i++) {
-        int temp2 = his[i];
-        his[i] = temp1;
-        temp1 += temp2;
-    }
-
-    //4. scatter
-    for(int i = 0; i < length; i++) {
-        arr[i] = his[pars[i]]++;
-    }
-
-    delete[] pars;
-    delete[] his;
-}
-
-/*
- * Split test inner function, to test specific kernel configurations
- *
- *  len:            length of the dataset
- *  algo:           WI_split, WG_split, WG_reorder_split, Single_split, Single_reorder_split
- *  structure:      KO, AOS or SOA
- *
- * */
-bool split_test(
-        int len, int buckets, double& ave_time,
-        Algo algo, Data_structure structure,
-        int local_size, int grid_size)
-{
+bool test_split(int len, int buckets, double &ave_time,
+                SPLIT_ALGO algo, // WI_split, WG_split, WG_reorder_split, Single_split, Single_reorder_split
+                DataStruc structure, //KO, AOS or SOA
+                int local_size, int grid_size) {
+    log_trace("Function: %s", __FUNCTION__);
     device_param_t param = Plat::get_device_param();
 
     cl_int status = 0;
     bool res = true;
-    int experTime = 10;
-    double tempTime, *time_recorder = new double[experTime];
+    double tempTime, *time_recorder = new double[EXPERIMENT_TIMES];
 
-    int *h_in_keys=NULL, *h_in_values=NULL, *h_out_keys=NULL, *h_out_values=NULL;/*for SOA*/
-    tuple_t *h_in=NULL, *h_out=NULL;      /*for AOS*/
+    int *h_in_keys=nullptr, *h_in_values=nullptr, *h_out_keys=nullptr, *h_out_values=nullptr;/*for SOA*/
+    tuple_t *h_in=nullptr, *h_out=nullptr;      /*for AOS*/
 
     cl_mem d_in_keys=0, d_in_values=0, d_out_keys=0, d_out_values=0;
     cl_mem d_in=0, d_out=0;
@@ -84,7 +30,10 @@ bool split_test(
     h_in_values = new int[len];
     h_out_values = new int[len];
     random_generator_int(h_in_keys, len, len, 1234);
-    fixed_generator_int(h_in_values, len, SPLIT_VALUE_DEFAULT);  /*all values set to SPLIT_VALUE_DEFAULT*/
+#pragma omp parallel for
+    for(auto i = 0; i < len; i++) { /*all values set to SPLIT_VALUE_DEFAULT*/
+        h_in_values[i] = SPLIT_VALUE_DEFAULT;
+    }
 
     if (structure == KVS_AOS) { /*KVS_AOS*/
         /*extra host memory initialization*/
@@ -96,9 +45,9 @@ bool split_test(
         }
 
         /*device memory initialization*/
-        d_in = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(tuple_t)*len, NULL, &status);
+        d_in = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(tuple_t)*len, nullptr, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
-        d_out = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(tuple_t)*len, NULL, &status);
+        d_out = clCreateBuffer(param.context, CL_MEM_READ_WRITE, sizeof(tuple_t)*len, nullptr, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
         /*memory copy*/
@@ -107,9 +56,9 @@ bool split_test(
     }
     else {      /*KO or KVS_SOA*/
         /*device memory initialization*/
-        d_in_keys = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+        d_in_keys = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, nullptr, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
-        d_out_keys = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+        d_out_keys = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, nullptr, &status);
         checkErr(status, ERR_HOST_ALLOCATION);
 
         /*memory copy*/
@@ -119,9 +68,9 @@ bool split_test(
         /*further initialize the values*/
         if(structure == KVS_SOA) {
             /*device memory initialization*/
-            d_in_values = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, NULL, &status);
+            d_in_values = clCreateBuffer(param.context, CL_MEM_READ_ONLY, sizeof(int)*len, nullptr, &status);
             checkErr(status, ERR_HOST_ALLOCATION);
-            d_out_values = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, NULL, &status);
+            d_out_values = clCreateBuffer(param.context, CL_MEM_WRITE_ONLY, sizeof(int)*len, nullptr, &status);
             checkErr(status, ERR_HOST_ALLOCATION);
 
             /*memory copy*/
@@ -140,7 +89,7 @@ bool split_test(
         d_out_unified = d_out_keys;
     }
 
-    for(int e = 0; e < experTime; e++) {
+    for(int e = 0; e < EXPERIMENT_TIMES; e++) {
         if (res == false)   break;
         switch (algo) {
             case WI:     /*WI-level split*/
@@ -226,7 +175,7 @@ bool split_test(
 
                 if (bits_now < bits_prev)  {
                     res = false;
-                    std::cerr<<"wrong result, keys are not right!"<<std::endl;
+                    log_error("wrong result, keys are not right");
                     break;
                 }
                 bits_prev = bits_now;
@@ -239,9 +188,8 @@ bool split_test(
             if (structure != KO) {
                 for(int i = 0; i < len; i++) {
                     if (h_out_values[i] != SPLIT_VALUE_DEFAULT) {
-                        std::cout<<i<<' '<<h_in_values[i]<<' '<<h_out_values[i]<<' '<<SPLIT_VALUE_DEFAULT<<std::endl;
                         res = false;
-                        std::cerr<<"wrong result, values are not right!"<<std::endl;
+                        log_error("wrong result, values are not right");
                         break;
                     }
                 }
@@ -249,14 +197,14 @@ bool split_test(
             /*sum not equal*/
             if (check_total_in != check_total_out) {
                 res = false;
-                std::cerr<<"wrong result, key sum not match!"<<std::endl;
-                std::cerr<<"right: "<<check_total_in<<"\toutput: "<<check_total_out<<std::endl;
+                log_error("wrong result, key sum not match!");
+                log_error("right: %d, output: %d", check_total_in, check_total_out);
                 break;
             }
         }
         time_recorder[e] = tempTime;
     }
-    ave_time = average_Hampel(time_recorder, experTime);
+    ave_time = average_Hampel(time_recorder, EXPERIMENT_TIMES);
 
     /*memory free*/
     cl_mem_free(d_in_keys);
@@ -277,29 +225,39 @@ bool split_test(
     return res;
 }
 
-void split_test_specific(
-        int len, int buckets,
-        Algo algo, Data_structure structure,
-        int local_size, int grid_size)
-{
-    cout<<"Length: "<<len<<'\t'
-        <<"Buckets: "<<buckets<<"\t";
+/*
+ *  Split test function, to test specific kernel configurations
+ *
+ *  @param len          number of elements of the input dataset
+ *  @param info         platform info
+ *  @param buckets      number of buckets
+ *  @param aveTime      average kernel execution time
+ *  @param algo         algorithms being tested
+ *  @param structure    data structure of the input dataset
+ *  @param local_size   number of WIs in a WG
+ *  @param grid_size    number of WGs in the kernel
+ *
+ * */
+void split_test_specific(int len, int buckets,
+                         SPLIT_ALGO algo, DataStruc structure,
+                         int local_size, int grid_size) {
+    log_trace("Function: %s", __FUNCTION__);
 
     double my_time;
-    bool res = split_test(len, buckets, my_time, algo, structure, local_size, grid_size);
+    bool res = test_split(len, buckets, my_time, algo, structure, local_size, grid_size);
 
     /*report the results*/
     if (res) {
         double throughput = compute_bandwidth(len, sizeof(int), my_time);
-        cout << "Time: " << my_time << " ms." << "(" << throughput << "GB/s)" << endl;
+        log_info("Length=%d, buckets=%d, time=%.1f ms, throughput=%.1f GB/s", len, buckets, my_time, throughput);
     }
     else {
-        cerr<<"Wrong answer."<<endl;
+        log_error("Wrong results");
     }
 }
 
-//search the most suitable (localSize, gridSize, sharedMem size) parameters for a split scheme
 /*
+ * Search the most suitable (localSize, gridSize, sharedMem size) parameters for a split scheme
  * device:
  *  0:GPU, 1:CPU, 2:MIC
  * algo:
@@ -312,11 +270,9 @@ void split_test_specific(
  * restriction:
  * 1. GPU: local memory size: 48KB
  */
-void split_test_parameters(
-        int len, int buckets,
-        Algo algo, Data_structure structure,
-        int device)
-{
+void split_test_parameters(int len, int buckets,
+                           SPLIT_ALGO algo, DataStruc structure,
+                           int device) {
     device_param_t param = Plat::get_device_param();
 
     cl_int status;
@@ -324,14 +280,11 @@ void split_test_parameters(
 
     /*Single split has fixed parameters*/
     if (algo == WG_fixed_reorder) {
-        std::cout<<"Single split has fixed parameter: "
-                 <<"local_size=1, grid_size=#CUs. "
-                 <<"No need to probe."<<std::endl;
+        log_info("Single split has fixed parameter: local_size=1, grid_size=#CUs");
         return;
     }
 
-    //on gpu
-    if (device==0) {
+    if (device==0) { //on gpu
         local_size_begin = 128;
         local_size_end = 1024;
         grid_size_begin = 1024;
@@ -386,26 +339,33 @@ void split_test_parameters(
                 if (his_len > limit) continue;
             }
 
-            /*invode split_test
-             *with the configuration*/
             double temp_time;
-            bool res = split_test(
+            bool res = test_split(
                     len, buckets, temp_time,
                     algo, structure,
                     local_size, grid_size);
-
-//            cout<<"Time:"<<temp_time<<" lsize:"<<local_size<<" gsize:"<<grid_size<<endl;
 
             if (temp_time < best_time) {
                 best_time = temp_time;
                 local_size_best = local_size;
                 grid_size_best = grid_size;
                 local_mem_size_best = local_buffer_len;
-
             }
         }
     }
-    cout<<"bLocal="<<local_size_best<<" bGrid="<<grid_size_best<<" Time="<<best_time<<"ms"<<endl;
+    log_info("Length=%d, algo=%d, buckets=%d, bLocal=%d, bGrid=%d, time=%.1f ms",
+    len, algo, buckets, local_size_best, grid_size_best, best_time);
 }
 
+int main(int argc, char *argv[]) {
+    Plat::plat_init();
+    int length = 1<<25;
 
+    cout<<"WG_varied_reorder, KO:"<<endl;
+    for (int buckets = 2; buckets <= 4096; buckets <<= 1) {
+        double ave_time;
+        test_split(length, buckets, ave_time, WG_varied_reorder, KO, 256, 32768);
+        log_info("Buckets=%d, time=%.1f ms", buckets, ave_time);
+    }
+    return 0;
+}

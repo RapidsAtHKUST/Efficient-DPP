@@ -1,7 +1,4 @@
 //
-//  PlatInit.hpp
-//  gpuqp_opencl
-//
 //  Created by Zhuohang Lai on 4/7/15.
 //  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
@@ -10,7 +7,7 @@
 
 #include <fstream>
 #include <iostream>
-#include "general.h"
+#include "../primitives.h"
 using namespace std;
 
 #define MAX_PLATFORM_NUM 1          /*only 1 platform available*/

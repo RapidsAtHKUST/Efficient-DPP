@@ -1,5 +1,3 @@
-#cmake -DOpenCL_LIBRARY=``path to OpenCL libOpenCL.so library" ``path to CMakeLists.txt"
-
 cmake_minimum_required(VERSION 3.1)
 project(HeteroSys_study)
 
@@ -8,7 +6,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -g -w -fopenmp")
 
 set(UTIL_DIR ${CMAKE_SOURCE_DIR}/util)
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
-set(IMPL_DIR ${CMAKE_SOURCE_DIR}/Impl)
+set(IMPL_DIR ${CMAKE_SOURCE_DIR}/primitives)
 
 #include paths
 include_directories(util)

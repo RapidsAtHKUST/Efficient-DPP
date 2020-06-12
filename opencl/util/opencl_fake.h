@@ -1,7 +1,6 @@
 /*  Reference: OpenCL V1.2 cheat sheet
  *  https://www.khronos.org/files/opencl-1-2-quick-reference-card.pdf
  * */
-
 #pragma once
 
 // 1st: macros

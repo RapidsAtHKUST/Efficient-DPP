@@ -1,8 +1,5 @@
 //
-//  scanImpl.cpp
-//  gpuqp_opencl
-//
-//  Created by Zhuohang Lai on 4/10/15.
+//  Created by Zhuohang Lai on 4/7/15.
 //  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
 
@@ -33,11 +30,8 @@ scan_chained(cl_mem d_in, cl_mem d_out,
     int val_invalid = SCAN_INTER_INVALID;
     int tile_size = local_size * (R + L);
     int num_tiles = (length + tile_size - 1) / tile_size;
-    log_info("Tile size=%d, number of tiles=%d", tile_size, num_tiles);
-
     auto lo_size = (R == 0) ? L*local_size : (L+1)*local_size; //intermediate memory size
     auto local_mem_size = std::max(lo_size, local_size*R); //actual memory size
-    log_info("Local memory size in each WG: %d", local_mem_size);
 
     sprintf(extra_flags, "-DREGISTERS=%d", (R==0) ? 1 : R); //specify the REGISTERS macro
     cl_kernel chain_scan_kernel = get_kernel(param.device, param.context, "scan_global_chain_kernel.cl", "scan", extra_flags);

@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
 
-#include "../util/Plat.h"
+#include "Plat.h"
 
 double build_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_table_keys, cl_mem d_table_values, unsigned hash_bits);
 double probe_np(cl_mem d_S_keys, cl_mem d_S_values, int s_len, cl_mem d_table_keys, cl_mem d_table_values, int hash_bits, int &res_len);

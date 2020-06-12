@@ -1,7 +1,7 @@
 #ifndef SPLIT_KERNEL_CL
 #define SPLIT_KERNEL_CL
 
-#include "params.h"
+#include "../params.h"
 
 #ifdef KVS_AOS
     typedef int2 Tuple;  /*for AOS*/

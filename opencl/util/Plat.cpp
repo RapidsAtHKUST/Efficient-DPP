@@ -1,7 +1,7 @@
 //
-// Created by Zhuohang Lai on 9/6/2020.
+//  Created by Zhuohang Lai on 4/7/15.
+//  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
-
 #include "Plat.h"
 #include "log.h"
 

@@ -1,11 +1,8 @@
 //
-//  utility.cpp
-//  gpuqp_cuda
+//  Created by Zhuohang Lai on 4/7/15.
+//  Copyright (c) 2015 Zhuohang Lai. All rights reserved.
 //
-//  Created by Zhuohang Lai on 01/19/2016.
-//  Copyright (c) 2015-2016 Zhuohang Lai. All rights reserved.
-//
-#include "utility.h"
+#include "../primitives.h"
 #include "log.h"
 #include <omp.h>
 using namespace std;
@@ -28,8 +25,8 @@ void my_itoa(int num, char *buffer, int base) {
     buffer[len] = '\0';
 }
 
-//calculating the memory bandwidth
-//elasped time: in ms using diffTime
+/*calculating the memory bandwidth
+ *elasped time: in ms using diffTime*/
 double compute_bandwidth(uint64_t num, int wordSize, double kernel_time) {
     return 1.0*num/1024/1024/1024*wordSize/kernel_time * 1000 ;
 }
@@ -82,6 +79,132 @@ double average_Hampel(double *input, int num) {
     total = 1.0 * total / valid;
     if(temp_input)  delete[] temp_input;
     return total;
+}
+
+/*OpenCL related functions*/
+void checkErr(cl_int status, const char* name, int tag) {
+    if (status != CL_SUCCESS) {
+        log_error("StatusError: %s (%d) Tag: %d", name, status, tag);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void cl_mem_free(cl_mem object) {
+    if (object != 0 || object != nullptr) {
+        cl_int status = clReleaseMemObject(object);
+        checkErr(status, "Failed to release the device memory object.");
+    }
+}
+
+double clEventTime(const cl_event event){
+    cl_ulong start,end;
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(start), &start, nullptr);
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(end), &end, nullptr);
+    return (end - start) / 1000000.0;
+}
+
+void add_param(char *param, char *macro, bool has_value, int value) {
+    strcat(param, " -D");
+    strcat(param, macro);
+
+    if (has_value) {
+        char value_str[100]={'\0'};
+        my_itoa(value, value_str, 10);  /*translated to string*/
+        strcat(param, "=");
+        strcat(param, value_str);
+    }
+    strcat(param, " ");
+}
+
+void display_compilation_log(cl_device_id device, cl_program program) {
+    size_t log_size;
+    clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, nullptr, &log_size);
+
+    char *log = new char[log_size];
+    clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, log_size, log, nullptr);
+    log_info("compilation log: %s", log);
+    if (log)    delete[] log;
+}
+
+cl_kernel get_kernel(
+        cl_device_id device, cl_context context,
+        char *file_name, char *func_name, char *params) {
+
+/*read the raw kernel file*/
+    char *addr = new char[1000];
+    memset(addr, '\0', sizeof(char)*1000);
+    strcat(addr, PROJECT_ROOT);
+    strcat(addr, "/kernels/");
+    strcat(addr, file_name);
+
+    ifstream in(addr,std::fstream::in| std::fstream::binary);
+    if(!in.good()) {
+        log_error("Kernel file not exist");
+        exit(1);
+    }
+
+    /*get file length*/
+    in.seekg(0, std::ios_base::end);    //jump to the end
+    size_t length = in.tellg();         //read the length
+    in.seekg(0, std::ios_base::beg);    //jump to the front
+
+    //read program source
+    char *source = new char[length+1];
+    in.read(source, length);            //read the kernel file
+    source[length] = '\0';              //set the last one char to '\0'
+
+/*compile the kernel file*/
+    cl_int status;
+    cl_program program = clCreateProgramWithSource(context, 1, (const char**)(&source), 0, &status);
+    checkErr(status, "Failed to creat program.");
+
+    char *args = new char[1000];
+    memset(args, '\0', sizeof(char)*1000);
+    strcat(args, "-I");
+    strcat(args, PROJECT_ROOT);
+    strcat(args, "/kernels ");
+    strcat(args," -DKERNEL ");
+
+    if (params != nullptr) strcat(args, params);
+
+//    strcat(args, " -auto-prefetch-level=0 ");
+    status = clBuildProgram(program, 1, &device, args, 0, 0);
+    if (status == CL_BUILD_PROGRAM_FAILURE) {
+        cerr<<"\tCompilation error."<<endl;
+        display_compilation_log(device, program);
+        exit(EXIT_FAILURE);
+    }
+
+    /*extract the assembly programs if necessary*/
+    size_t ass_size;
+    status = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &ass_size, nullptr);
+    checkErr(status,"Failed to get the size of the assembly program.");
+
+    unsigned char *binary = new unsigned char[ass_size];
+    status = clGetProgramInfo(program, CL_PROGRAM_BINARIES, ass_size, &binary, nullptr);
+    checkErr(status,"Failed to generate the assembly program.");
+
+    FILE * fpbin = fopen( "assembly.ass", "w" );
+    if( fpbin == nullptr ) {
+        fprintf( stderr, "Cannot create '%s'\n", "assembly.ass" );
+    }
+    else {
+        fwrite( binary, 1, ass_size, fpbin );
+        fclose( fpbin );
+    }
+    delete [] binary;
+
+
+    /*create the kernel*/
+    cl_kernel kernel = clCreateKernel(program, func_name, &status);
+    checkErr(status, "Kernel function name not found.");
+
+    if(source)  delete[] source;
+    if(addr)    delete[] addr;
+    if(args)    delete[] args;
+
+    in.close();
+    return kernel;
 }
 
 /*data generators*/
