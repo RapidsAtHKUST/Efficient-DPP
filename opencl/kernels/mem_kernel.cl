@@ -84,9 +84,8 @@ void wg_access( global int *in,
     out[0] = (int)acc; //to avoid optimizing away the add operations
 }
 
-kernel void cache_heat(
-        global int *data,
-        int length) {
+kernel
+void cache_heat(global int *data, int length) {
     int local_id = get_local_id(0);
     int local_size = get_local_size(0);
     const int global_id = get_global_id(0);

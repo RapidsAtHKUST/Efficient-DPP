@@ -104,12 +104,18 @@ void Plat::init_properties() {
     this->_device_params.queue = my_queue;
 
     /*initialize other params*/
-    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(uint64_t), &this->_device_params.gmem_size, nullptr);  /*global memory size*/
-    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(uint64_t), &this->_device_params.cacheline_size, nullptr); /*cacheline size*/
-    clGetDeviceInfo(my_device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(uint64_t), &this->_device_params.lmem_size, nullptr); /*local memory size*/
-    clGetDeviceInfo(my_device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(uint64_t), &this->_device_params.cus, nullptr);       /*number of CUs*/
-    clGetDeviceInfo(my_device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(uint64_t), &this->_device_params.max_alloc_size, nullptr);       /*number of CUs*/
-    clGetDeviceInfo(my_device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(uint64_t), &this->_device_params.max_local_size, nullptr);       /*maximal local size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(uint64_t),
+                    &this->_device_params.gmem_size, nullptr);  /*global memory size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(uint64_t),
+                    &this->_device_params.cacheline_size, nullptr); /*cacheline size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(uint64_t),
+                    &this->_device_params.lmem_size, nullptr); /*local memory size*/
+    clGetDeviceInfo(my_device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(uint64_t),
+                    &this->_device_params.cus, nullptr);       /*number of CUs*/
+    clGetDeviceInfo(my_device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(uint64_t),
+                    &this->_device_params.max_alloc_size, nullptr);       /*number of CUs*/
+    clGetDeviceInfo(my_device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(uint64_t),
+                    &this->_device_params.max_local_size, nullptr);       /*maximal local size*/
 
     /*get the wavefront size according to the device type*/
     cl_device_type my_type;

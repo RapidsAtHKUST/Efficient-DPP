@@ -58,14 +58,13 @@ add_executable(comparison_gpu
         opencl/kernels/hj_non_partitioned_kernel.cl
         opencl/kernels/hj_partitioned_kernel.cl
         opencl/kernels/mem_kernel.cl
-        opencl/kernels/scan_kernel.cl
-        opencl/kernels/scan_local.cl
-        opencl/kernels/scan_rss_kernel.cl
-        opencl/kernels/scan_rss_single_kernel.cl
+        opencl/kernels/scan_local_kernel.cl
+        opencl/kernels/scan_global_RSS_kernel.cl
+        opencl/kernels/scan_global_RSS_single_kernel.cl
         opencl/kernels/scatter_kernel.cl
         opencl/kernels/split_kernel.cl
         opencl/test/main.cpp
-        opencl/test/testScanLocalSchemes.cpp
+        opencl/test/test_scan_local.cpp
         opencl/util/general.cpp
         opencl/util/general.h
         opencl/util/log.cpp
@@ -73,7 +72,6 @@ add_executable(comparison_gpu
         opencl/util/opencl_fake.h
         opencl/util/Plat.cpp
         opencl/util/Plat.h
-        opencl/util/testBasic.cpp
         opencl/util/testJoins.cpp
         opencl/util/testPrimitives.cpp
         opencl/util/utility.cpp

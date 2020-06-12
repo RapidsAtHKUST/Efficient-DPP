@@ -14,4 +14,6 @@
 #define SPLIT_VALUE_DEFAULT         (1024)       /*default value*/
 #define EXPERIMENT_TIMES            (5)
 
+/*invalid val set when doing chained scan*/
+#define SCAN_INTER_INVALID      (-1)
 #endif

@@ -27,3 +27,5 @@ int atomic_inc(int*);
 int atomic_add(int*,int);
 int atomic_cmpxchg(int* data, int old, int val);
 
+using uint=unsigned int;
+

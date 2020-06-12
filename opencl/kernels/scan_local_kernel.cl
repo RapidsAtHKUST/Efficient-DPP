@@ -1,11 +1,19 @@
+#ifndef SCAN_LOCAL_CL
+#define	SCAN_LOCAL_CL
+
 #include "../params.h"
 #define NUM_OF_BANKS 32
-#define CON_OFFSET(n)  ((n)/NUM_OF_BANKS)
-//#define CON_OFFSET(n)  (0)
+//#define CON_OFFSET(n)  ((n)/NUM_OF_BANKS)
+#define CON_OFFSET(n)  (0)
+
+#ifndef TILE_SIZE
+#define TILE_SIZE (1)
+#endif
 
 //log function based on look-up table
 int findLog2(int input) {
-    int lookup[21] = {1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536,131072,262144,524288,1048576};
+    int lookup[21] = {1,2,4,8,16,32,64,128,256,512,1024,2048,4096,
+                      8192,16384,32768,65536,131072,262144,524288,1048576};
     int start = 0, end = 21, middle = (start+end)/2;
 
     while(lookup[middle] != input) {
@@ -19,8 +27,7 @@ int findLog2(int input) {
 
 void compute_mixed_access(
         unsigned step, unsigned global_id, unsigned global_size, unsigned len_total,
-        unsigned *begin, unsigned *end)
-{
+        unsigned *begin, unsigned *end) {
     int step_log = findLog2(step);
     int tile = (len_total + global_size - 1) / global_size;
 
@@ -35,9 +42,8 @@ void compute_mixed_access(
 inline void local_serial_scan(local int* lo, int length, local int *sum) {
     int localId = get_local_id(0);
     if (localId == 0) {
-        int sum1 = lo[0];
-        lo[0] = 0;
-        for(int i = 1; i < length; i++) {
+        int sum1 = 0;
+        for(int i = 0; i < length; i++) {
             int cur = lo[i];
             lo[i] = sum1;
             sum1 += cur;
@@ -467,8 +473,7 @@ inline void global_blelloch_scan(global int* lo_in, global int* lo_out, int leng
     }
 }
 
-//----------------------------- end of basic local scan networks --------------------------
-
+/*----------------------------- matrix scan --------------------------*/
 //intra-block matrix scan
 inline void scan_local(local int* lo, int ele_per_thread, local int* totalSum) {
     const unsigned localId = get_local_id(0);
@@ -491,11 +496,14 @@ inline void scan_local(local int* lo, int ele_per_thread, local int* totalSum) {
 
         tempStore = lo[localId + CON_OFFSET(localId)]; //for bank-conflict-free blelloch scan
         lo[localId + CON_OFFSET(localId)] = local_sum; //for bank-conflict-free blelloch scan
-        barrier(CLK_LOCAL_MEM_FENCE);
     }
+    barrier(CLK_LOCAL_MEM_FENCE);
+
 //----------------------- local scan schemes -----------------------------
     //2. Very fast scan on localSize elements
     local_serial_scan(lo,localSize, totalSum);
+    barrier(CLK_LOCAL_MEM_FENCE);
+
 //   local_warp_scan(lo, totalSum);                 //for GPU
 
 //    local_warp_scan_with_fence(lo, totalSum);     //for CPU and MIC
@@ -509,193 +517,21 @@ inline void scan_local(local int* lo, int ele_per_thread, local int* totalSum) {
         barrier(CLK_LOCAL_MEM_FENCE);
 
         //3. Scan
-        int local_temp0 = lo[row_start];
-        lo[row_start] = tempSum;
-        for (int r = row_start + 1; r < row_end; r++) {
-            int local_temp1 = lo[r];
-            lo[r] = local_temp0 + lo[r - 1];
-            local_temp0 = local_temp1;
+        for(int r = row_start; r < row_end; r++) {
+            auto temp = lo[r];
+            lo[r] = tempSum;
+            tempSum += temp;
         }
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 }
-
-/*---------------------fine-grained scan testing framework---------------------*/
-/*
- * mark: here is a bug in the Intel OpenCL driver:
- * the barrier function in the kernel does not work
- * */
-//kernel void local_scan_wrapper_SERIAL(
-//        global const int * d_in,
-//        global int * d_out,
-//        const int len_total,
-//        local int * lo)
-//{
-//    int local_id = get_local_id(0);
-//    int local_size = get_local_size(0);
-//    local int sum;
-//
-//    lo[local_id] = d_in[local_id];  /*loaded to local memory*/
-//    barrier(CLK_LOCAL_MEM_FENCE);
-//
-//    if (local_id == 0) {
-//        int acc = 0;
-//        for (int i = 0; i < len_total; i++) {
-//            int temp = lo[i];
-//            lo[i] = acc;
-//            acc += temp;
-//        }
-//        sum = acc;
-//
-//    }
-//    barrier(CLK_LOCAL_MEM_FENCE); /*this barrier does not function*/
-//    d_out[local_id] = lo[local_id]; /*only the WIs in the same wavefront of WI0 will wait for the barrier and finally output correct numbers*/
-//}
-
-/*
- * Testing the local scan schemes on
- * len_total: lsize(512)
- * place: local memory
- * config: single WG, lsize=512
- * a work-around for the OpenCL bug
- *
- * */
-kernel void local_scan_wrapper_SERIAL(
-        global const int * d_in,
-        global int * d_out,
-        const int len_total,
-        local int * lo)
-{
-    int local_id = get_local_id(0);
-    int local_size = get_local_size(0);
-    local int sum;
-
-    lo[local_id] = d_in[local_id];  /*loaded to local memory*/
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    if (local_id == 0) {
-        int acc = 0;
-        for (int i = 0; i < len_total; i++) {
-            int temp = lo[i];
-            d_out[i] = acc;
-            acc += temp;
-        }
-        sum = acc;
-    }
-}
-
-kernel void local_scan_wrapper_KOGGE(
-        global const int * d_in,
-        global int * d_out,
-        const int len_total,
-        local int * lo)
-{
-    int local_id = get_local_id(0);
-    int local_size = get_local_size(0);
-    local int sum;
-
-    if (local_id < len_total)
-        lo[local_id] = d_in[local_id];  /*loaded to local memory*/
-    barrier(CLK_LOCAL_MEM_FENCE);
-//    local_warp_scan(lo, len_total, &sum);
-//    local_warp_scan_with_fence(lo, &sum);
-
-    if (local_id < len_total)
-        d_out[local_id] = lo[local_id]; /*written to global memory*/
-}
-
-kernel void local_scan_wrapper_SKLANSKY(
-        global const int * d_in,
-        global int * d_out,
-        const int len_total,
-        local int * lo)
-{
-    int local_id = get_local_id(0);
-    int local_size = get_local_size(0);
-    local int sum;
-
-    lo[local_id] = d_in[local_id];  /*loaded to local memory*/
-    barrier(CLK_LOCAL_MEM_FENCE);
-    local_sklansky_scan(lo, len_total, &sum);
-    d_out[local_id] = lo[local_id]; /*written to global memory*/
-}
-
-kernel void local_scan_wrapper_BRENT(
-        global const int * d_in,
-        global int * d_out,
-        const int len_total,
-        local int * lo)
-{
-    int local_id = get_local_id(0);
-    int local_size = get_local_size(0);
-    local int sum;
-
-    lo[local_id] = d_in[local_id];  /*loaded to local memory*/
-    barrier(CLK_LOCAL_MEM_FENCE);
-//    local_blelloch_scan(lo, len_total, &sum);
-    local_blelloch_scan_no_conflict(lo, len_total, &sum);
-    d_out[local_id] = lo[local_id]; /*written to global memory*/
-}
-
-kernel void global_scan_wrapper_SERIAL(
-        global const int * d_in,
-        global int * d_out,
-        const int len_total,
-        local int * lo)
-{
-    int local_id = get_local_id(0);
-
-    if (local_id == 0) {
-        int acc = 0;
-        for (int i = 0; i < len_total; i++) {
-            d_out[i] = acc;
-            acc += d_in[i];
-        }
-    }
-}
-
-kernel void global_scan_wrapper_KOGGE(
-        global const int * d_in,
-        global int * d_out,
-        const int len_total,
-        local int * lo)
-{
-    local int sum;
-    global_warp_scan_with_fence(d_in, d_out, &sum);
-//    global_warp_scan(d_in, d_out, &sum);  /*on global mem, warp scan without fence is not available*/
-}
-
-kernel void global_scan_wrapper_SKLANSKY(
-        global const int * d_in,
-        global int * d_out,
-        const int len_total,
-        local int * lo)
-{
-    local int sum;
-    global_sklansky_scan(d_in, d_out, len_total, &sum);
-}
-
-kernel void global_scan_wrapper_BRENT(
-        global const int * d_in,
-        global int * d_out,
-        const int len_total,
-        local int * lo)
-{
-    local int sum;
-    global_blelloch_scan(d_in, d_out, len_total, &sum);
-}
-
-#ifndef TILE_SIZE
-#define TILE_SIZE (1)
-#endif
 
 /*matrix scan, data stored in the local memory*/
-kernel void matrix_scan_lm(
-        global int *d_in,
-        global int *d_out,
-        local int *ldata,       /*size: local_size*TILE_SIZE*sizeof(int)*/
-        local int *lsum)        /*size: local_size*sizeof(int)*/
-{
+kernel
+void matrix_scan_lm(global int *d_in,
+                    global int *d_out,
+                    local int *ldata,       /*size: local_size*TILE_SIZE*sizeof(int)*/
+                    local int *lsum) {        /*size: local_size*sizeof(int)*/
     int local_id = get_local_id(0);
     int local_size = get_local_size(0);
     uint len_total = TILE_SIZE * local_size;
@@ -729,8 +565,6 @@ kernel void matrix_scan_lm(
         }
     }
     barrier(CLK_LOCAL_MEM_FENCE);       /*warning: this barrier does not function on Intel devices*/
-//    local int sum;
-//    local_warp_scan_with_fence(lsum, &sum);
 
     /*final scan*/
     acc = 0;
@@ -741,11 +575,10 @@ kernel void matrix_scan_lm(
 }
 
 /*matrix scan, data stored in the registers*/
-kernel void matrix_scan_reg(
-        global int *d_in,
-        global int *d_out,
-        local int *lsum)        /*size: local_size*sizeof(int)*/
-{
+kernel
+void matrix_scan_reg(global int *d_in,
+                     global int *d_out,
+                     local int *lsum) {        /*size: local_size*sizeof(int)*/
     int local_id = get_local_id(0);
     int local_size = get_local_size(0);
     uint len_total = TILE_SIZE * local_size;
@@ -774,9 +607,6 @@ kernel void matrix_scan_reg(
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
-//    local int sum;
-//    local_warp_scan_with_fence(lsum, &sum);
-
     /*final scan*/
     acc = lsum[local_id];
     for(int i = 0; i < TILE_SIZE; i++) {
@@ -786,12 +616,11 @@ kernel void matrix_scan_reg(
 }
 
 /*matrix scan, data stored in the registers and transferred via local memory*/
-kernel void matrix_scan_lm_reg(
-        global int *d_in,
-        global int *d_out,
-        local int *ldata,       /*size: local_size*TILE_SIZE*sizeof(int)*/
-        local int *lsum)        /*size: local_size*sizeof(int)*/
-{
+kernel
+void matrix_scan_lm_reg(global int *d_in,
+                        global int *d_out,
+                        local int *ldata,       /*size: local_size*TILE_SIZE*sizeof(int)*/
+                        local int *lsum) {       /*size: local_size*sizeof(int)*/
     int local_id = get_local_id(0);
     int local_size = get_local_size(0);
     uint len_total = TILE_SIZE * local_size;
@@ -829,8 +658,6 @@ kernel void matrix_scan_lm_reg(
         }
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-//    local int sum;
-//    local_warp_scan_with_fence(lsum, &sum);
 
     /*final scan in the registers*/
     acc = lsum[local_id];
@@ -847,34 +674,15 @@ kernel void matrix_scan_lm_reg(
 
 /*baseline: fetch the data to the local memory
  * and scan with a single workitem*/
-kernel void matrix_scan_lm_serial(
-        global int *d_in,
-        global int *d_out,
-        local int *ldata)
-{
+kernel
+void matrix_scan_lm_serial(global int *d_in,
+                           global int *d_out,
+                           local int *ldata) {
     int local_id = get_local_id(0);
     int local_size = get_local_size(0);
     uint len_total = TILE_SIZE * local_size;
 
     /*data transferred to local memory*/
-//    uint begin, end, step = WARP_SIZE;
-//    compute_mixed_access(
-//            step, local_id, local_size, len_total,
-//            &begin, &end);
-//
-//    for(int i = begin; i < end; i += step)
-//        ldata[i] = d_in[i];
-//    barrier(CLK_LOCAL_MEM_FENCE);
-//
-//    if (local_id == 0) {
-//        int acc = 0;
-//        for (int i = 0; i < len_total; i++) {
-//            int temp = ldata[i];
-//            d_out[i] = acc;
-//            acc += temp;
-//        }
-//    }
-
     if (local_id == 0) {
         int acc = 0;
         for (int i = 0; i < len_total; i++) {
@@ -885,3 +693,4 @@ kernel void matrix_scan_lm_serial(
     }
 
 }
+#endif

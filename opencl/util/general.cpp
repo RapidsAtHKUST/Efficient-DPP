@@ -1,5 +1,10 @@
 #include "general.h"
 #include "log.h"
+
+#ifndef PROJECT_ROOT
+#define PROJECT_ROOT " "
+#endif
+
 using namespace std;
 
 /*OpenCL related functions*/
@@ -62,7 +67,7 @@ cl_kernel get_kernel(
 
     ifstream in(addr,std::fstream::in| std::fstream::binary);
     if(!in.good()) {
-        cerr<<"Kernel file not exist!"<<endl;
+       log_error("Kernel file not exist");
         exit(1);
     }
 
@@ -85,16 +90,12 @@ cl_kernel get_kernel(
     memset(args, '\0', sizeof(char)*1000);
     strcat(args, "-I");
     strcat(args, PROJECT_ROOT);
-    strcat(args, "/inc ");
-
-    strcat(args, "-I");
-    strcat(args, PROJECT_ROOT);
-    strcat(args, "/src/kernels ");
-
+    strcat(args, "/kernels ");
     strcat(args," -DKERNEL ");
 
-    if (params != NULL) strcat(args, params);
+    if (params != nullptr) strcat(args, params);
 
+//    log_info("Kernel compile args: %s", args);
 //    strcat(args, " -auto-prefetch-level=0 ");
     status = clBuildProgram(program, 1, &device, args, 0, 0);
     if (status == CL_BUILD_PROGRAM_FAILURE) {

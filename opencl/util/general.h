@@ -65,9 +65,8 @@ double scatter(cl_mem d_source_values, cl_mem d_dest_values, int length, cl_mem 
 double scan_fast_out_of_place(cl_mem d_in, cl_mem d_out, int length, int local_size, int grid_size, int R, int L);
 
 double scan_chained(cl_mem d_in, cl_mem d_out, int length, int localSize, int gridSize, int R, int L);
-double scan_rss(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int grid_size);
-double scan_rss_single(cl_mem d_in, cl_mem d_out, unsigned length);
-double scan_global_single_thread(cl_mem d_in, cl_mem d_out, int length, int tile_size);
+double scan_RSS(cl_mem d_in, cl_mem d_out, unsigned length, int local_size, int grid_size);
+double scan_RSS_single(cl_mem d_in, cl_mem d_out, unsigned length);
 
 /*split algorithms*/
 double WI_split(
@@ -93,19 +92,6 @@ double partitionHJ(cl_mem d_R, int rLen,int totalCountBits, int localSize, int g
 double hashjoin(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len);
 double hashjoin_np(cl_mem d_R_keys, cl_mem d_R_values, int rLen, cl_mem d_S_keys, cl_mem d_S_values, int sLen, int &res_len);
 
-
-//-------------------------test primitives-------------------------
-//void test_bandwidth();
-//void test_wg_sequence(unsigned long len);
-//void testAccess();
-//bool testGather(int len);
-//bool testScatter(int len, int inputPass);
-
-bool testScanSingleThread(int length, double &aveTime, int tile_size);
-bool testScan(int length, double &totalTime, int localSize, int gridSize, int R, int L, bool oop=true);
-
-bool test_scan_local_schemes(LocalScanType type, double &ave_time, unsigned repeat);
-bool test_scan_matrix(MatrixScanType type, double &ave_time, int tile_size, unsigned repeat);
 
 /*
  *  Split test function, to test specific kernel configurations
