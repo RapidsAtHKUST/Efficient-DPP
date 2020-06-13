@@ -4,42 +4,34 @@ project(comparison_gpu)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(opencl/util)
+include_directories(cuda/util)
+include_directories(cuda/cub)
 
 add_executable(comparison_gpu
         common/utility.cpp
         common/utility.h
-        cuda/cub/experimental/histogram/histogram_cub.h
-        cuda/cub/experimental/histogram/histogram_gmem_atomics.h
-        cuda/cub/experimental/histogram/histogram_smem_atomics.h
-        cuda/cub/experimental/sparse_matrix.h
-        cuda/cub/test/half.h
-        cuda/cub/test/link_main.cpp
-        cuda/cub/test/mersenne.h
-        cuda/cub/test/test_util.h
-        cuda/inc/dataDef.h
-        cuda/inc/kernels.h
-        cuda/inc/test.h
-        cuda/kernels/bisort.cu
-        cuda/kernels/map.cu
-        cuda/kernels/mem.cu
-        cuda/kernels/radixSort.cu
-        cuda/kernels/scan.cu
-        cuda/kernels/split.cu
-        cuda/src/main.cpp
-        cuda/src/testBasic.cpp
-        cuda/src/testBisort.cpp
-        cuda/src/testRadixSort.cpp
-        cuda/src/testSplit.cpp
-        cuda/gather.cu
-        cuda/Makefile
-        cuda/mem_cpy.cu
-        cuda/mem_mul.cu
-        cuda/radixSortCUB.cu
-        cuda/scanCUB.cu
-        cuda/scanThrust.cu
-        cuda/scatter.cu
-        cuda/split_blocks.cu
-        cuda/split_threads.cu
+        cuda/others/inc/dataDef.h
+        cuda/others/inc/kernels.h
+        cuda/others/inc/test.h
+        cuda/others/kernels/bisort.cu
+        cuda/others/kernels/map.cu
+        cuda/others/kernels/mem.cu
+        cuda/others/kernels/radixSort.cu
+        cuda/others/kernels/scan.cu
+        cuda/others/kernels/split.cu
+        cuda/others/src/main.cpp
+        cuda/others/src/testBasic.cpp
+        cuda/others/src/testBisort.cpp
+        cuda/others/src/testRadixSort.cpp
+        cuda/others/src/testSplit.cpp
+        cuda/test_gather.cu
+        cuda/test_bandwidth.cu
+        cuda/others/radixSortCUB.cu
+        cuda/test_scan.cu
+        cuda/others/scanThrust.cu
+        cuda/others/scatter.cu
+        cuda/test_split.cu
+        cuda/others/split_threads.cu
         opencl/CL/cl.h
         opencl/CL/cl.hpp
         opencl/CL/cl_egl.h
