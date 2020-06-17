@@ -216,6 +216,7 @@ bool test_split(uint64_t length, CUDATimeStat *timing) {
 int main(int argc, char* argv[]) {
     cudaSetDevice(DEVICE_ID);
     CUDATimeStat timing;
-    assert(test_split(stoll(argv[1]), &timing));
+    int length = 1<< 25;
+    assert(test_split(length, &timing));
     return 0;
 }

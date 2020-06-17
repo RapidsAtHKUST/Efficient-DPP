@@ -1,6 +1,6 @@
 //
 //  split.cu
-//  comparison_gpu
+//  OpenCL-Primitives
 //
 //  Created by Zhuohang Lai on 01/24/16.
 //  Copyright (c) 2015-2016 Zhuohang Lai. All rights reserved.

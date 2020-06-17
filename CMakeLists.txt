@@ -10,20 +10,6 @@ include_directories(cuda/cub)
 add_executable(comparison_gpu
         common/utility.cpp
         common/utility.h
-        cuda/others/inc/dataDef.h
-        cuda/others/inc/kernels.h
-        cuda/others/inc/test.h
-        cuda/others/kernels/bisort.cu
-        cuda/others/kernels/map.cu
-        cuda/others/kernels/mem.cu
-        cuda/others/kernels/radixSort.cu
-        cuda/others/kernels/scan.cu
-        cuda/others/kernels/split.cu
-        cuda/others/src/main.cpp
-        cuda/others/src/testBasic.cpp
-        cuda/others/src/testBisort.cpp
-        cuda/others/src/testRadixSort.cpp
-        cuda/others/src/testSplit.cpp
         cuda/test_gather.cu
         cuda/test_bandwidth.cu
         obsolete/CUDA/radixSortCUB.cu
