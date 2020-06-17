@@ -1,7 +1,7 @@
 #ifndef HJ_KERNEL_CL
 #define HJ_KERNEL_CL
 
-#include "../params.h"
+#include "../../opencl/params.h"
 
 //non-partitioned hash join
 //build a shared hash table

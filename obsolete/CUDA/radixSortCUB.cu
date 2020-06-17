@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
-#include "../cub/cub/device/device_scan.cuh"
+#include "cub/device/device_scan.cuh"
 using namespace std;
 using namespace cub;
 

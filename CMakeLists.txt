@@ -26,12 +26,12 @@ add_executable(comparison_gpu
         cuda/others/src/testSplit.cpp
         cuda/test_gather.cu
         cuda/test_bandwidth.cu
-        cuda/others/radixSortCUB.cu
+        obsolete/CUDA/radixSortCUB.cu
         cuda/test_scan.cu
-        cuda/others/scanThrust.cu
-        cuda/others/scatter.cu
+        obsolete/CUDA/scanThrust.cu
+        obsolete/CUDA/scatter.cu
         cuda/test_split.cu
-        cuda/others/split_threads.cu
+        obsolete/CUDA/split_threads.cu
         opencl/CL/cl.h
         opencl/CL/cl.hpp
         opencl/CL/cl_egl.h
@@ -41,14 +41,14 @@ add_executable(comparison_gpu
         opencl/CL/cl_platform.h
         opencl/CL/opencl.h
         opencl/primitives/gatherImpl.cpp
-        opencl/others/nphjImpl.cpp
-        opencl/others/phjImpl.cpp
+        obsolete/OpenCL/nphjImpl.cpp
+        obsolete/OpenCL/phjImpl.cpp
         opencl/primitives/scanImpl.cpp
         opencl/primitives/scatterImpl.cpp
         opencl/primitives/splitImpl.cpp
         opencl/kernels/gather_kernel.cl
-        opencl/others/hj_non_partitioned_kernel.cl
-        opencl/others/hj_partitioned_kernel.cl
+        obsolete/OpenCL/hj_non_partitioned_kernel.cl
+        obsolete/OpenCL/hj_partitioned_kernel.cl
         opencl/kernels/mem_kernel.cl
         opencl/kernels/scan_local_kernel.cl
         opencl/kernels/scan_global_RSS_kernel.cl

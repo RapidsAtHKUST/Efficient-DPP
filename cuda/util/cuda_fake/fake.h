@@ -247,7 +247,7 @@ cudaError_t cudaMemsetAsync ( void* devPtr, int  value, size_t count, cudaStream
 __host__ ​cudaError_t cudaStreamCreate ( cudaStream_t* pStream );
 __host__ cudaError_t cudaStreamSynchronize ( cudaStream_t stream );
 
-// 7th: others
+// 7th: obsolete
 ​const char* cudaGetErrorString ( cudaError_t error );
 cudaError_t cudaPeekAtLastError ( void );
 cudaError_t cudaMemGetInfo(size_t *free, size_t *total);
