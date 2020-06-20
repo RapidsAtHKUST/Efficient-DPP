@@ -88,7 +88,7 @@ double diffTime(struct timeval end, struct timeval start) {
 }
 
 //scalar multiplication
-double mem_access_omp(int *input, int *output, int len) {
+double scale_omp(int *input, int *output, int len) {
 
     struct timeval start, end;
 
@@ -139,7 +139,7 @@ double mem_access_omp_read(int *input, int *output, int len, int chunk_size) {
 }
 
 //scalar multiplication with nontemporal streaming store
-double mem_access_omp_ss(int *input, int *output, int len) {
+double scale_omp_ss(int *input, int *output, int len) {
 #define SIMD_WIDTH  (8)
     struct timeval start, end;
 
@@ -170,7 +170,7 @@ void test_omp() {
     int experTime = 30;
     double times[experTime];
     for(int e = 0; e < experTime; e++) {
-        times[e] = mem_access_omp(input, output, len);
+        times[e] = scale_omp(input, output, len);
     }
     double aveTime = average_Hampel(times, experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'
@@ -213,7 +213,7 @@ void test_omp_ss() {
     int experTime = 150;
     double times[experTime];
     for(int e = 0; e < experTime; e++) {
-        times[e] = mem_access_omp_ss(input, output, len);
+        times[e] = scale_omp_ss(input, output, len);
     }
     double aveTime = average_Hampel(times, experTime);
     std::cout<<"Time:"<<aveTime<<" ms"<<'\t'

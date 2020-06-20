@@ -62,9 +62,9 @@ add_executable(comparison_gpu
         openmp/src/scan.cpp
         openmp/src/scatter.cpp
         openmp/src/vpu.cpp
-        openmp/gather_scatter_CPU.cpp
+        openmp/test_gather_scatter_CPU.cpp
         openmp/gather_scatter_MIC.cpp
-        openmp/mem_cpy.cpp
+        openmp/test_bandwidth_CPU.cpp
         openmp/mul_omp.cpp
         openmp/scan_omp.cpp
         openmp/scan_tbb.cpp
