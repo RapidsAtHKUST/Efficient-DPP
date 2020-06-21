@@ -62,6 +62,27 @@ make -j
 
 ```./test_split ``` : test the performance of GPU multi-split
 
+## OpenMP-Primitives
+
+### Compilation 
+
+This project uses CMake for compilation.
+
+```
+cd cuda
+mkdir -p build && cd build
+cmake ..
+make -j
+```
+
+### Tests
+
+```./test_bandwidth_CPU``` : test the sequential bandwidth with the Stream Benchmark (copy and scalar)
+
+```./test_gather_scatter_CPU DATA_NUM``` : test the performance of gather and scatter on specified number of data
+
+```./test_scan_CPU ``` : test the performance of OpenMP-based SSA, RTS scan and TBB scan
+
 
 
 

@@ -4,6 +4,10 @@
 //
 #pragma once
 
+#ifdef __JETBRAINS_IDE__
+#include "openmp_fake.h"
+#endif
+
 #include <iostream>
 
 double compute_bandwidth(uint64_t num, int wordSize, double kernel_time);

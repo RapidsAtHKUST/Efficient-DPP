@@ -1,7 +1,7 @@
 #ifndef __FUNCTIONS_H__
 #define __FUNCTIONS_H__
 
-#include "../../opencl/util/utility.h"
+#include "utility.h"
 
 
 //basic operations

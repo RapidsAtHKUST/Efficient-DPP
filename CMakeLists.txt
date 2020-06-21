@@ -52,20 +52,20 @@ add_executable(comparison_gpu
         opencl/util/utility.h
         opencl/CMakeLists.txt
         opencl/params.h
-        openmp/inc/functions.h
-        openmp/src/gather.cpp
-        openmp/src/latency.cpp
-        openmp/src/main.cpp
-        openmp/src/map.cpp
-        openmp/src/mem.cpp
-        openmp/src/radixSort.cpp
-        openmp/src/scan.cpp
-        openmp/src/scatter.cpp
-        openmp/src/vpu.cpp
+        obsolete/OpenMP/functions.h
+        obsolete/OpenMP/gather.cpp
+        obsolete/OpenMP/latency.cpp
+        obsolete/OpenMP/main.cpp
+        obsolete/OpenMP/map.cpp
+        obsolete/OpenMP/mem.cpp
+        obsolete/OpenMP/radixSort.cpp
+        obsolete/OpenMP/scan.cpp
+        obsolete/OpenMP/scatter.cpp
+        obsolete/OpenMP/vpu.cpp
         openmp/test_gather_scatter_CPU.cpp
-        openmp/gather_scatter_MIC.cpp
+        obsolete/OpenMP/gather_scatter_MIC.cpp
         openmp/test_bandwidth_CPU.cpp
-        openmp/mul_omp.cpp
-        openmp/scan_omp.cpp
-        openmp/scan_tbb.cpp
-        openmp/split_omp.cpp)
+        obsolete/OpenMP/mul_omp.cpp
+        openmp/test_scan_CPU.cpp
+        obsolete/OpenMP/scan_tbb.cpp
+        )

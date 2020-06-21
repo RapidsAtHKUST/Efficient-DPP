@@ -82,7 +82,7 @@ double scale_omp_ss(int *input, int *output, uint64_t len) {
     return t.elapsed()*1000; //in ms
 }
 
-void test_bandwidth(int max_len_log) {
+bool test_bandwidth(int max_len_log) {
     log_info("Function: %s", __FUNCTION__);
     assert(max_len_log > 10);
     uint64_t max_len = pow(2, max_len_log);
@@ -151,9 +151,11 @@ void test_bandwidth(int max_len_log) {
     delete[] output;
     _mm_free(input_aligned);
     _mm_free(output_aligned);
+
+    return true;
 }
 
 int main(int argc, char* argv[]) {
-    test_bandwidth(30);
+    assert(test_bandwidth(30));
     return 0;
 }
